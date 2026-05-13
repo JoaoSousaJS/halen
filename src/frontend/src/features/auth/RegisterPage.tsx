@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { SubmitEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../../shared/api/auth';
 import { getApiError } from '../../shared/api/errors';
@@ -24,11 +25,12 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // rerender-functional-setstate: functional update prevents stale closure bugs
   function setField<K extends keyof FormState>(field: K, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -106,7 +108,7 @@ export default function RegisterPage() {
             />
           </label>
 
-          {error && <p className="auth-error">{error}</p>}
+          {error ? <p className="auth-error">{error}</p> : null}
 
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account'}

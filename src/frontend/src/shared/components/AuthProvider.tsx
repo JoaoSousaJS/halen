@@ -24,14 +24,26 @@ function parseToken(token: string): JwtPayload | null {
   }
 }
 
+// client-localstorage-schema: wrap every localStorage call in try-catch.
+// getItem/setItem throw in Safari incognito, when storage is disabled, or quota exceeded.
+function storageGet(key: string): string | null {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function storageSet(key: string, value: string): void {
+  try { localStorage.setItem(key, value); } catch { /* storage unavailable */ }
+}
+function storageRemove(key: string): void {
+  try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
+}
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => {
-    const stored = localStorage.getItem('token');
+    const stored = storageGet('token');
     if (stored && !parseToken(stored)) {
       // Token exists but is malformed — clear it rather than leaving a corrupt credential.
-      localStorage.removeItem('token');
+      storageRemove('token');
       return null;
     }
     return stored;
@@ -40,12 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const user = token ? parseToken(token) : null;
 
   function saveToken(newToken: string) {
-    localStorage.setItem('token', newToken);
+    storageSet('token', newToken);
     setToken(newToken);
   }
 
   function logout() {
-    localStorage.removeItem('token');
+    storageRemove('token');
     setToken(null);
   }
 

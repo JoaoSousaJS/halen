@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { SubmitEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../shared/api/auth';
 import { getApiError } from '../../shared/api/errors';
@@ -13,7 +14,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -68,7 +69,7 @@ export default function LoginPage() {
             />
           </label>
 
-          {error && <p className="auth-error">{error}</p>}
+          {error ? <p className="auth-error">{error}</p> : null}
 
           <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}

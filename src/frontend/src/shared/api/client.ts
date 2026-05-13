@@ -15,12 +15,21 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
+// client-localstorage-schema: wrap localStorage in try-catch — throws in Safari incognito,
+// disabled storage, or quota exceeded.
+function storageGet(key: string): string | null {
+  try { return localStorage.getItem(key); } catch { return null; }
+}
+function storageRemove(key: string): void {
+  try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
+}
+
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = storageGet('token');
   if (!token) return config;
 
   if (isTokenExpired(token)) {
-    localStorage.removeItem('token');
+    storageRemove('token');
     window.location.href = '/login';
     return Promise.reject(new Error('Session expired'));
   }
@@ -34,7 +43,7 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
-      localStorage.removeItem('token');
+      storageRemove('token');
       window.location.href = '/login';
     }
     return Promise.reject(error);

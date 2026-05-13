@@ -1,4 +1,5 @@
 import { StrictMode } from 'react';
+import type { ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './shared/components/AuthProvider';
@@ -7,7 +8,7 @@ import RegisterPage from './features/auth/RegisterPage';
 import DashboardPage from './features/auth/DashboardPage';
 import './index.css';
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
+function PrivateRoute({ children }: { children: ReactNode }) {
   const { token } = useAuth();
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 }
