@@ -1,2 +1,14 @@
 design/
 .claude/
+
+# Secrets
+infra/.env
+
+# .NET build output
+**/bin/
+**/obj/
+
+# Rider / VS
+.idea/
+.vs/
+*.user
