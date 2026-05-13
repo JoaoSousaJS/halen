@@ -11,7 +11,7 @@ COPY Halen.API/Halen.API.csproj Halen.API/
 RUN dotnet restore Halen.API/Halen.API.csproj
 
 COPY . .
-RUN dotnet publish Halen.API/Halen.API.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish Halen.API/Halen.API.csproj -c Release -o /app/publish
 
 # Stage 2: runtime — only the compiled output, no SDK
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
