@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Halen.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c1418efe5531aec4098e28af8708d22da67d4471")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1c88f4469c9710ab3ff809c0187147707d65845f")]
 [assembly: System.Reflection.AssemblyProductAttribute("Halen.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Halen.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

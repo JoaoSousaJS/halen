@@ -11,13 +11,8 @@ namespace Halen.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<Guid>(
-                name: "ActorId",
-                table: "AuditLogs",
-                type: "uuid",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
+            migrationBuilder.Sql(
+                """ALTER TABLE "AuditLogs" ALTER COLUMN "ActorId" TYPE uuid USING "ActorId"::uuid""");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DoctorProfiles_LicenseNumber",

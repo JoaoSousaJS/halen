@@ -1,8 +1,3 @@
-/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.csproj.AssemblyReference.cache
-/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
-/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.AssemblyInfoInputs.cache
-/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.AssemblyInfo.cs
-/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.csproj.CoreCompileInputs.cache
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/bin/Debug/net8.0/Halen.Infrastructure.deps.json
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/bin/Debug/net8.0/Halen.Infrastructure.dll
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/bin/Debug/net8.0/Halen.Infrastructure.pdb
@@ -10,6 +5,11 @@
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/bin/Debug/net8.0/Halen.Domain.dll
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/bin/Debug/net8.0/Halen.Application.pdb
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/bin/Debug/net8.0/Halen.Domain.pdb
+/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.csproj.AssemblyReference.cache
+/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.AssemblyInfoInputs.cache
+/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.AssemblyInfo.cs
+/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.csproj.CoreCompileInputs.cache
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.csproj.CopyComplete
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/Halen.Infrastructure.dll
 /home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/obj/Debug/net8.0/refint/Halen.Infrastructure.dll

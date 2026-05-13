@@ -43,8 +43,13 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
+      // Only redirect when an existing session has expired — not on a
+      // login attempt that simply returned 401 (wrong credentials).
+      const hadToken = storageGet('token') !== null;
       storageRemove('token');
-      window.location.href = '/login';
+      if (hadToken) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
