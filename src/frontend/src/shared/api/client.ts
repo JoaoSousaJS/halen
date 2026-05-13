@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+// No absolute URL needed — Vite proxies /api/* to the backend in dev,
+// and in production the same server serves both.
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080',
+  baseURL: '/',
 });
 
 client.interceptors.request.use((config) => {
