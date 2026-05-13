@@ -98,12 +98,20 @@ app.UseAuthentication();  // order matters — must come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 
-// Auto-apply migrations on startup in development
-if (app.Environment.IsDevelopment())
+// Auto-apply migrations and seed roles on startup
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
     await db.Database.MigrateAsync();
+
+    // Roles must exist before any user can be assigned one.
+    // RoleManager.CreateAsync is idempotent — safe to call on every startup.
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+    foreach (var role in new[] { "Patient", "Doctor", "Admin" })
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+            await roleManager.CreateAsync(new IdentityRole<Guid>(role));
+    }
 }
 
 app.Run();
