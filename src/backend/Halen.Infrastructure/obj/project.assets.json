@@ -640,7 +640,8 @@
         "dependencies": {
           "FluentValidation.DependencyInjectionExtensions": "12.1.1",
           "Halen.Domain": "1.0.0",
-          "MediatR": "14.1.0"
+          "MediatR": "14.1.0",
+          "Microsoft.EntityFrameworkCore": "8.0.0"
         },
         "compile": {
           "bin/placeholder/Halen.Application.dll": {}

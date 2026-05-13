@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Halen.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1c88f4469c9710ab3ff809c0187147707d65845f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f232939898de3a61a620a69fd119599324ce8756")]
 [assembly: System.Reflection.AssemblyProductAttribute("Halen.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Halen.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

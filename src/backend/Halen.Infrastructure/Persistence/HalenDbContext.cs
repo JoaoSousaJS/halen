@@ -1,3 +1,4 @@
+using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -8,7 +9,7 @@ namespace Halen.Infrastructure.Persistence;
 // IdentityDbContext wires up all the Identity tables (AspNetUsers, AspNetRoles, etc.)
 // We inherit from the generic version to use Guid as the primary key type.
 public class HalenDbContext(DbContextOptions<HalenDbContext> options)
-    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
+    : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options), IAppDbContext
 {
     public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();

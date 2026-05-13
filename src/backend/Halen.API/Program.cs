@@ -77,6 +77,9 @@ builder.Services.AddMediatR(cfg =>
 });
 builder.Services.AddValidatorsFromAssembly(typeof(RegisterCommand).Assembly);
 
+// ── Application services ──────────────────────────────────────────────────────
+builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<HalenDbContext>());
+
 // ── Infrastructure services ───────────────────────────────────────────────────
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, MockEmailService>();

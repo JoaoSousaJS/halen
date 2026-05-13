@@ -165,3 +165,140 @@ html, body {
 .auth-foot { color: var(--text-dim); font-size: 13px; text-align: center; }
 .auth-foot a { color: var(--accent); text-decoration: none; }
 .auth-foot a:hover { text-decoration: underline; }
+
+/* ── Dashboard shell ─────────────────────────── */
+
+.dashboard-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 500px at 70% -100px, rgba(196,255,61,0.05), transparent 60%),
+    radial-gradient(600px 400px at -100px 80%, rgba(138,180,255,0.03), transparent 60%),
+    var(--bg);
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-user {
+  margin-left: auto;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.dashboard-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.section-heading {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 400;
+  margin-bottom: 16px;
+}
+
+.text-dim { color: var(--text-dim); font-size: 13px; }
+
+/* ── Select & textarea ───────────────────────── */
+
+.field select,
+.field textarea {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--border-bright);
+  box-shadow: 0 0 0 3px rgba(196,255,61,0.08);
+}
+
+.field textarea { resize: vertical; }
+
+.doctor-hint {
+  color: var(--text-dim);
+  font-size: 12px;
+  margin-top: -8px;
+}
+
+/* ── Appointment list ────────────────────────── */
+
+.appt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appt-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.appt-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.appt-date { color: var(--text-dim); font-size: 12px; }
+
+.appt-card-body { display: flex; flex-direction: column; gap: 4px; }
+.appt-card-body strong { font-size: 14px; }
+.appt-card-body p { font-size: 13px; color: var(--text-dim); }
+
+.appt-status {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.appt-status--scheduled { background: var(--accent-dim); color: var(--accent); }
+.appt-status--completed { background: rgba(138,180,255,0.12); color: #8ab4ff; }
+.appt-status--cancelled { background: rgba(255,107,107,0.12); color: var(--danger); }
+
+/* ── Appointment actions ─────────────────────── */
+
+.appt-actions { display: flex; gap: 8px; align-items: flex-start; }
+
+.appt-complete-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.appt-complete-buttons { display: flex; gap: 8px; }
+
+/* ── Small & danger buttons ──────────────────── */
+
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+.btn-danger:hover:not(:disabled) { background: rgba(255,107,107,0.1); }
