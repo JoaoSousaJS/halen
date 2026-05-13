@@ -40,6 +40,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options)
         builder.Entity<DoctorProfile>(e =>
         {
             e.Property(d => d.Languages).HasColumnType("text[]");
+            e.HasIndex(d => d.LicenseNumber).IsUnique();
         });
 
         // Store enums as strings for readability in the DB

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../shared/api/auth';
+import { getApiError } from '../../shared/api/errors';
 import { useAuth } from '../../shared/components/AuthProvider';
 
 export default function LoginPage() {
@@ -21,8 +22,7 @@ export default function LoginPage() {
       saveToken(token);
       navigate('/dashboard');
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setError(msg ?? 'Something went wrong');
+      setError(getApiError(err));
     } finally {
       setLoading(false);
     }

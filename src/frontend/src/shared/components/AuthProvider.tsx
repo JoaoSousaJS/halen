@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
 
 interface JwtPayload {
   sub: string;
@@ -26,7 +27,15 @@ function parseToken(token: string): JwtPayload | null {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => {
+    const stored = localStorage.getItem('token');
+    if (stored && !parseToken(stored)) {
+      // Token exists but is malformed — clear it rather than leaving a corrupt credential.
+      localStorage.removeItem('token');
+      return null;
+    }
+    return stored;
+  });
 
   const user = token ? parseToken(token) : null;
 

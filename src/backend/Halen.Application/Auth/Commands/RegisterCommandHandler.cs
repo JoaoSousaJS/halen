@@ -34,11 +34,20 @@ public class RegisterCommandHandler(
         }
 
         var roleName = request.Role.ToString();
-        await userManager.AddToRoleAsync(user, roleName);
+        var roleResult = await userManager.AddToRoleAsync(user, roleName);
+        if (!roleResult.Succeeded)
+        {
+            // Roles are seeded at startup, so this only fails if a role was manually deleted.
+            var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+            logger.LogError("Role assignment failed for {Email}: {Errors}", request.Email, errors);
+            await userManager.DeleteAsync(user);
+            return new RegisterResult(false, null, "Account setup failed. Please try again.");
+        }
 
+        // One profile per user — a user can be a Doctor or a Patient, never both.
         if (request.Role == UserRole.Doctor)
             user.DoctorProfile = new DoctorProfile { UserId = user.Id };
-        else if (request.Role == UserRole.Patient)
+        else
             user.PatientProfile = new PatientProfile { UserId = user.Id };
 
         await userManager.UpdateAsync(user);

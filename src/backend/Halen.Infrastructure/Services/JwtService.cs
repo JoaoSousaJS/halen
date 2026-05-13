@@ -13,7 +13,9 @@ public class JwtService(IConfiguration configuration) : IJwtService
 {
     public string GenerateToken(User user, IList<string> roles)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!));
+        var secret = configuration["Jwt:Secret"]
+            ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
@@ -27,11 +29,13 @@ public class JwtService(IConfiguration configuration) : IJwtService
 
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
+        var expiryMinutes = int.TryParse(configuration["Jwt:ExpirationMinutes"], out var m) ? m : 60;
+
         var token = new JwtSecurityToken(
             issuer: configuration["Jwt:Issuer"],
             audience: configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
             signingCredentials: credentials
         );
 

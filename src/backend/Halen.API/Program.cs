@@ -1,17 +1,25 @@
 using System.Text;
 using Confluent.Kafka;
+using FluentValidation;
 using Halen.Application.Auth.Commands;
 using Halen.Application.Interfaces;
+using Halen.Application.Pipeline;
 using Halen.Domain.Entities;
 using Halen.Infrastructure.Messaging;
 using Halen.Infrastructure.Persistence;
 using Halen.Infrastructure.Services;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Fail fast: crash at startup rather than at first request if the JWT secret is absent.
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? throw new InvalidOperationException("Jwt:Secret is not configured. Set it via environment variable or user-secrets.");
 
 // ── Database ──────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<HalenDbContext>(opt =>
@@ -46,7 +54,7 @@ builder.Services.AddAuthentication(opt =>
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+                Encoding.UTF8.GetBytes(jwtSecret))
         };
     });
 
@@ -56,9 +64,14 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
 
 // ── MediatR ───────────────────────────────────────────────────────────────────
-// Scans the Application assembly and registers all IRequestHandler<> implementations
+// Scans the Application assembly and registers all IRequestHandler<> implementations.
+// ValidationBehavior runs before every handler — returns 400 if a validator rejects the input.
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly));
+{
+    cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly);
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+});
+builder.Services.AddValidatorsFromAssembly(typeof(RegisterCommand).Assembly);
 
 // ── Infrastructure services ───────────────────────────────────────────────────
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -79,13 +92,45 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var frontendOrigin = builder.Configuration["Frontend:Origin"] ?? "http://localhost:5173";
 builder.Services.AddCors(opt =>
     opt.AddPolicy("Frontend", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(frontendOrigin)
               .AllowAnyHeader()
               .AllowAnyMethod()));
 
 var app = builder.Build();
+
+// Global exception handler — prevents stack traces from leaking to clients.
+// ValidationException → 400 with the validation errors.
+// Everything else → logged + generic 500.
+app.UseExceptionHandler(errApp =>
+{
+    errApp.Run(async ctx =>
+    {
+        var feature = ctx.Features.Get<IExceptionHandlerFeature>();
+        var error = feature?.Error;
+
+        if (error is ValidationException ve)
+        {
+            ctx.Response.StatusCode = 400;
+            ctx.Response.ContentType = "application/json";
+            var errors = ve.Errors.Select(e => new { field = e.PropertyName, message = e.ErrorMessage });
+            await ctx.Response.WriteAsJsonAsync(new { errors });
+            return;
+        }
+
+        if (error is not null)
+        {
+            var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(error, "Unhandled exception");
+        }
+
+        ctx.Response.StatusCode = 500;
+        ctx.Response.ContentType = "application/json";
+        await ctx.Response.WriteAsJsonAsync(new { error = "An internal error occurred" });
+    });
+});
 
 if (app.Environment.IsDevelopment())
 {

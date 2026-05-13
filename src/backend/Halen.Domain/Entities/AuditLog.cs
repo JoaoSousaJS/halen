@@ -2,7 +2,7 @@ namespace Halen.Domain.Entities;
 
 public class AuditLog : BaseEntity
 {
-    public string ActorId { get; set; } = string.Empty;
+    public Guid ActorId { get; set; }
     public string ActorName { get; set; } = string.Empty;
     public string Action { get; set; } = string.Empty;
     public string TargetId { get; set; } = string.Empty;

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../../shared/api/auth';
+import { getApiError } from '../../shared/api/errors';
 import { useAuth } from '../../shared/components/AuthProvider';
 
 interface FormState {
@@ -36,8 +37,7 @@ export default function RegisterPage() {
       saveToken(token);
       navigate('/dashboard');
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setError(msg ?? 'Something went wrong');
+      setError(getApiError(err));
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export default function RegisterPage() {
               autoComplete="new-password"
               value={form.password}
               onChange={(e) => setField('password', e.target.value)}
-              placeholder="At least 8 characters"
+              placeholder="8+ characters, include a digit"
             />
           </label>
 
