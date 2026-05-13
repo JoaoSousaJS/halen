@@ -5,6 +5,7 @@ using Halen.Application.Auth.Commands;
 using Halen.Application.Interfaces;
 using Halen.Application.Pipeline;
 using Halen.Domain.Entities;
+using Halen.Domain.Enums;
 using Halen.Infrastructure.Messaging;
 using Halen.Infrastructure.Persistence;
 using Halen.Infrastructure.Services;
@@ -54,7 +55,9 @@ builder.Services.AddAuthentication(opt =>
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSecret))
+                Encoding.UTF8.GetBytes(jwtSecret)),
+            // Match the short "role" claim name written by JwtService.
+            RoleClaimType = "role",
         };
     });
 
@@ -156,6 +159,29 @@ using (var scope = app.Services.CreateScope())
     {
         if (!await roleManager.RoleExistsAsync(role))
             await roleManager.CreateAsync(new IdentityRole<Guid>(role));
+    }
+
+    // Seed a default admin user when credentials are present in configuration.
+    // Skipped if the email already exists — safe to run on every startup.
+    var adminEmail = app.Configuration["Seed:AdminEmail"];
+    var adminPassword = app.Configuration["Seed:AdminPassword"];
+    if (!string.IsNullOrEmpty(adminEmail) && !string.IsNullOrEmpty(adminPassword))
+    {
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        if (await userManager.FindByEmailAsync(adminEmail) is null)
+        {
+            var admin = new User
+            {
+                FirstName = app.Configuration["Seed:AdminFirstName"] ?? "Halen",
+                LastName  = app.Configuration["Seed:AdminLastName"]  ?? "Admin",
+                Email    = adminEmail,
+                UserName = adminEmail,
+                Role     = UserRole.Admin,
+            };
+            var result = await userManager.CreateAsync(admin, adminPassword);
+            if (result.Succeeded)
+                await userManager.AddToRoleAsync(admin, "Admin");
+        }
     }
 }
 

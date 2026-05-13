@@ -59,6 +59,10 @@ services:
       Jwt__Issuer: "halen-api"
       Jwt__Audience: "halen-client"
       Kafka__BootstrapServers: "kafka:9092"
+      Seed__AdminEmail: "${SEED_ADMIN_EMAIL:-admin@halen.dev}"
+      Seed__AdminPassword: "${SEED_ADMIN_PASSWORD:-Admin1234!}"
+      Seed__AdminFirstName: "Halen"
+      Seed__AdminLastName: "Admin"
       ASPNETCORE_ENVIRONMENT: Development
     depends_on:
       postgres:
