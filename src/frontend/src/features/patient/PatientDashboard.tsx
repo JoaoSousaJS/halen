@@ -44,9 +44,15 @@ export default function PatientDashboard() {
     },
   });
 
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
   const cancel = useMutation({
     mutationFn: cancelAppointment,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-appointments'] }),
+    onSuccess: () => {
+      setCancellingId(null);
+      queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
+    },
+    onError: () => setCancellingId(null),
   });
 
   function handleBook(e: SubmitEvent<HTMLFormElement>) {
@@ -171,10 +177,15 @@ export default function PatientDashboard() {
                 {a.status === 'Scheduled' ? (
                   <button
                     className="btn btn-danger btn-sm"
+                    aria-label={`Cancel appointment with ${a.doctorName}`}
                     disabled={cancel.isPending}
-                    onClick={() => cancel.mutate(a.id)}
+                    onClick={() => {
+                      cancel.reset();
+                      setCancellingId(a.id);
+                      cancel.mutate(a.id);
+                    }}
                   >
-                    Cancel
+                    {cancel.isPending && cancellingId === a.id ? 'Cancelling…' : 'Cancel'}
                   </button>
                 ) : null}
               </div>

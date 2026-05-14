@@ -1,4 +1,5 @@
 using Halen.Application.Interfaces;
+using Halen.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +13,7 @@ public class GetMyAppointmentsQueryHandler(
     {
         IQueryable<Domain.Entities.Appointment> query;
 
-        if (request.UserRole == "Patient")
+        if (request.UserRole == UserRole.Patient)
         {
             var profile = await db.PatientProfiles
                 .FirstOrDefaultAsync(p => p.UserId == request.UserId, ct);
@@ -34,8 +35,6 @@ public class GetMyAppointmentsQueryHandler(
         }
 
         var appointments = await query
-            .Include(a => a.Doctor).ThenInclude(d => d.User)
-            .Include(a => a.Patient).ThenInclude(p => p.User)
             .OrderByDescending(a => a.ScheduledAt)
             .Select(a => new AppointmentDto(
                 a.Id,

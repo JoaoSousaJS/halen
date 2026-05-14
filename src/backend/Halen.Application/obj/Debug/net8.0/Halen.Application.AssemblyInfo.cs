@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Halen.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f232939898de3a61a620a69fd119599324ce8756")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a2fcaa8f378741981281e9cb70c04604e3056d48")]
 [assembly: System.Reflection.AssemblyProductAttribute("Halen.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Halen.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

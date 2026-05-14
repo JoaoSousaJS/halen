@@ -8,7 +8,7 @@ public class BookAppointmentCommandValidator : AbstractValidator<BookAppointment
     {
         RuleFor(x => x.UserId).NotEmpty();
         RuleFor(x => x.DoctorId).NotEmpty();
-        RuleFor(x => x.ScheduledAt).GreaterThan(DateTime.UtcNow)
+        RuleFor(x => x.ScheduledAt).GreaterThan(_ => DateTime.UtcNow)
             .WithMessage("Appointment must be in the future");
         RuleFor(x => x.Reason).NotEmpty().MaximumLength(500);
     }

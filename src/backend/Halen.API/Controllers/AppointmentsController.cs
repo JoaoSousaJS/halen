@@ -1,5 +1,7 @@
 using Halen.Application.Appointments.Commands;
 using Halen.Application.Appointments.Queries;
+using Halen.Application.Common;
+using Halen.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,13 +28,13 @@ public class AppointmentsController(IMediator mediator) : ControllerBase
         if (!result.Success)
             return BadRequest(new { result.Error });
 
-        return Ok(new { result.AppointmentId });
+        return CreatedAtAction(nameof(GetMine), new { result.AppointmentId });
     }
 
     [HttpGet]
     public async Task<IActionResult> GetMine(CancellationToken ct)
     {
-        var query = new GetMyAppointmentsQuery(GetUserId(), GetUserRole());
+        var query = new GetMyAppointmentsQuery(GetUserId(), GetUserRoleEnum());
         var result = await mediator.Send(query, ct);
         return Ok(result.Appointments);
     }
@@ -40,10 +42,10 @@ public class AppointmentsController(IMediator mediator) : ControllerBase
     [HttpPost("{id:guid}/cancel")]
     public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
     {
-        var command = new CancelAppointmentCommand(GetUserId(), GetUserRole(), id);
+        var command = new CancelAppointmentCommand(GetUserId(), GetUserRoleEnum(), id);
         var result = await mediator.Send(command, ct);
         if (!result.Success)
-            return BadRequest(new { result.Error });
+            return MapError(result.Error, result.Kind);
 
         return Ok();
     }
@@ -55,7 +57,7 @@ public class AppointmentsController(IMediator mediator) : ControllerBase
         var command = new CompleteAppointmentCommand(GetUserId(), id, request.Notes);
         var result = await mediator.Send(command, ct);
         if (!result.Success)
-            return BadRequest(new { result.Error });
+            return MapError(result.Error, result.Kind);
 
         return Ok();
     }
@@ -68,11 +70,34 @@ public class AppointmentsController(IMediator mediator) : ControllerBase
         return Ok(result.Doctors);
     }
 
-    private Guid GetUserId() =>
-        Guid.Parse(User.FindFirst("sub")!.Value);
+    private Guid GetUserId()
+    {
+        var claim = User.FindFirst("sub")
+            ?? throw new UnauthorizedAccessException("Missing 'sub' claim");
+        return Guid.Parse(claim.Value);
+    }
 
-    private string GetUserRole() =>
-        User.FindFirst("role")!.Value;
+    private string GetUserRole()
+    {
+        var claim = User.FindFirst("role")
+            ?? throw new UnauthorizedAccessException("Missing 'role' claim");
+        return claim.Value;
+    }
+
+    private UserRole GetUserRoleEnum()
+    {
+        var role = GetUserRole();
+        if (!Enum.TryParse<UserRole>(role, out var parsed))
+            throw new UnauthorizedAccessException($"Unrecognized role '{role}'");
+        return parsed;
+    }
+
+    private IActionResult MapError(string? error, ErrorKind? kind) => kind switch
+    {
+        ErrorKind.NotFound => NotFound(new { error }),
+        ErrorKind.Forbidden => Forbid(),
+        _ => BadRequest(new { error }),
+    };
 }
 
 public record BookAppointmentRequest(Guid DoctorId, DateTime ScheduledAt, string Reason);

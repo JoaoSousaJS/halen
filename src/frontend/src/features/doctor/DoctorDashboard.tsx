@@ -13,20 +13,25 @@ export default function DoctorDashboard() {
   const queryClient = useQueryClient();
 
   const [completingId, setCompletingId] = useState<string | null>(null);
-  const [notes, setNotes] = useState('');
+  const [notesMap, setNotesMap] = useState<Record<string, string>>({});
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const appointments = useQuery({ queryKey: ['my-appointments'], queryFn: getMyAppointments });
 
   const cancel = useMutation({
     mutationFn: cancelAppointment,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-appointments'] }),
+    onSuccess: () => {
+      setCancellingId(null);
+      queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
+    },
+    onError: () => setCancellingId(null),
   });
 
   const complete = useMutation({
-    mutationFn: (id: string) => completeAppointment(id, notes || undefined),
-    onSuccess: () => {
+    mutationFn: (id: string) => completeAppointment(id, notesMap[id] || undefined),
+    onSuccess: (_data, id) => {
       setCompletingId(null);
-      setNotes('');
+      setNotesMap((prev) => { const next = { ...prev }; delete next[id]; return next; });
       queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
     },
   });
@@ -79,8 +84,8 @@ export default function DoctorDashboard() {
                     <div className="appt-complete-form">
                       <textarea
                         rows={2}
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
+                        value={notesMap[a.id] ?? ''}
+                        onChange={(e) => setNotesMap((prev) => ({ ...prev, [a.id]: e.target.value }))}
                         placeholder="Session notes (optional)…"
                       />
                       <div className="appt-complete-buttons">
@@ -93,7 +98,7 @@ export default function DoctorDashboard() {
                         </button>
                         <button
                           className="btn btn-sm"
-                          onClick={() => { setCompletingId(null); setNotes(''); }}
+                          onClick={() => setCompletingId(null)}
                         >
                           Back
                         </button>
@@ -103,16 +108,22 @@ export default function DoctorDashboard() {
                     <>
                       <button
                         className="btn btn-primary btn-sm"
+                        aria-label={`Complete appointment with ${a.patientName}`}
                         onClick={() => setCompletingId(a.id)}
                       >
                         Complete
                       </button>
                       <button
                         className="btn btn-danger btn-sm"
+                        aria-label={`Cancel appointment with ${a.patientName}`}
                         disabled={cancel.isPending}
-                        onClick={() => cancel.mutate(a.id)}
+                        onClick={() => {
+                          cancel.reset();
+                          setCancellingId(a.id);
+                          cancel.mutate(a.id);
+                        }}
                       >
-                        Cancel
+                        {cancel.isPending && cancellingId === a.id ? 'Cancelling…' : 'Cancel'}
                       </button>
                     </>
                   )}

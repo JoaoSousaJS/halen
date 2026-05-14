@@ -1,3 +1,4 @@
+using Halen.Application.Common;
 using Halen.Application.Interfaces;
 using Halen.Domain.Enums;
 using MediatR;
@@ -17,13 +18,13 @@ public class CompleteAppointmentCommandHandler(
             .FirstOrDefaultAsync(a => a.Id == request.AppointmentId, ct);
 
         if (appointment is null)
-            return new CompleteAppointmentResult(false, "Appointment not found");
+            return new CompleteAppointmentResult(false, "Appointment not found", ErrorKind.NotFound);
 
         var doctorProfile = await db.DoctorProfiles
             .FirstOrDefaultAsync(d => d.UserId == request.UserId, ct);
 
         if (doctorProfile is null || appointment.DoctorId != doctorProfile.Id)
-            return new CompleteAppointmentResult(false, "You can only complete your own appointments");
+            return new CompleteAppointmentResult(false, "You can only complete your own appointments", ErrorKind.Forbidden);
 
         if (appointment.Status != AppointmentStatus.Scheduled)
             return new CompleteAppointmentResult(false, "Only scheduled appointments can be completed");

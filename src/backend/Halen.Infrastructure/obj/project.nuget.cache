@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "I1P4dgi6cMIK0P6CHOwHCpNB8DZHwuTufMfOq/I5JBv1t0MQ2AWumUQWcH+iUWEiSlV7UZxyJq/o+g5bB4ySow==",
+  "dgSpecHash": "cvhzW78uqD7y5c3UU4atO2vNqhvh4AZCgfNA/K1l6o3i//XAF5usGjFDBpIkHRZyQvx8qVpURW3WSo9E55wPSg==",
   "success": true,
   "projectFilePath": "/home/joao/projects/telehealth-platform/src/backend/Halen.Infrastructure/Halen.Infrastructure.csproj",
   "expectedPackageFiles": [

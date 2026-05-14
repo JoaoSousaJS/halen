@@ -8,12 +8,14 @@ export interface DoctorDto {
   yearsOfExperience: number;
 }
 
+export type AppointmentStatus = 'Scheduled' | 'InProgress' | 'Completed' | 'Cancelled';
+
 export interface AppointmentDto {
   id: string;
   scheduledAt: string;
   durationMinutes: number;
   reason: string;
-  status: string;
+  status: AppointmentStatus;
   notes: string | null;
   doctorName: string;
   specialty: string;

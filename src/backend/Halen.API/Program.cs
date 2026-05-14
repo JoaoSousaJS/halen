@@ -118,6 +118,14 @@ app.UseExceptionHandler(errApp =>
         var feature = ctx.Features.Get<IExceptionHandlerFeature>();
         var error = feature?.Error;
 
+        if (error is UnauthorizedAccessException)
+        {
+            ctx.Response.StatusCode = 401;
+            ctx.Response.ContentType = "application/json";
+            await ctx.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
+            return;
+        }
+
         if (error is ValidationException ve)
         {
             ctx.Response.StatusCode = 400;

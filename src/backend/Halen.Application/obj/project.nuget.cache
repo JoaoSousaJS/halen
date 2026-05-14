@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "NijWK0wdI01iWAZifpyKENFUkiy9hvtGsHgh+OU5JuPiEM4ZXPAfiNd/2OMThoEseIkumGHwFEPlbQG/Lyf85g==",
+  "dgSpecHash": "V8B+oEBGONj09+IhvyXfp+DE8ZMR18Fr6bfhUjBcGHhUdQ6LVntYWm2OwkzNEgOmZ4f2rTRhCAGPIyE9xtxBWA==",
   "success": true,
   "projectFilePath": "/home/joao/projects/telehealth-platform/src/backend/Halen.Application/Halen.Application.csproj",
   "expectedPackageFiles": [
@@ -11,8 +11,10 @@
     "/home/joao/.nuget/packages/microsoft.entityframeworkcore/8.0.27/microsoft.entityframeworkcore.8.0.27.nupkg.sha512",
     "/home/joao/.nuget/packages/microsoft.entityframeworkcore.abstractions/8.0.27/microsoft.entityframeworkcore.abstractions.8.0.27.nupkg.sha512",
     "/home/joao/.nuget/packages/microsoft.entityframeworkcore.analyzers/8.0.27/microsoft.entityframeworkcore.analyzers.8.0.27.nupkg.sha512",
+    "/home/joao/.nuget/packages/microsoft.entityframeworkcore.relational/8.0.27/microsoft.entityframeworkcore.relational.8.0.27.nupkg.sha512",
     "/home/joao/.nuget/packages/microsoft.extensions.caching.abstractions/8.0.0/microsoft.extensions.caching.abstractions.8.0.0.nupkg.sha512",
     "/home/joao/.nuget/packages/microsoft.extensions.caching.memory/8.0.1/microsoft.extensions.caching.memory.8.0.1.nupkg.sha512",
+    "/home/joao/.nuget/packages/microsoft.extensions.configuration.abstractions/8.0.0/microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
     "/home/joao/.nuget/packages/microsoft.extensions.dependencyinjection/8.0.1/microsoft.extensions.dependencyinjection.8.0.1.nupkg.sha512",
     "/home/joao/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/10.0.0/microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg.sha512",
     "/home/joao/.nuget/packages/microsoft.extensions.logging/8.0.1/microsoft.extensions.logging.8.0.1.nupkg.sha512",

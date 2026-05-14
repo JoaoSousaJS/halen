@@ -11,7 +11,6 @@ public class ListDoctorsQueryHandler(
     public async Task<ListDoctorsResult> Handle(ListDoctorsQuery request, CancellationToken ct)
     {
         var doctors = await db.DoctorProfiles
-            .Include(d => d.User)
             .Select(d => new DoctorDto(
                 d.Id,
                 $"{d.User.FirstName} {d.User.LastName}",

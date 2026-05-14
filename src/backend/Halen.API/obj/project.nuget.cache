@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "UQ12oCqNBZaAw5g09IHb2nRKLNJA6SNbTE8lVUZZIvuZ8USKInrGWvuJziomqvKoQLSWJhzrIGVMauiyXacrLA==",
+  "dgSpecHash": "z5SgRIdac8Gn2ug8UFIvNyaQNBsbSxPUzHQMP3v/BARVSrkieRHrsdK/KbVhh3PvKcyhZsXXUxuyyKjLhg1M+w==",
   "success": true,
   "projectFilePath": "/home/joao/projects/telehealth-platform/src/backend/Halen.API/Halen.API.csproj",
   "expectedPackageFiles": [

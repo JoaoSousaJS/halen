@@ -1,3 +1,4 @@
+using Halen.Application.Common;
 using Halen.Application.Interfaces;
 using Halen.Domain.Enums;
 using MediatR;
@@ -17,25 +18,28 @@ public class CancelAppointmentCommandHandler(
             .FirstOrDefaultAsync(a => a.Id == request.AppointmentId, ct);
 
         if (appointment is null)
-            return new CancelAppointmentResult(false, "Appointment not found");
+            return new CancelAppointmentResult(false, "Appointment not found", ErrorKind.NotFound);
 
-        if (request.UserRole == "Patient")
+        switch (request.UserRole)
         {
-            var profile = await db.PatientProfiles
-                .FirstOrDefaultAsync(p => p.UserId == request.UserId, ct);
-            if (profile is null || appointment.PatientId != profile.Id)
-                return new CancelAppointmentResult(false, "You do not have permission to cancel this appointment");
-        }
-        else if (request.UserRole == "Doctor")
-        {
-            var profile = await db.DoctorProfiles
-                .FirstOrDefaultAsync(d => d.UserId == request.UserId, ct);
-            if (profile is null || appointment.DoctorId != profile.Id)
-                return new CancelAppointmentResult(false, "You do not have permission to cancel this appointment");
-        }
-        else
-        {
-            return new CancelAppointmentResult(false, "Invalid role");
+            case UserRole.Patient:
+            {
+                var profile = await db.PatientProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == request.UserId, ct);
+                if (profile is null || appointment.PatientId != profile.Id)
+                    return new CancelAppointmentResult(false, "You do not have permission to cancel this appointment", ErrorKind.Forbidden);
+                break;
+            }
+            case UserRole.Doctor:
+            {
+                var profile = await db.DoctorProfiles
+                    .FirstOrDefaultAsync(d => d.UserId == request.UserId, ct);
+                if (profile is null || appointment.DoctorId != profile.Id)
+                    return new CancelAppointmentResult(false, "You do not have permission to cancel this appointment", ErrorKind.Forbidden);
+                break;
+            }
+            case UserRole.Admin:
+                break;
         }
 
         if (appointment.Status != AppointmentStatus.Scheduled)

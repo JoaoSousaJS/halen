@@ -1,10 +1,11 @@
+using Halen.Domain.Enums;
 using MediatR;
 
 namespace Halen.Application.Appointments.Queries;
 
 public record GetMyAppointmentsQuery(
     Guid UserId,
-    string UserRole
+    UserRole UserRole
 ) : IRequest<GetMyAppointmentsResult>;
 
 public record GetMyAppointmentsResult(IReadOnlyList<AppointmentDto> Appointments);
