@@ -60,6 +60,21 @@ Project-local skills in `.agents/skills/` — read them before writing code:
 - `vercel-react-best-practices` — React/TypeScript guidance
 - `code-reviewer` — 3-round structured review protocol (writes to `reviews/`)
 
+## Feature implementation checklist
+
+Every new feature must follow this sequence:
+
+1. **Read skills** — load `.agents/skills/dotnet-best-practices` and `.agents/skills/vercel-react-best-practices` before writing code
+2. **Backend** — domain entities, CQRS commands/queries, validators, controller
+3. **Frontend** — API client types, React components, state management
+4. **Unit tests** — handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
+5. **Integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
+6. **Storybook stories** — component stories in `*.stories.tsx` co-located with components
+7. **Playwright e2e tests** — user flow tests in `src/frontend/e2e/`
+8. **Code review** — run the 3-round review protocol
+
+Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage.
+
 ## Review process
 
 Use the code-reviewer skill for a 3-round structured review:

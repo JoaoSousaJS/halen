@@ -7,7 +7,7 @@ public class CancelAppointmentCommandValidator : AbstractValidator<CancelAppoint
     public CancelAppointmentCommandValidator()
     {
         RuleFor(x => x.UserId).NotEmpty();
-        RuleFor(x => x.UserRole).NotEmpty();
+        RuleFor(x => x.UserRole).IsInEnum();
         RuleFor(x => x.AppointmentId).NotEmpty();
     }
 }

@@ -1,0 +1,169 @@
+using FluentAssertions;
+using Halen.Application.Appointments.Commands;
+using Halen.Application.Interfaces;
+using Halen.Domain.Entities;
+using Halen.Domain.Enums;
+using Halen.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Moq;
+
+namespace Halen.UnitTests.Appointments;
+
+[TestClass]
+public class BookAppointmentCommandHandlerTests
+{
+    private HalenDbContext _db = null!;
+    private BookAppointmentCommandHandler _handler = null!;
+    private Guid _doctorProfileId;
+    private Guid _patientUserId;
+
+    [TestInitialize]
+    public async Task Initialize()
+    {
+        var options = new DbContextOptionsBuilder<HalenDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+
+        _db = new HalenDbContext(options);
+
+        var doctorUser = new User
+        {
+            Id = Guid.NewGuid(),
+            FirstName = "Dr",
+            LastName = "House",
+            Email = "house@test.com",
+            UserName = "house@test.com",
+            Role = UserRole.Doctor,
+        };
+        _db.Users.Add(doctorUser);
+
+        var doctorProfile = new DoctorProfile
+        {
+            Id = Guid.NewGuid(),
+            UserId = doctorUser.Id,
+            Specialty = "Diagnostics",
+            LicenseNumber = "LIC-001",
+            ConsultationFee = 150,
+            YearsOfExperience = 10,
+        };
+        _db.DoctorProfiles.Add(doctorProfile);
+        _doctorProfileId = doctorProfile.Id;
+
+        _patientUserId = Guid.NewGuid();
+        await _db.SaveChangesAsync();
+
+        _handler = new BookAppointmentCommandHandler(
+            _db,
+            Mock.Of<ILogger<BookAppointmentCommandHandler>>());
+    }
+
+    [TestCleanup]
+    public void Cleanup() => _db.Dispose();
+
+    [TestMethod]
+    public async Task Handle_ValidBooking_ReturnsSuccessWithAppointmentId()
+    {
+        var command = new BookAppointmentCommand(
+            _patientUserId,
+            _doctorProfileId,
+            DateTime.UtcNow.AddDays(1),
+            "Headache");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        result.AppointmentId.Should().NotBeNull();
+        result.Error.Should().BeNull();
+    }
+
+    [TestMethod]
+    public async Task Handle_DoctorNotFound_ReturnsError()
+    {
+        var command = new BookAppointmentCommand(
+            _patientUserId,
+            Guid.NewGuid(),
+            DateTime.UtcNow.AddDays(1),
+            "Headache");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("Doctor not found");
+    }
+
+    [TestMethod]
+    public async Task Handle_FirstTimePatient_CreatesPatientProfile()
+    {
+        var command = new BookAppointmentCommand(
+            _patientUserId,
+            _doctorProfileId,
+            DateTime.UtcNow.AddDays(1),
+            "First visit");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        var profile = await _db.PatientProfiles
+            .FirstOrDefaultAsync(p => p.UserId == _patientUserId);
+        profile.Should().NotBeNull();
+    }
+
+    [TestMethod]
+    public async Task Handle_ConflictingTimeSlot_ReturnsError()
+    {
+        var patientProfile = new PatientProfile { Id = Guid.NewGuid(), UserId = _patientUserId };
+        _db.PatientProfiles.Add(patientProfile);
+
+        var scheduledAt = DateTime.UtcNow.AddDays(1);
+        _db.Appointments.Add(new Appointment
+        {
+            PatientId = patientProfile.Id,
+            DoctorId = _doctorProfileId,
+            ScheduledAt = scheduledAt,
+            Reason = "Existing appointment",
+        });
+        await _db.SaveChangesAsync();
+
+        var otherPatientId = Guid.NewGuid();
+        var command = new BookAppointmentCommand(
+            otherPatientId,
+            _doctorProfileId,
+            scheduledAt.AddMinutes(10),
+            "Overlapping visit");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("This time slot is not available");
+    }
+
+    [TestMethod]
+    public async Task Handle_NonOverlappingSlot_Succeeds()
+    {
+        var patientProfile = new PatientProfile { Id = Guid.NewGuid(), UserId = _patientUserId };
+        _db.PatientProfiles.Add(patientProfile);
+
+        var scheduledAt = DateTime.UtcNow.AddDays(1);
+        _db.Appointments.Add(new Appointment
+        {
+            PatientId = patientProfile.Id,
+            DoctorId = _doctorProfileId,
+            ScheduledAt = scheduledAt,
+            Reason = "Existing appointment",
+        });
+        await _db.SaveChangesAsync();
+
+        var otherPatientId = Guid.NewGuid();
+        var command = new BookAppointmentCommand(
+            otherPatientId,
+            _doctorProfileId,
+            scheduledAt.AddMinutes(25),
+            "After previous appointment");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+    }
+}

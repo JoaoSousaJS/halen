@@ -178,6 +178,7 @@ export default function PatientDashboard() {
                   <button
                     className="btn btn-danger btn-sm"
                     aria-label={`Cancel appointment with ${a.doctorName}`}
+                    data-testid={`cancel-appointment-${a.id}`}
                     disabled={cancel.isPending}
                     onClick={() => {
                       cancel.reset();

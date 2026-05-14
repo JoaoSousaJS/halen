@@ -30,19 +30,13 @@ public class HalenWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureAppConfiguration((_, config) =>
-        {
-            config.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:Default"]    = _postgres.GetConnectionString(),
-                ["Jwt:Secret"]                   = "halen-integration-test-super-secret-key-32chars!",
-                ["Jwt:Issuer"]                   = "halen-test",
-                ["Jwt:Audience"]                 = "halen-test",
-                ["Seed:AdminEmail"]              = "admin@test.com",
-                ["Seed:AdminPassword"]           = "Admin1234!",
-                ["Kafka:BootstrapServers"]       = "localhost:9092",
-            });
-        });
+        builder.UseSetting("ConnectionStrings:Default", _postgres.GetConnectionString());
+        builder.UseSetting("Jwt:Secret", "halen-integration-test-super-secret-key-32chars!");
+        builder.UseSetting("Jwt:Issuer", "halen-test");
+        builder.UseSetting("Jwt:Audience", "halen-test");
+        builder.UseSetting("Seed:AdminEmail", "admin@test.com");
+        builder.UseSetting("Seed:AdminPassword", "Admin1234!");
+        builder.UseSetting("Kafka:BootstrapServers", "localhost:9092");
 
         builder.ConfigureServices(services =>
         {

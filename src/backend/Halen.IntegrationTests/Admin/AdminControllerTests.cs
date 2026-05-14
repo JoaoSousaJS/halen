@@ -34,7 +34,7 @@ public class AdminControllerTests
         Email             = $"doctor{suffix}@test.com",
         Password          = "Doctor1234!",
         Specialty         = "Diagnostics",
-        LicenseNumber     = $"LIC-{Guid.NewGuid():N[..8]}",
+        LicenseNumber     = $"LIC-{Guid.NewGuid().ToString("N")[..8]}",
         ConsultationFee   = 150.00m,
         YearsOfExperience = 10,
     };

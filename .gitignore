@@ -11,6 +11,10 @@ infra/.env
 **/bin/
 **/obj/
 
+# Playwright
+playwright-report/
+test-results/
+
 # Rider / VS
 .idea/
 .vs/
