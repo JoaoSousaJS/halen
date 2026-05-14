@@ -27,8 +27,15 @@ test.describe('Login', () => {
   });
 
   test('navigates to patient dashboard after successful login', async ({ page }) => {
+    await page.route('**/hubs/**', (route) => route.abort());
     await page.route('**/api/v1/auth/login', (route) =>
       route.fulfill({ status: 200, json: { token: patientToken } }),
+    );
+    await page.route('**/api/v1/appointments/doctors', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
+    await page.route('**/api/v1/appointments', (route) =>
+      route.fulfill({ status: 200, json: [] }),
     );
 
     await page.goto('/login');
@@ -36,7 +43,7 @@ test.describe('Login', () => {
     await page.fill('input[type="password"]', 'Test1234!');
     await page.click('button[type="submit"]');
 
-    await expect(page.getByText('Book and manage your appointments')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
   });
 
   test('shows error message on invalid credentials', async ({ page }) => {
@@ -64,6 +71,7 @@ test.describe('Register', () => {
   });
 
   test('navigates to patient dashboard after successful registration', async ({ page }) => {
+    await page.route('**/hubs/**', (route) => route.abort());
     const token = fakeJwt({
       sub: '2',
       email: 'new@test.com',
@@ -76,6 +84,12 @@ test.describe('Register', () => {
     await page.route('**/api/v1/auth/register', (route) =>
       route.fulfill({ status: 200, json: { token } }),
     );
+    await page.route('**/api/v1/appointments/doctors', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
+    await page.route('**/api/v1/appointments', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
 
     await page.goto('/register');
     await page.fill('input[placeholder="Maya"]', 'New');
@@ -84,7 +98,7 @@ test.describe('Register', () => {
     await page.fill('input[placeholder="8+ characters, include a digit"]', 'Test1234!');
     await page.click('button[type="submit"]');
 
-    await expect(page.getByText('Book and manage your appointments')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
   });
 });
 

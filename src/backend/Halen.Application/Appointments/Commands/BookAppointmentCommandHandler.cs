@@ -1,4 +1,5 @@
 using System.Data;
+using Halen.Application.Events;
 using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
@@ -10,6 +11,7 @@ namespace Halen.Application.Appointments.Commands;
 
 public class BookAppointmentCommandHandler(
     IAppDbContext db,
+    IEventBus eventBus,
     ILogger<BookAppointmentCommandHandler> logger
 ) : IRequestHandler<BookAppointmentCommand, BookAppointmentResult>
 {
@@ -17,8 +19,12 @@ public class BookAppointmentCommandHandler(
 
     public async Task<BookAppointmentResult> Handle(BookAppointmentCommand request, CancellationToken ct)
     {
-        var doctorExists = await db.DoctorProfiles.AnyAsync(d => d.Id == request.DoctorId, ct);
-        if (!doctorExists)
+        var doctor = await db.DoctorProfiles
+            .Where(d => d.Id == request.DoctorId)
+            .Select(d => new { d.UserId, d.User.FirstName, d.User.LastName })
+            .FirstOrDefaultAsync(ct);
+
+        if (doctor is null)
             return new BookAppointmentResult(false, null, "Doctor not found");
 
         var patientProfile = await db.PatientProfiles
@@ -58,6 +64,26 @@ public class BookAppointmentCommandHandler(
 
             logger.LogInformation("Appointment {AppointmentId} booked by patient {PatientId} with doctor {DoctorId}",
                 appointment.Id, patientProfile.Id, request.DoctorId);
+
+            var patientName = await db.PatientProfiles
+                .Where(p => p.Id == patientProfile.Id)
+                .Select(p => p.User.FirstName + " " + p.User.LastName)
+                .FirstOrDefaultAsync(ct) ?? "Patient";
+
+            try
+            {
+                await eventBus.PublishAsync(Topics.AppointmentBooked, new AppointmentBookedEvent(
+                    appointment.Id,
+                    request.UserId,
+                    doctor.UserId,
+                    request.ScheduledAt,
+                    patientName,
+                    $"{doctor.FirstName} {doctor.LastName}"), ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to publish booked event for appointment {AppointmentId}", appointment.Id);
+            }
 
             return new BookAppointmentResult(true, appointment.Id);
         }

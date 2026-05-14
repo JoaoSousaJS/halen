@@ -1,6 +1,8 @@
 using FluentAssertions;
 using Halen.Application.Appointments.Commands;
 using Halen.Application.Common;
+using Halen.Application.Events;
+using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
 using Halen.Infrastructure.Persistence;
@@ -15,6 +17,7 @@ namespace Halen.UnitTests.Appointments;
 public class CompleteAppointmentCommandHandlerTests
 {
     private HalenDbContext _db = null!;
+    private Mock<IEventBus> _eventBus = null!;
     private CompleteAppointmentCommandHandler _handler = null!;
     private Guid _doctorUserId;
     private Guid _appointmentId;
@@ -55,8 +58,10 @@ public class CompleteAppointmentCommandHandlerTests
 
         await _db.SaveChangesAsync();
 
+        _eventBus = new Mock<IEventBus>();
         _handler = new CompleteAppointmentCommandHandler(
             _db,
+            _eventBus.Object,
             Mock.Of<ILogger<CompleteAppointmentCommandHandler>>());
     }
 
@@ -74,6 +79,13 @@ public class CompleteAppointmentCommandHandlerTests
         var appointment = await _db.Appointments.FindAsync(_appointmentId);
         appointment!.Status.Should().Be(AppointmentStatus.Completed);
         appointment.Notes.Should().Be("All good");
+
+        _eventBus.Verify(e => e.PublishAsync(
+            Topics.AppointmentCompleted,
+            It.Is<AppointmentCompletedEvent>(evt =>
+                evt.AppointmentId == _appointmentId &&
+                evt.DoctorUserId == _doctorUserId),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [TestMethod]
@@ -102,7 +114,7 @@ public class CompleteAppointmentCommandHandlerTests
     }
 
     [TestMethod]
-    public async Task Handle_AppointmentNotFound_ReturnsNotFound()
+    public async Task Handle_AppointmentNotFound_ReturnsNotFoundAndNoEvent()
     {
         var command = new CompleteAppointmentCommand(_doctorUserId, Guid.NewGuid(), null);
 
@@ -110,6 +122,11 @@ public class CompleteAppointmentCommandHandlerTests
 
         result.Success.Should().BeFalse();
         result.Kind.Should().Be(ErrorKind.NotFound);
+
+        _eventBus.Verify(e => e.PublishAsync(
+            It.IsAny<string>(),
+            It.IsAny<AppointmentCompletedEvent>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [TestMethod]

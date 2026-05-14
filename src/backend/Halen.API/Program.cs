@@ -6,9 +6,11 @@ using Halen.Application.Interfaces;
 using Halen.Application.Pipeline;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
+using Halen.API.Hubs;
 using Halen.Infrastructure.Messaging;
 using Halen.Infrastructure.Persistence;
 using Halen.Infrastructure.Services;
+using Microsoft.AspNetCore.SignalR;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -57,8 +59,20 @@ builder.Services.AddAuthentication(opt =>
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSecret)),
-            // Match the short "role" claim name written by JwtService.
             RoleClaimType = "role",
+        };
+        opt.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -94,6 +108,13 @@ builder.Services.AddSingleton<IProducer<string, string>>(_ =>
     new ProducerBuilder<string, string>(kafkaConfig).Build());
 builder.Services.AddScoped<IEventBus, KafkaEventBus>();
 
+// ── SignalR ───────────────────────────────────────────────────────────────────
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, SubClaimUserIdProvider>();
+builder.Services.AddSingleton<INotificationSender, SignalRNotificationSender>();
+builder.Services.AddSingleton<NotificationMessageHandler>();
+builder.Services.AddHostedService<NotificationConsumerService>();
+
 // ── API ───────────────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -104,7 +125,8 @@ builder.Services.AddCors(opt =>
     opt.AddPolicy("Frontend", policy =>
         policy.WithOrigins(frontendOrigin)
               .AllowAnyHeader()
-              .AllowAnyMethod()));
+              .AllowAnyMethod()
+              .AllowCredentials()));
 
 var app = builder.Build();
 
@@ -157,6 +179,7 @@ app.UseCors("Frontend");
 app.UseAuthentication();  // order matters — must come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 // Auto-apply migrations and seed roles on startup
 using (var scope = app.Services.CreateScope())

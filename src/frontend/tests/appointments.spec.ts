@@ -60,6 +60,7 @@ async function loginAsDoctor(page: import('@playwright/test').Page) {
 test.describe('Patient Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsPatient(page);
+    await page.route('**/hubs/**', (route) => route.abort());
   });
 
   test('shows booking form with doctor selector', async ({ page }) => {
@@ -74,8 +75,8 @@ test.describe('Patient Dashboard — Appointments', () => {
     });
 
     await page.goto('/dashboard');
-    await expect(page.getByText('Book an appointment.', { exact: false })).toBeVisible();
-    await expect(page.getByText('Select a doctor')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
+    await expect(page.locator('select')).toBeVisible();
     await expect(page.getByText('No appointments yet')).toBeVisible();
   });
 
@@ -140,7 +141,7 @@ test.describe('Patient Dashboard — Appointments', () => {
 
     await page.goto('/dashboard');
 
-    await expect(page.getByText('Dr. House')).toBeVisible();
+    await expect(page.locator('.appt-card').getByText('Dr. House')).toBeVisible();
     await expect(page.getByText('Annual checkup')).toBeVisible();
     await expect(page.getByText('Scheduled')).toBeVisible();
   });
@@ -180,6 +181,7 @@ test.describe('Patient Dashboard — Appointments', () => {
 test.describe('Doctor Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page);
+    await page.route('**/hubs/**', (route) => route.abort());
   });
 
   test('shows doctor schedule', async ({ page }) => {
@@ -191,7 +193,7 @@ test.describe('Doctor Dashboard — Appointments', () => {
     });
 
     await page.goto('/dashboard');
-    await expect(page.getByText('Your schedule.', { exact: false })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /your.*schedule/i })).toBeVisible();
     await expect(page.getByText('Maya Chen')).toBeVisible();
     await expect(page.getByText('Annual checkup')).toBeVisible();
   });

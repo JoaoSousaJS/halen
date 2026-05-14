@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Halen.Application.Appointments.Commands;
+using Halen.Application.Events;
 using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
@@ -15,6 +16,7 @@ namespace Halen.UnitTests.Appointments;
 public class BookAppointmentCommandHandlerTests
 {
     private HalenDbContext _db = null!;
+    private Mock<IEventBus> _eventBus = null!;
     private BookAppointmentCommandHandler _handler = null!;
     private Guid _doctorProfileId;
     private Guid _patientUserId;
@@ -55,8 +57,10 @@ public class BookAppointmentCommandHandlerTests
         _patientUserId = Guid.NewGuid();
         await _db.SaveChangesAsync();
 
+        _eventBus = new Mock<IEventBus>();
         _handler = new BookAppointmentCommandHandler(
             _db,
+            _eventBus.Object,
             Mock.Of<ILogger<BookAppointmentCommandHandler>>());
     }
 
@@ -77,10 +81,15 @@ public class BookAppointmentCommandHandlerTests
         result.Success.Should().BeTrue();
         result.AppointmentId.Should().NotBeNull();
         result.Error.Should().BeNull();
+
+        _eventBus.Verify(e => e.PublishAsync(
+            Topics.AppointmentBooked,
+            It.Is<AppointmentBookedEvent>(evt => evt.AppointmentId == result.AppointmentId),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [TestMethod]
-    public async Task Handle_DoctorNotFound_ReturnsError()
+    public async Task Handle_DoctorNotFound_ReturnsErrorAndNoEvent()
     {
         var command = new BookAppointmentCommand(
             _patientUserId,
@@ -92,6 +101,11 @@ public class BookAppointmentCommandHandlerTests
 
         result.Success.Should().BeFalse();
         result.Error.Should().Be("Doctor not found");
+
+        _eventBus.Verify(e => e.PublishAsync(
+            It.IsAny<string>(),
+            It.IsAny<AppointmentBookedEvent>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [TestMethod]

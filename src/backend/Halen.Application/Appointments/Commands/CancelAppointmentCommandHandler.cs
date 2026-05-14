@@ -1,4 +1,5 @@
 using Halen.Application.Common;
+using Halen.Application.Events;
 using Halen.Application.Interfaces;
 using Halen.Domain.Enums;
 using MediatR;
@@ -9,6 +10,7 @@ namespace Halen.Application.Appointments.Commands;
 
 public class CancelAppointmentCommandHandler(
     IAppDbContext db,
+    IEventBus eventBus,
     ILogger<CancelAppointmentCommandHandler> logger
 ) : IRequestHandler<CancelAppointmentCommand, CancelAppointmentResult>
 {
@@ -51,6 +53,46 @@ public class CancelAppointmentCommandHandler(
         logger.LogInformation("Appointment {AppointmentId} cancelled by {UserRole} {UserId}",
             request.AppointmentId, request.UserRole, request.UserId);
 
+        var patientUserId = await db.PatientProfiles
+            .Where(p => p.Id == appointment.PatientId)
+            .Select(p => p.UserId)
+            .FirstOrDefaultAsync(ct);
+
+        var doctorUserId = await db.DoctorProfiles
+            .Where(d => d.Id == appointment.DoctorId)
+            .Select(d => d.UserId)
+            .FirstOrDefaultAsync(ct);
+
+        var cancellerName = await GetUserNameAsync(request.UserId, ct);
+
+        try
+        {
+            await eventBus.PublishAsync(Topics.AppointmentCancelled, new AppointmentCancelledEvent(
+                request.AppointmentId,
+                request.UserId,
+                patientUserId,
+                doctorUserId,
+                cancellerName,
+                request.UserRole.ToString()), ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to publish cancelled event for appointment {AppointmentId}", request.AppointmentId);
+        }
+
         return new CancelAppointmentResult(true);
+    }
+
+    private async Task<string> GetUserNameAsync(Guid userId, CancellationToken ct)
+    {
+        var name = await db.PatientProfiles
+            .Where(p => p.UserId == userId)
+            .Select(p => p.User.FirstName + " " + p.User.LastName)
+            .FirstOrDefaultAsync(ct);
+
+        return name ?? await db.DoctorProfiles
+            .Where(d => d.UserId == userId)
+            .Select(d => d.User.FirstName + " " + d.User.LastName)
+            .FirstOrDefaultAsync(ct) ?? "User";
     }
 }

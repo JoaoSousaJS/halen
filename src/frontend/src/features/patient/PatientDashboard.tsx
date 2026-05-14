@@ -10,6 +10,8 @@ import {
   cancelAppointment,
 } from '../../shared/api/appointments';
 import type { DoctorDto } from '../../shared/api/appointments';
+import { useNotifications } from '../../shared/hooks/useNotifications';
+import { ToastContainer } from '../../shared/components/ToastContainer';
 
 function toLocalDatetime(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -19,6 +21,7 @@ function toLocalDatetime(date: Date): string {
 export default function PatientDashboard() {
   const { user, logout } = useAuth();
   const queryClient = useQueryClient();
+  const { toasts, dismissToast } = useNotifications();
 
   const [doctorId, setDoctorId] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
@@ -66,6 +69,7 @@ export default function PatientDashboard() {
 
   return (
     <div className="dashboard-shell">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       <header className="dashboard-header">
         <div className="brand">
           <div className="brand-mark" />

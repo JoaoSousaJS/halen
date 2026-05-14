@@ -7,10 +7,13 @@ import {
   cancelAppointment,
   completeAppointment,
 } from '../../shared/api/appointments';
+import { useNotifications } from '../../shared/hooks/useNotifications';
+import { ToastContainer } from '../../shared/components/ToastContainer';
 
 export default function DoctorDashboard() {
   const { user, logout } = useAuth();
   const queryClient = useQueryClient();
+  const { toasts, dismissToast } = useNotifications();
 
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [notesMap, setNotesMap] = useState<Record<string, string>>({});
@@ -38,6 +41,7 @@ export default function DoctorDashboard() {
 
   return (
     <div className="dashboard-shell">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       <header className="dashboard-header">
         <div className="brand">
           <div className="brand-mark" />

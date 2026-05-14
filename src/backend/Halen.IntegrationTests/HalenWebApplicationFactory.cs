@@ -1,10 +1,12 @@
 using Confluent.Kafka;
 using Halen.Application.Interfaces;
+using Halen.Infrastructure.Messaging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Testcontainers.PostgreSql;
 
@@ -47,6 +49,17 @@ public class HalenWebApplicationFactory : WebApplicationFactory<Program>
             // Replace real IEventBus with a no-op implementation
             services.RemoveAll<IEventBus>();
             services.AddScoped<IEventBus, NullEventBus>();
+
+            // Replace real INotificationSender so SignalR isn't needed
+            services.RemoveAll<INotificationSender>();
+            services.AddSingleton<INotificationSender, NullNotificationSender>();
+
+            // Remove the Kafka consumer — no broker in tests.
+            // Targets only NotificationConsumerService, not other hosted services.
+            var consumer = services.FirstOrDefault(d =>
+                d.ImplementationType == typeof(NotificationConsumerService));
+            if (consumer is not null)
+                services.Remove(consumer);
         });
     }
 
@@ -55,5 +68,12 @@ public class HalenWebApplicationFactory : WebApplicationFactory<Program>
     {
         public Task PublishAsync<T>(string topic, T message, CancellationToken ct = default)
             where T : class => Task.CompletedTask;
+    }
+
+    // ── Null notification sender — discards all notifications ────────────────
+    private sealed class NullNotificationSender : INotificationSender
+    {
+        public Task SendToUserAsync(string userId, NotificationDto notification, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }
