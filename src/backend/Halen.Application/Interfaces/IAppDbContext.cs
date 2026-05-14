@@ -6,6 +6,7 @@ namespace Halen.Application.Interfaces;
 
 public interface IAppDbContext
 {
+    DbSet<User> Users { get; }
     DbSet<Appointment> Appointments { get; }
     DbSet<DoctorProfile> DoctorProfiles { get; }
     DbSet<PatientProfile> PatientProfiles { get; }

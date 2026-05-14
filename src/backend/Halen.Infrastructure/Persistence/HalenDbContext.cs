@@ -11,6 +11,7 @@ namespace Halen.Infrastructure.Persistence;
 public class HalenDbContext(DbContextOptions<HalenDbContext> options)
     : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options), IAppDbContext
 {
+    public new DbSet<User> Users => Set<User>();
     public DbSet<DoctorProfile> DoctorProfiles => Set<DoctorProfile>();
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
@@ -55,6 +56,10 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options)
 
         builder.Entity<User>()
             .Property(u => u.Role)
+            .HasConversion<string>();
+
+        builder.Entity<User>()
+            .Property(u => u.Status)
             .HasConversion<string>();
     }
 

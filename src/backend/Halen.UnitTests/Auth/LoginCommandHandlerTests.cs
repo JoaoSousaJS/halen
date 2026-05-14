@@ -2,6 +2,7 @@ using FluentAssertions;
 using Halen.Application.Auth.Commands;
 using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
+using Halen.Domain.Enums;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -143,5 +144,45 @@ public class LoginCommandHandlerTests
         result.Success.Should().BeFalse();
         result.Token.Should().BeNull();
         result.Error.Should().Be("Account locked");
+    }
+
+    [TestMethod]
+    public async Task Handle_SuspendedUser_ReturnsAccountSuspended()
+    {
+        var command = new LoginCommand("jane@example.com", "SecurePass1!");
+        var user = new User { Email = command.Email, Status = AccountStatus.Suspended };
+
+        _userManagerMock
+            .Setup(m => m.FindByEmailAsync(command.Email))
+            .ReturnsAsync(user);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Token.Should().BeNull();
+        result.Error.Should().Be("Account suspended");
+        _signInManagerMock.Verify(
+            m => m.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>()),
+            Times.Never);
+    }
+
+    [TestMethod]
+    public async Task Handle_PendingReviewUser_ReturnsAccountPendingReview()
+    {
+        var command = new LoginCommand("jane@example.com", "SecurePass1!");
+        var user = new User { Email = command.Email, Status = AccountStatus.PendingReview };
+
+        _userManagerMock
+            .Setup(m => m.FindByEmailAsync(command.Email))
+            .ReturnsAsync(user);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Token.Should().BeNull();
+        result.Error.Should().Be("Account is pending review");
+        _signInManagerMock.Verify(
+            m => m.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>()),
+            Times.Never);
     }
 }

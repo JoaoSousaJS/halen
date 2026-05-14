@@ -122,7 +122,95 @@ public class AdminControllerTests
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    // ── List Users ─────────────────────────────────────────────────────────────
+
+    [TestMethod]
+    public async Task ListUsers_AsAdmin_Returns200WithUsers()
+    {
+        var client = await AdminClientAsync();
+
+        var response = await client.GetAsync("/api/v1/admin/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ListUsersResponse>();
+        body.Should().NotBeNull();
+        body!.Users.Should().NotBeNull();
+    }
+
+    [TestMethod]
+    public async Task ListUsers_FilterByRole_ReturnsOnlyMatchingRole()
+    {
+        // Create a doctor first so we have both roles
+        var admin = await AdminClientAsync();
+        await admin.PostAsJsonAsync("/api/v1/admin/doctors", ValidDoctorPayload($"+role{Guid.NewGuid():N}"));
+
+        var response = await admin.GetAsync("/api/v1/admin/users?role=doctor");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ListUsersResponse>();
+        body.Should().NotBeNull();
+        body!.Users.Should().OnlyContain(u => u.Role == "Doctor");
+    }
+
+    [TestMethod]
+    public async Task ListUsers_SearchByName_ReturnsMatches()
+    {
+        var admin = await AdminClientAsync();
+
+        // Register a patient with a known name
+        var anon = _factory.CreateClient();
+        var uniqueName = $"Zara{Guid.NewGuid():N}"[..10];
+        await anon.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            FirstName = uniqueName,
+            LastName = "Test",
+            Email = $"{uniqueName.ToLower()}@test.com",
+            Password = "Patient1234!",
+            Role = (int)UserRole.Patient,
+        });
+
+        var response = await admin.GetAsync($"/api/v1/admin/users?search={uniqueName}");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<ListUsersResponse>();
+        body.Should().NotBeNull();
+        body!.Users.Should().ContainSingle(u => u.Name.Contains(uniqueName));
+    }
+
+    [TestMethod]
+    public async Task ListUsers_AsPatient_Returns403()
+    {
+        var client = await PatientClientAsync();
+
+        var response = await client.GetAsync("/api/v1/admin/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [TestMethod]
+    public async Task ListUsers_WithoutAuth_Returns401()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.GetAsync("/api/v1/admin/users");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
     // ── Response DTOs ─────────────────────────────────────────────────────────
 
     private sealed record DoctorIdResponse(Guid DoctorId);
+
+    private sealed record AdminUserResponse(
+        Guid Id,
+        string Name,
+        string Role,
+        string Status,
+        string? Plan,
+        DateTime? LastLoginAt,
+        bool IsFlagged);
+
+    private sealed record ListUsersResponse(
+        AdminUserResponse[] Users,
+        int TotalCount);
 }
