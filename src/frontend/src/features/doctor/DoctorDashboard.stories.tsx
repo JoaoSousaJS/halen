@@ -107,10 +107,43 @@ export default meta;
 
 type Story = StoryObj<typeof DoctorDashboard>;
 
+const kycApproved = {
+  status: 'Approved',
+  submittedAt: new Date(Date.now() - 604800000).toISOString(),
+  lastRejectionReason: null,
+  documents: [],
+};
+
+const kycNotSubmitted = {
+  status: 'NotSubmitted',
+  submittedAt: null,
+  lastRejectionReason: null,
+  documents: [],
+};
+
+const kycSubmitted = {
+  status: 'Submitted',
+  submittedAt: new Date(Date.now() - 86400000).toISOString(),
+  lastRejectionReason: null,
+  documents: [
+    { id: 'doc-1', documentType: 'LicensePhoto', fileName: 'license.jpg', uploadedAt: new Date(Date.now() - 86400000).toISOString() },
+    { id: 'doc-2', documentType: 'MedicalCertificate', fileName: 'cert.pdf', uploadedAt: new Date(Date.now() - 86400000).toISOString() },
+    { id: 'doc-3', documentType: 'IdentityProof', fileName: 'id.png', uploadedAt: new Date(Date.now() - 86400000).toISOString() },
+  ],
+};
+
+const kycRejected = {
+  status: 'Rejected',
+  submittedAt: new Date(Date.now() - 172800000).toISOString(),
+  lastRejectionReason: 'The license photo is too blurry to verify. Please upload a clearer image.',
+  documents: [],
+};
+
 export const WithSchedule: Story = {
   parameters: {
     msw: {
       handlers: [
+        http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycApproved)),
         http.get('*/api/v1/appointments', () => HttpResponse.json(mockAppointments)),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json(mockPrescriptions)),
       ],
@@ -122,6 +155,43 @@ export const Empty: Story = {
   parameters: {
     msw: {
       handlers: [
+        http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycApproved)),
+        http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
+      ],
+    },
+  },
+};
+
+export const KycNotSubmitted: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycNotSubmitted)),
+        http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
+      ],
+    },
+  },
+};
+
+export const KycSubmitted: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycSubmitted)),
+        http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
+      ],
+    },
+  },
+};
+
+export const KycRejected: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycRejected)),
         http.get('*/api/v1/appointments', () => HttpResponse.json([])),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
       ],

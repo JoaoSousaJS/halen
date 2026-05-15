@@ -75,7 +75,7 @@ Every new feature must follow this sequence:
 8. **Playwright e2e tests** — user flow tests in `src/frontend/e2e/`
 9. **Code review** — run the 3-round review protocol
 
-Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage.
+Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage. Code review (step 9) must only run after all previous steps (1–8) are complete.
 
 ## Review process
 
