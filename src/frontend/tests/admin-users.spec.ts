@@ -83,6 +83,78 @@ test.describe('Admin Users Page', () => {
   });
 });
 
+test.describe('Admin Dashboard — tab navigation', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript((token: string) => {
+      localStorage.setItem('token', token);
+    }, adminToken);
+
+    await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/admin/users**', (route) =>
+      route.fulfill({ status: 200, json: { users: mockUsers, totalCount: mockUsers.length } }),
+    );
+    await page.route('**/api/v1/admin/doctors', (route) => {
+      if (route.request().method() === 'POST') {
+        return route.fulfill({ status: 200, json: { doctorId: 'd-new-001' } });
+      }
+      return route.continue();
+    });
+  });
+
+  test('can switch to Create doctor tab and back', async ({ page }) => {
+    await page.goto('/dashboard');
+    await expect(page.getByText('Users.')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Create doctor' }).click();
+    await expect(page.getByText('doctor account.')).toBeVisible();
+    await expect(page.getByText('Users.')).not.toBeVisible();
+
+    await page.getByRole('button', { name: 'Users' }).click();
+    await expect(page.getByText('Users.')).toBeVisible();
+  });
+
+  test('create doctor form submits successfully', async ({ page }) => {
+    await page.goto('/dashboard');
+    await page.getByRole('button', { name: 'Create doctor' }).click();
+
+    await page.getByPlaceholder('James').fill('Gregory');
+    await page.getByPlaceholder('Wilson').fill('House');
+    await page.getByPlaceholder('doctor@halen.dev').fill('house@halen.dev');
+    await page.getByPlaceholder('8+ characters, include a digit').fill('Secure123!');
+    await page.getByPlaceholder('Cardiology').fill('Diagnostics');
+    await page.getByPlaceholder('MED-12345').fill('MED-99999');
+    await page.getByPlaceholder('150').fill('200');
+    await page.getByPlaceholder('5').fill('15');
+
+    await page.getByRole('button', { name: 'Create doctor account' }).click();
+    await expect(page.getByText('Doctor account created for house@halen.dev')).toBeVisible();
+  });
+
+  test('create doctor form shows error on failure', async ({ page }) => {
+    await page.route('**/api/v1/admin/doctors', (route) => {
+      if (route.request().method() === 'POST') {
+        return route.fulfill({ status: 400, json: { error: 'Email already exists' } });
+      }
+      return route.continue();
+    });
+
+    await page.goto('/dashboard');
+    await page.getByRole('button', { name: 'Create doctor' }).click();
+
+    await page.getByPlaceholder('James').fill('Gregory');
+    await page.getByPlaceholder('Wilson').fill('House');
+    await page.getByPlaceholder('doctor@halen.dev').fill('house@halen.dev');
+    await page.getByPlaceholder('8+ characters, include a digit').fill('Secure123!');
+    await page.getByPlaceholder('Cardiology').fill('Diagnostics');
+    await page.getByPlaceholder('MED-12345').fill('MED-99999');
+    await page.getByPlaceholder('150').fill('200');
+    await page.getByPlaceholder('5').fill('15');
+
+    await page.getByRole('button', { name: 'Create doctor account' }).click();
+    await expect(page.getByText('Email already exists')).toBeVisible();
+  });
+});
+
 test.describe('Admin Users — access control', () => {
   test('patient cannot see admin users page', async ({ page }) => {
     await page.addInitScript((token: string) => {
