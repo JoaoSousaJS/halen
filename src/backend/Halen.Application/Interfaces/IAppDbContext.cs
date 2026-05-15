@@ -10,6 +10,7 @@ public interface IAppDbContext
     DbSet<Appointment> Appointments { get; }
     DbSet<DoctorProfile> DoctorProfiles { get; }
     DbSet<PatientProfile> PatientProfiles { get; }
+    DbSet<Prescription> Prescriptions { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

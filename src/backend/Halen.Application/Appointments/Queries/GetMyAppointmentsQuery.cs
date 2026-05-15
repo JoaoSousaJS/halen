@@ -20,5 +20,6 @@ public record AppointmentDto(
     string DoctorName,
     string Specialty,
     decimal ConsultationFee,
-    string PatientName
+    string PatientName,
+    Guid PatientId
 );

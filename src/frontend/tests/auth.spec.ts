@@ -1,12 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-// Builds a structurally valid JWT with the given payload.
-// The signature segment is fake — the app never validates it client-side.
-function fakeJwt(payload: object): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  return `${header}.${body}.fake-sig`;
-}
+import { fakeJwt } from './helpers';
 
 const patientToken = fakeJwt({
   sub: '1',
@@ -35,6 +28,9 @@ test.describe('Login', () => {
       route.fulfill({ status: 200, json: [] }),
     );
     await page.route('**/api/v1/appointments', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
+    await page.route('**/api/v1/prescriptions', (route) =>
       route.fulfill({ status: 200, json: [] }),
     );
 
@@ -88,6 +84,9 @@ test.describe('Register', () => {
       route.fulfill({ status: 200, json: [] }),
     );
     await page.route('**/api/v1/appointments', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
+    await page.route('**/api/v1/prescriptions', (route) =>
       route.fulfill({ status: 200, json: [] }),
     );
 

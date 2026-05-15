@@ -74,7 +74,9 @@ public class AppointmentsController(IMediator mediator) : ControllerBase
     {
         var claim = User.FindFirst("sub")
             ?? throw new UnauthorizedAccessException("Missing 'sub' claim");
-        return Guid.Parse(claim.Value);
+        if (!Guid.TryParse(claim.Value, out var id))
+            throw new UnauthorizedAccessException("Invalid 'sub' claim");
+        return id;
     }
 
     private string GetUserRole()

@@ -46,7 +46,8 @@ public class GetMyAppointmentsQueryHandler(
                 $"{a.Doctor.User.FirstName} {a.Doctor.User.LastName}",
                 a.Doctor.Specialty,
                 a.Doctor.ConsultationFee,
-                $"{a.Patient.User.FirstName} {a.Patient.User.LastName}"
+                $"{a.Patient.User.FirstName} {a.Patient.User.LastName}",
+                a.PatientId
             ))
             .ToListAsync(ct);
 

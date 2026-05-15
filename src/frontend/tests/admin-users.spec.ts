@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-function fakeJwt(payload: object): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  return `${header}.${body}.fake-sig`;
-}
+import { fakeJwt } from './helpers';
 
 const adminToken = fakeJwt({
   sub: 'a-001',
@@ -57,7 +52,7 @@ test.describe('Admin Users Page', () => {
     await page.goto('/dashboard');
     await expect(page.getByText('Dr. Anika Volpe')).toBeVisible();
 
-    await page.getByRole('button', { name: 'Doctor', exact: true }).click();
+    await page.getByRole('tab', { name: 'Doctor', exact: true }).click();
     await expect(page.getByText('Dr. Anika Volpe')).toBeVisible();
     await expect(page.getByText('Wesley Tanaka')).not.toBeVisible();
   });
@@ -124,7 +119,7 @@ test.describe('Admin Dashboard — tab navigation', () => {
     await page.getByPlaceholder('Cardiology').fill('Diagnostics');
     await page.getByPlaceholder('MED-12345').fill('MED-99999');
     await page.getByPlaceholder('150').fill('200');
-    await page.getByPlaceholder('5').fill('15');
+    await page.getByRole('spinbutton', { name: 'Years of experience' }).fill('15');
 
     await page.getByRole('button', { name: 'Create doctor account' }).click();
     await expect(page.getByText('Doctor account created for house@halen.dev')).toBeVisible();
@@ -148,7 +143,7 @@ test.describe('Admin Dashboard — tab navigation', () => {
     await page.getByPlaceholder('Cardiology').fill('Diagnostics');
     await page.getByPlaceholder('MED-12345').fill('MED-99999');
     await page.getByPlaceholder('150').fill('200');
-    await page.getByPlaceholder('5').fill('15');
+    await page.getByRole('spinbutton', { name: 'Years of experience' }).fill('15');
 
     await page.getByRole('button', { name: 'Create doctor account' }).click();
     await expect(page.getByText('Email already exists')).toBeVisible();
@@ -171,6 +166,9 @@ test.describe('Admin Users — access control', () => {
       }
       return route.continue();
     });
+    await page.route('**/api/v1/prescriptions', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
 
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();

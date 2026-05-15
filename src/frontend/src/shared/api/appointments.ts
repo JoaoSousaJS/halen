@@ -21,6 +21,7 @@ export interface AppointmentDto {
   specialty: string;
   consultationFee: number;
   patientName: string;
+  patientId: string;
 }
 
 export interface BookAppointmentPayload {

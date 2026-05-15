@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-function fakeJwt(payload: object): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  return `${header}.${body}.fake-sig`;
-}
+import { fakeJwt } from './helpers';
 
 const patientToken = fakeJwt({
   sub: '1',
@@ -40,6 +35,7 @@ const mockAppointments = [
     specialty: 'Diagnostics',
     consultationFee: 150,
     patientName: 'Maya Chen',
+    patientId: 'patient-1',
   },
 ];
 
@@ -61,6 +57,9 @@ test.describe('Patient Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsPatient(page);
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/prescriptions', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
   });
 
   test('shows booking form with doctor selector', async ({ page }) => {
@@ -182,6 +181,9 @@ test.describe('Doctor Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page);
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/prescriptions', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
   });
 
   test('shows doctor schedule', async ({ page }) => {
@@ -194,7 +196,7 @@ test.describe('Doctor Dashboard — Appointments', () => {
 
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: /your.*schedule/i })).toBeVisible();
-    await expect(page.getByText('Maya Chen')).toBeVisible();
+    await expect(page.locator('.appt-card').getByText('Maya Chen')).toBeVisible();
     await expect(page.getByText('Annual checkup')).toBeVisible();
   });
 

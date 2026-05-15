@@ -42,6 +42,12 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options)
             e.HasIndex(a => a.PatientId);
         });
 
+        builder.Entity<Prescription>(e =>
+        {
+            e.HasIndex(p => new { p.DoctorId, p.Status });
+            e.HasIndex(p => new { p.PatientId, p.Status });
+        });
+
         builder.Entity<AuditLog>(e =>
         {
             e.HasIndex(a => a.ActorId);

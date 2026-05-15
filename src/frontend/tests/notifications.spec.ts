@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-function fakeJwt(payload: object): string {
-  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
-  const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  return `${header}.${body}.fake-sig`;
-}
+import { fakeJwt } from './helpers';
 
 const patientToken = fakeJwt({
   sub: '1',
@@ -31,6 +26,9 @@ test.describe('Notifications — graceful degradation', () => {
       }
       return route.continue();
     });
+    await page.route('**/api/v1/prescriptions', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
   });
 
   test('patient dashboard loads when SignalR is unavailable', async ({ page }) => {

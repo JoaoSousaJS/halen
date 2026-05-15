@@ -17,6 +17,7 @@ const mockAppointments = [
     specialty: 'Diagnostics',
     consultationFee: 150,
     patientName: 'Maya Chen',
+    patientId: 'patient-1',
   },
   {
     id: 'appt-2',
@@ -29,6 +30,7 @@ const mockAppointments = [
     specialty: 'Diagnostics',
     consultationFee: 150,
     patientName: 'John Smith',
+    patientId: 'patient-2',
   },
   {
     id: 'appt-3',
@@ -41,6 +43,34 @@ const mockAppointments = [
     specialty: 'Diagnostics',
     consultationFee: 150,
     patientName: 'Sarah Connor',
+    patientId: 'patient-3',
+  },
+];
+
+const mockPrescriptions = [
+  {
+    id: 'rx-1',
+    drugName: 'Amoxicillin',
+    dosage: '500mg',
+    frequency: 'Twice daily',
+    refillsRemaining: 3,
+    status: 'Active',
+    pharmacyName: 'CVS Pharmacy',
+    doctorName: 'Dr. House',
+    patientName: 'Maya Chen',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    id: 'rx-2',
+    drugName: 'Ibuprofen',
+    dosage: '400mg',
+    frequency: 'As needed',
+    refillsRemaining: 0,
+    status: 'Completed',
+    pharmacyName: null,
+    doctorName: 'Dr. House',
+    patientName: 'John Smith',
+    createdAt: new Date(Date.now() - 604800000).toISOString(),
   },
 ];
 
@@ -82,6 +112,7 @@ export const WithSchedule: Story = {
     msw: {
       handlers: [
         http.get('*/api/v1/appointments', () => HttpResponse.json(mockAppointments)),
+        http.get('*/api/v1/prescriptions', () => HttpResponse.json(mockPrescriptions)),
       ],
     },
   },
@@ -92,6 +123,7 @@ export const Empty: Story = {
     msw: {
       handlers: [
         http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
       ],
     },
   },
