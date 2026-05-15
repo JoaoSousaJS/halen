@@ -15,6 +15,9 @@ public class RegisterCommandHandler(
 {
     public async Task<RegisterResult> Handle(RegisterCommand request, CancellationToken ct)
     {
+        if (request.Role != UserRole.Patient)
+            return new RegisterResult(false, null, "Self-registration is only allowed for patients.");
+
         var user = new User
         {
             FirstName = request.FirstName,

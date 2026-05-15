@@ -39,6 +39,7 @@ public class HalenWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting("Seed:AdminEmail", "admin@test.com");
         builder.UseSetting("Seed:AdminPassword", "Admin1234!");
         builder.UseSetting("Kafka:BootstrapServers", "localhost:9092");
+        builder.UseSetting("RateLimit:Auth", "10000");
 
         builder.ConfigureServices(services =>
         {
@@ -60,6 +61,7 @@ public class HalenWebApplicationFactory : WebApplicationFactory<Program>
                 d.ImplementationType == typeof(NotificationConsumerService));
             if (consumer is not null)
                 services.Remove(consumer);
+
         });
     }
 

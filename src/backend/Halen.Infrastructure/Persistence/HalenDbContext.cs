@@ -31,12 +31,21 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options)
             e.HasOne(u => u.PatientProfile)
                 .WithOne(p => p.User)
                 .HasForeignKey<PatientProfile>(p => p.UserId);
+
+            e.HasIndex(u => u.Role);
+            e.HasIndex(u => new { u.IsFlagged, u.LastLoginAt });
         });
 
         builder.Entity<Appointment>(e =>
         {
-            e.HasIndex(a => new { a.DoctorId, a.ScheduledAt });
+            e.HasIndex(a => new { a.DoctorId, a.Status, a.ScheduledAt });
             e.HasIndex(a => a.PatientId);
+        });
+
+        builder.Entity<AuditLog>(e =>
+        {
+            e.HasIndex(a => a.ActorId);
+            e.HasIndex(a => a.CreatedAt);
         });
 
         builder.Entity<DoctorProfile>(e =>

@@ -1,6 +1,7 @@
 using Halen.Application.Auth.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Halen.API.Controllers;
 
@@ -9,6 +10,7 @@ namespace Halen.API.Controllers;
 public class AuthController(IMediator mediator) : ControllerBase
 {
     [HttpPost("register")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register(RegisterCommand command, CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
@@ -19,6 +21,7 @@ public class AuthController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login(LoginCommand command, CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);

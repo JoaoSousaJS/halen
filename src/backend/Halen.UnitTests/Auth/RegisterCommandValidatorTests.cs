@@ -29,18 +29,17 @@ public class RegisterCommandValidatorTests
     }
 
     [TestMethod]
-    public async Task Validate_AdminRole_FailsWithSelfRegistrationMessage()
+    [DataRow(UserRole.Admin)]
+    [DataRow(UserRole.Doctor)]
+    public async Task Validate_NonPatientRole_FailsWithSelfRegistrationMessage(UserRole role)
     {
-        // Arrange
-        var command = new RegisterCommand("Admin", "User", "admin@example.com", "SecurePass1!", UserRole.Admin);
+        var command = new RegisterCommand("Test", "User", "test@example.com", "SecurePass1!", role);
 
-        // Act
         var result = await _validator.ValidateAsync(command);
 
-        // Assert
         result.IsValid.Should().BeFalse();
         result.Errors.Should().ContainSingle(e =>
-            e.ErrorMessage == "Self-registration as Admin is not allowed.");
+            e.ErrorMessage == "Self-registration is only allowed for patients.");
     }
 
     [TestMethod]

@@ -88,6 +88,20 @@ public class RegisterCommandHandlerTests
     }
 
     [TestMethod]
+    [DataRow(UserRole.Admin)]
+    [DataRow(UserRole.Doctor)]
+    public async Task Handle_NonPatientRole_ReturnsErrorWithoutCreatingUser(UserRole role)
+    {
+        var command = new RegisterCommand("Test", "User", "test@example.com", "SecurePass1!", role);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Be("Self-registration is only allowed for patients.");
+        _userManagerMock.Verify(m => m.CreateAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [TestMethod]
     public async Task Handle_AddToRoleAsyncFails_DeletesUserAndReturnsError()
     {
         // Arrange

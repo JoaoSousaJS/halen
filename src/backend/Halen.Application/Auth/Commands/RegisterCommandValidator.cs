@@ -11,7 +11,7 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(256);
         RuleFor(x => x.Password).NotEmpty().MinimumLength(8).MaximumLength(128);
-        RuleFor(x => x.Role).IsInEnum().Must(r => r != UserRole.Admin)
-            .WithMessage("Self-registration as Admin is not allowed.");
+        RuleFor(x => x.Role).IsInEnum().Must(r => r == UserRole.Patient)
+            .WithMessage("Self-registration is only allowed for patients.");
     }
 }

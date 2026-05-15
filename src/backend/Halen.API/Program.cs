@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Confluent.Kafka;
 using FluentValidation;
 using Halen.Application.Auth.Commands;
@@ -115,6 +116,22 @@ builder.Services.AddSingleton<INotificationSender, SignalRNotificationSender>();
 builder.Services.AddSingleton<NotificationMessageHandler>();
 builder.Services.AddHostedService<NotificationConsumerService>();
 
+// ── Rate limiting ────────────────────────────────────────────────────────────
+var authRateLimit = int.TryParse(builder.Configuration["RateLimit:Auth"], out var parsed) ? parsed : 10;
+builder.Services.AddRateLimiter(opt =>
+{
+    opt.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    opt.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = authRateLimit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+});
+
 // ── API ───────────────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -176,6 +193,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("Frontend");
+app.UseRateLimiter();
 app.UseAuthentication();  // order matters — must come before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
