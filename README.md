@@ -154,6 +154,3 @@ If you prefer running the backend directly:
 
    Set environment variables or use `appsettings.Development.json` for connection strings.
 
-## License
-
-This is a learning project and is not licensed for production use.
