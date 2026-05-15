@@ -59,19 +59,21 @@ Project-local skills in `.agents/skills/` — read them before writing code:
 - `dotnet-best-practices` — .NET 8 patterns and conventions
 - `vercel-react-best-practices` — React/TypeScript guidance
 - `code-reviewer` — 3-round structured review protocol (writes to `reviews/`)
+- `code-planner` — 3-round structured planning protocol (writes to `plans/`)
 
 ## Feature implementation checklist
 
 Every new feature must follow this sequence:
 
 1. **Read skills** — load `.agents/skills/dotnet-best-practices` and `.agents/skills/vercel-react-best-practices` before writing code
-2. **Backend** — domain entities, CQRS commands/queries, validators, controller
-3. **Frontend** — API client types, React components, state management
-4. **Unit tests** — handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
-5. **Integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
-6. **Storybook stories** — component stories in `*.stories.tsx` co-located with components
-7. **Playwright e2e tests** — user flow tests in `src/frontend/e2e/`
-8. **Code review** — run the 3-round review protocol
+2. **Plan** — run the 3-round planning protocol with the `code-planner` skill (writes to `plans/`)
+3. **Backend** — domain entities, CQRS commands/queries, validators, controller
+4. **Frontend** — API client types, React components, state management
+5. **Unit tests** — handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
+6. **Integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
+7. **Storybook stories** — component stories in `*.stories.tsx` co-located with components
+8. **Playwright e2e tests** — user flow tests in `src/frontend/e2e/`
+9. **Code review** — run the 3-round review protocol
 
 Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage.
 
@@ -84,10 +86,23 @@ Use the code-reviewer skill for a 3-round structured review:
 4. Main assistant responds again
 5. Round 3: Reviewer verifies fixes, writes final verdict
 
-## What's built (as of 2026-05-14)
+## Planning process
+
+Use the code-planner skill for a 3-round structured plan:
+1. Round 1: Planner writes plan to `plans/<date>-<slug>.md`
+2. Main assistant responds with ACCEPT/PUSHBACK per section
+3. Round 2: Planner re-examines pushbacks (REVISED/STANDING)
+4. Main assistant responds again
+5. Round 3: Planner writes consolidated final plan
+
+Implementation begins only after the plan reaches "Status: Plan complete".
+
+## What's built (as of 2026-05-15)
 
 - Auth: register, login, JWT with role claims
 - Admin: create doctor, seed admin on startup
 - Appointments: book (with serializable transaction for double-booking prevention), cancel (role-based ownership), complete (doctor-only), list
-- Frontend: login, register, patient/doctor/admin dashboards with appointments UI
-- Docker Compose: Postgres + Kafka + API, auto-migrations on startup
+- Prescriptions: issue, cancel, list (doctor and patient views)
+- Kafka events: appointment + prescription events → SignalR notifications (with poison message handling)
+- Frontend: login, register, patient/doctor/admin dashboards with appointments + prescriptions UI
+- Docker Compose: Postgres + Kafka + API, auto-migrations on startup, centralized secrets via .env
