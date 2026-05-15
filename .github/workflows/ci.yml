@@ -79,6 +79,12 @@ jobs:
       - name: Build Storybook
         run: npx storybook build
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright e2e tests
+        run: npx playwright test
+
   deploy-storybook:
     name: Deploy Storybook to GitHub Pages
     runs-on: ubuntu-latest
@@ -117,6 +123,8 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload Storybook artifact
         uses: actions/upload-pages-artifact@v3
