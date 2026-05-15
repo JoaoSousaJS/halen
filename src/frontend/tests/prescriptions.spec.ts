@@ -58,6 +58,9 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
       localStorage.setItem('token', token);
     }, doctorToken);
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/doctor/kyc/status', (route) =>
+      route.fulfill({ status: 200, json: { status: 'Approved', submittedAt: null, lastRejectionReason: null, documents: [] } }),
+    );
     await page.route('**/api/v1/appointments', (route) => {
       if (route.request().method() === 'GET') {
         return route.fulfill({ status: 200, json: mockAppointments });

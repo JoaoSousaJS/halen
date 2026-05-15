@@ -181,6 +181,9 @@ test.describe('Doctor Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page);
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/doctor/kyc/status', (route) =>
+      route.fulfill({ status: 200, json: { status: 'Approved', submittedAt: null, lastRejectionReason: null, documents: [] } }),
+    );
     await page.route('**/api/v1/prescriptions', (route) =>
       route.fulfill({ status: 200, json: [] }),
     );

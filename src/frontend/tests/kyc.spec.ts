@@ -73,13 +73,25 @@ const mockUsers = [
 
 // ── Doctor KYC Flow ─────────────────────────────────────────────────────────
 
+function mockDoctorBase(page: import('@playwright/test').Page) {
+  return Promise.all([
+    page.route('**/hubs/**', (route) => route.abort()),
+    page.route('**/api/v1/appointments', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    ),
+    page.route('**/api/v1/prescriptions', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    ),
+  ]);
+}
+
 test.describe('Doctor KYC — Not Submitted', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript((token: string) => {
       localStorage.setItem('token', token);
     }, doctorToken);
 
-    await page.route('**/hubs/**', (route) => route.abort());
+    await mockDoctorBase(page);
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: kycNotSubmitted }),
     );
@@ -142,7 +154,7 @@ test.describe('Doctor KYC — Submitted', () => {
       localStorage.setItem('token', token);
     }, doctorToken);
 
-    await page.route('**/hubs/**', (route) => route.abort());
+    await mockDoctorBase(page);
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: kycSubmitted }),
     );
@@ -171,7 +183,7 @@ test.describe('Doctor KYC — Rejected', () => {
       localStorage.setItem('token', token);
     }, doctorToken);
 
-    await page.route('**/hubs/**', (route) => route.abort());
+    await mockDoctorBase(page);
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: kycRejected }),
     );
@@ -192,15 +204,9 @@ test.describe('Doctor KYC — Approved', () => {
       localStorage.setItem('token', token);
     }, doctorToken);
 
-    await page.route('**/hubs/**', (route) => route.abort());
+    await mockDoctorBase(page);
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: kycApproved }),
-    );
-    await page.route('**/api/v1/appointments', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/prescriptions', (route) =>
-      route.fulfill({ status: 200, json: [] }),
     );
   });
 
