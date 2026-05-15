@@ -27,6 +27,14 @@ public class NotificationMessageHandler(
                 await HandleCompleted(message, ct);
                 break;
 
+            case Topics.PrescriptionIssued:
+                await HandlePrescriptionIssued(message, ct);
+                break;
+
+            case Topics.PrescriptionCancelled:
+                await HandlePrescriptionCancelled(message, ct);
+                break;
+
             default:
                 logger.LogWarning("Unknown topic {Topic}, skipping", topic);
                 break;
@@ -76,11 +84,45 @@ public class NotificationMessageHandler(
         await sender.SendToUserAsync(evt.PatientUserId.ToString(), notification, ct);
     }
 
+    private async Task HandlePrescriptionIssued(string json, CancellationToken ct)
+    {
+        var evt = Deserialize<PrescriptionIssuedEvent>(json, Topics.PrescriptionIssued);
+        if (evt is null) return;
+
+        var notification = new NotificationDto(
+            "prescription.issued",
+            $"New prescription for {evt.DrugName} from {evt.DoctorName}",
+            DateTime.UtcNow);
+
+        await sender.SendToUserAsync(evt.PatientUserId.ToString(), notification, ct);
+    }
+
+    private async Task HandlePrescriptionCancelled(string json, CancellationToken ct)
+    {
+        var evt = Deserialize<PrescriptionCancelledEvent>(json, Topics.PrescriptionCancelled);
+        if (evt is null) return;
+
+        var notification = new NotificationDto(
+            "prescription.cancelled",
+            $"Prescription for {evt.DrugName} has been cancelled by {evt.DoctorName}",
+            DateTime.UtcNow);
+
+        await sender.SendToUserAsync(evt.PatientUserId.ToString(), notification, ct);
+    }
+
     private T? Deserialize<T>(string json, string topic)
     {
-        var result = JsonSerializer.Deserialize<T>(json, JsonOptions);
-        if (result is null)
-            logger.LogWarning("Failed to deserialize message on topic {Topic}: {Json}", topic, json[..Math.Min(json.Length, 500)]);
-        return result;
+        try
+        {
+            var result = JsonSerializer.Deserialize<T>(json, JsonOptions);
+            if (result is null)
+                logger.LogWarning("Failed to deserialize message on topic {Topic}: {Json}", topic, json[..Math.Min(json.Length, 500)]);
+            return result;
+        }
+        catch (JsonException ex)
+        {
+            logger.LogError(ex, "Malformed JSON on topic {Topic}: {Json}", topic, json[..Math.Min(json.Length, 500)]);
+            return default;
+        }
     }
 }

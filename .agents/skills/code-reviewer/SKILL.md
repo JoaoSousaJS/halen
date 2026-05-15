@@ -1,6 +1,7 @@
 ---
 name: code-reviewer
 description: 'Reviews Halen platform code for correctness, security, architecture, and best-practice adherence. Outputs structured comment files and participates in a 3-round push-back loop with the main assistant.'
+model: opus
 ---
 
 # Code Reviewer – Halen Platform

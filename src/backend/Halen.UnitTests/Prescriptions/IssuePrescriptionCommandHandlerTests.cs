@@ -1,5 +1,7 @@
 using FluentAssertions;
 using Halen.Application.Common;
+using Halen.Application.Events;
+using Halen.Application.Interfaces;
 using Halen.Application.Prescriptions.Commands;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
@@ -15,9 +17,11 @@ namespace Halen.UnitTests.Prescriptions;
 public class IssuePrescriptionCommandHandlerTests
 {
     private HalenDbContext _db = null!;
+    private Mock<IEventBus> _eventBus = null!;
     private IssuePrescriptionCommandHandler _handler = null!;
     private Guid _doctorUserId;
     private Guid _doctorProfileId;
+    private Guid _patientUserId;
     private Guid _patientProfileId;
 
     [TestInitialize]
@@ -32,11 +36,12 @@ public class IssuePrescriptionCommandHandlerTests
 
         _doctorUserId = Guid.NewGuid();
         _doctorProfileId = Guid.NewGuid();
+        _patientUserId = Guid.NewGuid();
         _patientProfileId = Guid.NewGuid();
 
         _db.Users.AddRange(
             new User { Id = _doctorUserId, FirstName = "Dr", LastName = "House", Email = "doc@test.com", UserName = "doc@test.com", Role = UserRole.Doctor },
-            new User { Id = Guid.NewGuid(), FirstName = "Pat", LastName = "Ient", Email = "pat@test.com", UserName = "pat@test.com", Role = UserRole.Patient }
+            new User { Id = _patientUserId, FirstName = "Pat", LastName = "Ient", Email = "pat@test.com", UserName = "pat@test.com", Role = UserRole.Patient }
         );
 
         _db.DoctorProfiles.Add(new DoctorProfile
@@ -46,18 +51,19 @@ public class IssuePrescriptionCommandHandlerTests
             ConsultationFee = 100, YearsOfExperience = 5
         });
 
-        _db.PatientProfiles.Add(new PatientProfile { Id = _patientProfileId, UserId = Guid.NewGuid() });
+        _db.PatientProfiles.Add(new PatientProfile { Id = _patientProfileId, UserId = _patientUserId });
         await _db.SaveChangesAsync();
 
+        _eventBus = new Mock<IEventBus>();
         _handler = new IssuePrescriptionCommandHandler(
-            _db, Mock.Of<ILogger<IssuePrescriptionCommandHandler>>());
+            _db, _eventBus.Object, Mock.Of<ILogger<IssuePrescriptionCommandHandler>>());
     }
 
     [TestCleanup]
     public void Cleanup() => _db.Dispose();
 
     [TestMethod]
-    public async Task Handle_ValidCommand_CreatesActivePrescription()
+    public async Task Handle_ValidCommand_CreatesActivePrescriptionAndPublishesEvent()
     {
         var command = new IssuePrescriptionCommand(
             _doctorUserId, _patientProfileId,
@@ -74,10 +80,18 @@ public class IssuePrescriptionCommandHandlerTests
         rx.Status.Should().Be(PrescriptionStatus.Active);
         rx.DoctorId.Should().Be(_doctorProfileId);
         rx.PatientId.Should().Be(_patientProfileId);
+
+        _eventBus.Verify(e => e.PublishAsync(
+            Topics.PrescriptionIssued,
+            It.Is<PrescriptionIssuedEvent>(evt =>
+                evt.PrescriptionId == result.PrescriptionId &&
+                evt.PatientUserId == _patientUserId &&
+                evt.DrugName == "Amoxicillin"),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [TestMethod]
-    public async Task Handle_DoctorProfileNotFound_ReturnsNotFoundError()
+    public async Task Handle_DoctorProfileNotFound_ReturnsNotFoundErrorAndNoEvent()
     {
         var command = new IssuePrescriptionCommand(
             Guid.NewGuid(), _patientProfileId,
@@ -88,10 +102,15 @@ public class IssuePrescriptionCommandHandlerTests
         result.Success.Should().BeFalse();
         result.Kind.Should().Be(ErrorKind.NotFound);
         result.Error.Should().Contain("Doctor");
+
+        _eventBus.Verify(e => e.PublishAsync(
+            It.IsAny<string>(),
+            It.IsAny<PrescriptionIssuedEvent>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [TestMethod]
-    public async Task Handle_PatientNotFound_ReturnsNotFoundError()
+    public async Task Handle_PatientNotFound_ReturnsNotFoundErrorAndNoEvent()
     {
         var command = new IssuePrescriptionCommand(
             _doctorUserId, Guid.NewGuid(),
@@ -102,5 +121,28 @@ public class IssuePrescriptionCommandHandlerTests
         result.Success.Should().BeFalse();
         result.Kind.Should().Be(ErrorKind.NotFound);
         result.Error.Should().Contain("Patient");
+
+        _eventBus.Verify(e => e.PublishAsync(
+            It.IsAny<string>(),
+            It.IsAny<PrescriptionIssuedEvent>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [TestMethod]
+    public async Task Handle_EventBusFailure_StillReturnsSuccess()
+    {
+        _eventBus.Setup(e => e.PublishAsync(
+            It.IsAny<string>(),
+            It.IsAny<PrescriptionIssuedEvent>(),
+            It.IsAny<CancellationToken>())).ThrowsAsync(new Exception("Kafka down"));
+
+        var command = new IssuePrescriptionCommand(
+            _doctorUserId, _patientProfileId,
+            "Amoxicillin", "500mg", "Twice daily", 3, null);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        result.PrescriptionId.Should().NotBeNull();
     }
 }

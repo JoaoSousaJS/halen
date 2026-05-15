@@ -110,6 +110,54 @@ public class NotificationMessageHandlerTests
     }
 
     [TestMethod]
+    public async Task HandleAsync_PrescriptionIssued_NotifiesPatient()
+    {
+        var patientId = Guid.NewGuid();
+
+        var evt = new PrescriptionIssuedEvent(
+            Guid.NewGuid(),
+            DoctorUserId: Guid.NewGuid(),
+            PatientUserId: patientId,
+            "Amoxicillin",
+            "Dr. House",
+            DateTime.UtcNow);
+
+        await _handler.HandleAsync("prescription.issued", JsonSerializer.Serialize(evt), CancellationToken.None);
+
+        _sender.Verify(s => s.SendToUserAsync(
+            patientId.ToString(),
+            It.Is<NotificationDto>(n =>
+                n.Type == "prescription.issued" &&
+                n.Message.Contains("Amoxicillin") &&
+                n.Message.Contains("Dr. House")),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task HandleAsync_PrescriptionCancelled_NotifiesPatient()
+    {
+        var patientId = Guid.NewGuid();
+
+        var evt = new PrescriptionCancelledEvent(
+            Guid.NewGuid(),
+            DoctorUserId: Guid.NewGuid(),
+            PatientUserId: patientId,
+            "Amoxicillin",
+            "Dr. House",
+            DateTime.UtcNow);
+
+        await _handler.HandleAsync("prescription.cancelled", JsonSerializer.Serialize(evt), CancellationToken.None);
+
+        _sender.Verify(s => s.SendToUserAsync(
+            patientId.ToString(),
+            It.Is<NotificationDto>(n =>
+                n.Type == "prescription.cancelled" &&
+                n.Message.Contains("Amoxicillin") &&
+                n.Message.Contains("Dr. House")),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [TestMethod]
     public async Task HandleAsync_UnknownTopic_DoesNotSendNotification()
     {
         await _handler.HandleAsync("unknown.topic", "{}", CancellationToken.None);

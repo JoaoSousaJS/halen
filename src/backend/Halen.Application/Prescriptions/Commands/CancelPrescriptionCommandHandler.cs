@@ -1,4 +1,5 @@
 using Halen.Application.Common;
+using Halen.Application.Events;
 using Halen.Application.Interfaces;
 using Halen.Domain.Enums;
 using MediatR;
@@ -9,13 +10,15 @@ namespace Halen.Application.Prescriptions.Commands;
 
 public class CancelPrescriptionCommandHandler(
     IAppDbContext db,
+    IEventBus eventBus,
     ILogger<CancelPrescriptionCommandHandler> logger
 ) : IRequestHandler<CancelPrescriptionCommand, CancelPrescriptionResult>
 {
     public async Task<CancelPrescriptionResult> Handle(CancelPrescriptionCommand request, CancellationToken ct)
     {
         var prescription = await db.Prescriptions
-            .Include(p => p.Doctor)
+            .Include(p => p.Doctor).ThenInclude(d => d.User)
+            .Include(p => p.Patient)
             .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, ct);
 
         if (prescription is null)
@@ -33,6 +36,21 @@ public class CancelPrescriptionCommandHandler(
         logger.LogInformation(
             "Prescription {PrescriptionId} cancelled by doctor {DoctorUserId}",
             prescription.Id, request.DoctorUserId);
+
+        try
+        {
+            await eventBus.PublishAsync(Topics.PrescriptionCancelled, new PrescriptionCancelledEvent(
+                prescription.Id,
+                request.DoctorUserId,
+                prescription.Patient.UserId,
+                prescription.DrugName,
+                $"Dr. {prescription.Doctor.User.LastName}",
+                DateTime.UtcNow), ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to publish cancelled event for prescription {PrescriptionId}", prescription.Id);
+        }
 
         return new CancelPrescriptionResult(true);
     }

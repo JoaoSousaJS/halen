@@ -15,7 +15,9 @@ public class NotificationConsumerService(
     [
         Topics.AppointmentBooked,
         Topics.AppointmentCancelled,
-        Topics.AppointmentCompleted
+        Topics.AppointmentCompleted,
+        Topics.PrescriptionIssued,
+        Topics.PrescriptionCancelled
     ];
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
