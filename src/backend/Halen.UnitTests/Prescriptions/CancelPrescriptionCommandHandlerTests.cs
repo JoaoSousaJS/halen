@@ -56,7 +56,8 @@ public class CancelPrescriptionCommandHandlerTests
         {
             Id = doctorProfileId, UserId = _doctorUserId,
             Specialty = "General", LicenseNumber = "LIC-001",
-            ConsultationFee = 100, YearsOfExperience = 5
+            ConsultationFee = 100, YearsOfExperience = 5,
+            KycStatus = KycStatus.Approved,
         });
 
         _db.PatientProfiles.Add(new PatientProfile { Id = patientProfileId, UserId = _patientUserId });

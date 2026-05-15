@@ -1,3 +1,5 @@
+using Halen.Domain.Enums;
+
 namespace Halen.Domain.Entities;
 
 public class DoctorProfile : BaseEntity
@@ -11,6 +13,11 @@ public class DoctorProfile : BaseEntity
     public int YearsOfExperience { get; set; }
     public string[] Languages { get; set; } = [];
 
+    public KycStatus KycStatus { get; set; } = KycStatus.NotSubmitted;
+    public DateTime? KycSubmittedAt { get; set; }
+
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Prescription> Prescriptions { get; set; } = [];
+    public ICollection<KycDocument> KycDocuments { get; set; } = [];
+    public ICollection<KycReview> KycReviews { get; set; } = [];
 }

@@ -167,22 +167,31 @@ public class LoginCommandHandlerTests
     }
 
     [TestMethod]
-    public async Task Handle_PendingReviewUser_ReturnsAccountPendingReview()
+    public async Task Handle_PendingReviewUser_AllowsLoginForKycSubmission()
     {
         var command = new LoginCommand("jane@example.com", "SecurePass1!");
         var user = new User { Email = command.Email, Status = AccountStatus.PendingReview };
+        const string expectedToken = "jwt-token-pending";
 
         _userManagerMock
             .Setup(m => m.FindByEmailAsync(command.Email))
             .ReturnsAsync(user);
 
+        _signInManagerMock
+            .Setup(m => m.CheckPasswordSignInAsync(user, command.Password, true))
+            .ReturnsAsync(SignInResult.Success);
+
+        _userManagerMock
+            .Setup(m => m.GetRolesAsync(user))
+            .ReturnsAsync(new List<string> { "Doctor" });
+
+        _jwtServiceMock
+            .Setup(s => s.GenerateToken(user, It.IsAny<IList<string>>()))
+            .Returns(expectedToken);
+
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        result.Success.Should().BeFalse();
-        result.Token.Should().BeNull();
-        result.Error.Should().Be("Account is pending review");
-        _signInManagerMock.Verify(
-            m => m.CheckPasswordSignInAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>()),
-            Times.Never);
+        result.Success.Should().BeTrue();
+        result.Token.Should().Be(expectedToken);
     }
 }

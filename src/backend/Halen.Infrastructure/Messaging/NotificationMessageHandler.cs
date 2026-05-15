@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Halen.Application.Events;
 using Halen.Application.Interfaces;
+using Halen.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace Halen.Infrastructure.Messaging;
@@ -33,6 +34,14 @@ public class NotificationMessageHandler(
 
             case Topics.PrescriptionCancelled:
                 await HandlePrescriptionCancelled(message, ct);
+                break;
+
+            case Topics.KycSubmitted:
+                await HandleKycSubmitted(message, ct);
+                break;
+
+            case Topics.KycReviewed:
+                await HandleKycReviewed(message, ct);
                 break;
 
             default:
@@ -108,6 +117,33 @@ public class NotificationMessageHandler(
             DateTime.UtcNow);
 
         await sender.SendToUserAsync(evt.PatientUserId.ToString(), notification, ct);
+    }
+
+    private async Task HandleKycSubmitted(string json, CancellationToken ct)
+    {
+        var evt = Deserialize<KycDocumentsSubmittedEvent>(json, Topics.KycSubmitted);
+        if (evt is null) return;
+
+        var notification = new NotificationDto(
+            "kyc.submitted",
+            $"{evt.DoctorName} has submitted KYC documents for review",
+            DateTime.UtcNow);
+
+        await sender.SendToAdminsAsync(notification, ct);
+    }
+
+    private async Task HandleKycReviewed(string json, CancellationToken ct)
+    {
+        var evt = Deserialize<KycReviewedEvent>(json, Topics.KycReviewed);
+        if (evt is null) return;
+
+        var message = evt.Decision == KycDecision.Approved
+            ? "Your KYC documents have been approved. You can now see patients."
+            : $"Your KYC documents were rejected: {evt.RejectionReason}";
+
+        var notification = new NotificationDto("kyc.reviewed", message, DateTime.UtcNow);
+
+        await sender.SendToUserAsync(evt.DoctorUserId.ToString(), notification, ct);
     }
 
     private T? Deserialize<T>(string json, string topic)

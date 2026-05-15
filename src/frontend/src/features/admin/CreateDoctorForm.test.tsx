@@ -89,7 +89,7 @@ describe('CreateDoctorForm', () => {
 
     await act(() => fireEvent.click(screen.getByText('Create doctor account')));
 
-    expect(await screen.findByText('Doctor account created for house@halen.dev')).toBeDefined();
+    expect(await screen.findByText(/Doctor account created for house@halen\.dev/)).toBeDefined();
   });
 
   it('resets form after successful creation', async () => {
@@ -98,7 +98,7 @@ describe('CreateDoctorForm', () => {
 
     await act(() => fireEvent.click(screen.getByText('Create doctor account')));
 
-    await screen.findByText('Doctor account created for house@halen.dev');
+    await screen.findByText(/Doctor account created for house@halen\.dev/);
     expect((screen.getByPlaceholderText('James') as HTMLInputElement).value).toBe('');
     expect((screen.getByPlaceholderText('Wilson') as HTMLInputElement).value).toBe('');
   });

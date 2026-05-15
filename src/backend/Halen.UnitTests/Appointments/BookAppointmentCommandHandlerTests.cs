@@ -50,6 +50,7 @@ public class BookAppointmentCommandHandlerTests
             LicenseNumber = "LIC-001",
             ConsultationFee = 150,
             YearsOfExperience = 10,
+            KycStatus = KycStatus.Approved,
         };
         _db.DoctorProfiles.Add(doctorProfile);
         _doctorProfileId = doctorProfile.Id;
@@ -179,5 +180,24 @@ public class BookAppointmentCommandHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeTrue();
+    }
+
+    [TestMethod]
+    public async Task Handle_UnapprovedDoctor_ReturnsError()
+    {
+        var doctor = await _db.DoctorProfiles.FindAsync(_doctorProfileId);
+        doctor!.KycStatus = KycStatus.NotSubmitted;
+        await _db.SaveChangesAsync();
+
+        var command = new BookAppointmentCommand(
+            _patientUserId,
+            _doctorProfileId,
+            DateTime.UtcNow.AddDays(5),
+            "Test");
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Error.Should().Contain("not yet approved");
     }
 }

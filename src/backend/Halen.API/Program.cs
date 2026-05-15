@@ -11,6 +11,7 @@ using Halen.API.Hubs;
 using Halen.Infrastructure.Messaging;
 using Halen.Infrastructure.Persistence;
 using Halen.Infrastructure.Services;
+using Halen.Infrastructure.Storage;
 using Microsoft.AspNetCore.SignalR;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -99,6 +100,7 @@ builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<HalenDbCon
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, MockEmailService>();
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
+builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 
 // Kafka producer registered as singleton — one connection, reused across requests
 var kafkaConfig = new ProducerConfig
@@ -133,7 +135,9 @@ builder.Services.AddRateLimiter(opt =>
 });
 
 // ── API ───────────────────────────────────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(
+        new System.Text.Json.Serialization.JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

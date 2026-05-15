@@ -62,8 +62,10 @@ public class PrescriptionsControllerTests
         });
         response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadFromJsonAsync<DoctorIdResponse>();
+        var doctorId = body!.DoctorId;
+        await TestHelpers.ApproveDoctorKycAsync(_factory, doctorId);
         var client = await TestHelpers.GetBearerClientAsync(_factory, email, "Doctor1234!");
-        return (body!.DoctorId, client);
+        return (doctorId, client);
     }
 
     private static async Task<Guid> GetPatientProfileIdAsync(HttpClient patientClient, Guid doctorProfileId)

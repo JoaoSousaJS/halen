@@ -11,4 +11,9 @@ public class SignalRNotificationSender(
     {
         await hubContext.Clients.User(userId).ReceiveNotification(notification);
     }
+
+    public async Task SendToAdminsAsync(NotificationDto notification, CancellationToken ct = default)
+    {
+        await hubContext.Clients.Group(NotificationHub.AdminGroup).ReceiveNotification(notification);
+    }
 }

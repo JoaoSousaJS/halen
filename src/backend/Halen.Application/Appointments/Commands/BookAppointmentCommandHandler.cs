@@ -1,4 +1,5 @@
 using System.Data;
+using Halen.Application.Common;
 using Halen.Application.Events;
 using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
@@ -21,11 +22,14 @@ public class BookAppointmentCommandHandler(
     {
         var doctor = await db.DoctorProfiles
             .Where(d => d.Id == request.DoctorId)
-            .Select(d => new { d.UserId, d.User.FirstName, d.User.LastName })
+            .Select(d => new { d.UserId, d.User.FirstName, d.User.LastName, d.KycStatus })
             .FirstOrDefaultAsync(ct);
 
         if (doctor is null)
             return new BookAppointmentResult(false, null, "Doctor not found");
+
+        if (doctor.KycStatus != KycStatus.Approved)
+            return new BookAppointmentResult(false, null, "Doctor is not yet approved for appointments.");
 
         var patientProfile = await db.PatientProfiles
             .FirstOrDefaultAsync(p => p.UserId == request.UserId, ct);

@@ -24,6 +24,9 @@ public class IssuePrescriptionCommandHandler(
         if (doctorProfile is null)
             return new IssuePrescriptionResult(false, Error: "Doctor profile not found.", Kind: ErrorKind.NotFound);
 
+        if (doctorProfile.KycStatus != KycStatus.Approved)
+            return new IssuePrescriptionResult(false, Error: "Doctor is not yet approved to issue prescriptions.", Kind: ErrorKind.Forbidden);
+
         var patient = await db.PatientProfiles
             .FirstOrDefaultAsync(p => p.Id == request.PatientId, ct);
 

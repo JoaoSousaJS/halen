@@ -1,5 +1,6 @@
 using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
+using Halen.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,8 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options)
     public DbSet<PatientProfile> PatientProfiles => Set<PatientProfile>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
     public DbSet<Prescription> Prescriptions => Set<Prescription>();
+    public DbSet<KycDocument> KycDocuments => Set<KycDocument>();
+    public DbSet<KycReview> KycReviews => Set<KycReview>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -58,6 +61,24 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options)
         {
             e.Property(d => d.Languages).HasColumnType("text[]");
             e.HasIndex(d => d.LicenseNumber).IsUnique();
+            e.Property(d => d.KycStatus).HasConversion<string>().HasDefaultValue(KycStatus.NotSubmitted);
+        });
+
+        builder.Entity<KycDocument>(e =>
+        {
+            e.HasOne(d => d.DoctorProfile).WithMany(p => p.KycDocuments).HasForeignKey(d => d.DoctorProfileId);
+            e.Property(d => d.DocumentType).HasConversion<string>();
+            e.Property(d => d.FileName).HasMaxLength(256);
+            e.Property(d => d.FilePath).HasMaxLength(1024);
+            e.Property(d => d.ContentType).HasMaxLength(100);
+        });
+
+        builder.Entity<KycReview>(e =>
+        {
+            e.HasOne(r => r.DoctorProfile).WithMany(p => p.KycReviews).HasForeignKey(r => r.DoctorProfileId);
+            e.HasOne(r => r.ReviewedByUser).WithMany().HasForeignKey(r => r.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.Property(r => r.Decision).HasConversion<string>();
+            e.Property(r => r.RejectionReason).HasMaxLength(1000);
         });
 
         // Store enums as strings for readability in the DB

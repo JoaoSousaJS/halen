@@ -19,4 +19,5 @@ public record AdminUserDto(
     string Status,
     string? Plan,
     DateTime? LastLoginAt,
-    bool IsFlagged);
+    bool IsFlagged,
+    Guid? DoctorProfileId = null);

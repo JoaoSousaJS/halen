@@ -48,7 +48,8 @@ public class IssuePrescriptionCommandHandlerTests
         {
             Id = _doctorProfileId, UserId = _doctorUserId,
             Specialty = "General", LicenseNumber = "LIC-001",
-            ConsultationFee = 100, YearsOfExperience = 5
+            ConsultationFee = 100, YearsOfExperience = 5,
+            KycStatus = KycStatus.Approved,
         });
 
         _db.PatientProfiles.Add(new PatientProfile { Id = _patientProfileId, UserId = _patientUserId });
@@ -144,5 +145,23 @@ public class IssuePrescriptionCommandHandlerTests
 
         result.Success.Should().BeTrue();
         result.PrescriptionId.Should().NotBeNull();
+    }
+
+    [TestMethod]
+    public async Task Handle_UnapprovedDoctor_ReturnsForbidden()
+    {
+        var doctor = await _db.DoctorProfiles.FirstAsync(d => d.UserId == _doctorUserId);
+        doctor.KycStatus = KycStatus.NotSubmitted;
+        await _db.SaveChangesAsync();
+
+        var command = new IssuePrescriptionCommand(
+            _doctorUserId, _patientProfileId,
+            "Amoxicillin", "500mg", "Twice daily", 3, null);
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeFalse();
+        result.Kind.Should().Be(ErrorKind.Forbidden);
+        result.Error.Should().Contain("not yet approved");
     }
 }

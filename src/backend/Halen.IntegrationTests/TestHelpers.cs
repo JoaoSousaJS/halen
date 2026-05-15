@@ -1,5 +1,9 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Halen.Domain.Enums;
+using Halen.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Halen.IntegrationTests;
 
@@ -14,7 +18,6 @@ internal static class TestHelpers
         string email,
         string password)
     {
-        // Use a plain (unauthenticated) client just for the login call
         var loginClient = factory.CreateClient();
 
         var response = await loginClient.PostAsJsonAsync("/api/v1/auth/login", new
@@ -33,6 +36,16 @@ internal static class TestHelpers
             new AuthenticationHeaderValue("Bearer", body.Token);
 
         return client;
+    }
+
+    public static async Task ApproveDoctorKycAsync(HalenWebApplicationFactory factory, Guid doctorProfileId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+        var doctor = await db.DoctorProfiles.Include(d => d.User).FirstAsync(d => d.Id == doctorProfileId);
+        doctor.KycStatus = KycStatus.Approved;
+        doctor.User.Status = AccountStatus.Active;
+        await db.SaveChangesAsync();
     }
 
     private sealed record TokenResponse(string Token);

@@ -77,5 +77,8 @@ public class HalenWebApplicationFactory : WebApplicationFactory<Program>
     {
         public Task SendToUserAsync(string userId, NotificationDto notification, CancellationToken ct = default)
             => Task.CompletedTask;
+
+        public Task SendToAdminsAsync(NotificationDto notification, CancellationToken ct = default)
+            => Task.CompletedTask;
     }
 }

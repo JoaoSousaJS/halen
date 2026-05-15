@@ -16,11 +16,14 @@ import {
 import type { IssuePrescriptionPayload } from '../../shared/api/prescriptions';
 import { useNotifications } from '../../shared/hooks/useNotifications';
 import { ToastContainer } from '../../shared/components/ToastContainer';
+import { getKycStatus } from '../../shared/api/doctor';
+import KycSetup from './KycSetup';
 
 export default function DoctorDashboard() {
   const { user, logout } = useAuth();
   const queryClient = useQueryClient();
   const { toasts, dismissToast } = useNotifications();
+  const kyc = useQuery({ queryKey: ['kyc-status'], queryFn: getKycStatus });
 
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [notesMap, setNotesMap] = useState<Record<string, string>>({});
@@ -86,6 +89,8 @@ export default function DoctorDashboard() {
     });
   }
 
+  const kycApproved = kyc.data?.status === 'Approved';
+
   return (
     <div className="dashboard-shell">
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
@@ -102,6 +107,15 @@ export default function DoctorDashboard() {
       </header>
 
       <main className="dashboard-main">
+        {!kycApproved ? (
+          <>
+            <h1 className="auth-heading">
+              Welcome,<br /><em>Dr. {user?.family_name}.</em>
+            </h1>
+            <KycSetup />
+          </>
+        ) : (
+        <>
         <h1 className="auth-heading">
           Your<br /><em>schedule.</em>
         </h1>
@@ -329,6 +343,8 @@ export default function DoctorDashboard() {
             <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(cancelRx.error)}</p>
           ) : null}
         </section>
+        </>
+        )}
       </main>
     </div>
   );

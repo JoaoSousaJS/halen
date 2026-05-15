@@ -13,6 +13,7 @@ public class ListUsersQueryHandler(IAppDbContext db)
     public async Task<ListUsersResult> Handle(ListUsersQuery request, CancellationToken ct)
     {
         var query = db.Users
+            .AsNoTracking()
             .Where(u => u.Role != UserRole.Admin)
             .AsQueryable();
 
@@ -54,6 +55,7 @@ public class ListUsersQueryHandler(IAppDbContext db)
                 Plan = u.PatientProfile != null ? u.PatientProfile.SubscriptionPlan : (string?)null,
                 u.LastLoginAt,
                 u.IsFlagged,
+                DoctorProfileId = u.DoctorProfile != null ? (Guid?)u.DoctorProfile.Id : null,
             })
             .ToListAsync(ct);
 
@@ -65,7 +67,8 @@ public class ListUsersQueryHandler(IAppDbContext db)
             DeriveDisplayStatus(u.Status, u.LastLoginAt, now),
             u.Plan,
             u.LastLoginAt,
-            u.IsFlagged)).ToList();
+            u.IsFlagged,
+            u.DoctorProfileId)).ToList();
 
         return new ListUsersResult(dtos, totalCount);
     }

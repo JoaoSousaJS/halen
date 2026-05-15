@@ -32,7 +32,7 @@ export default function CreateDoctorForm() {
     mutationFn: (payload: CreateDoctorPayload) => createDoctor(payload),
     onSuccess: (_data, variables) => {
       setForm(empty);
-      setSuccess(`Doctor account created for ${variables.email}`);
+      setSuccess(`Doctor account created for ${variables.email}. They will need to submit KYC documents before they can practice.`);
       setTimeout(() => setSuccess(''), 4000);
     },
   });

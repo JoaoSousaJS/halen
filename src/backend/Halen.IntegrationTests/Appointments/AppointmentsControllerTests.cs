@@ -63,7 +63,9 @@ public class AppointmentsControllerTests
         });
         response.EnsureSuccessStatusCode();
         var body = await response.Content.ReadFromJsonAsync<DoctorIdResponse>();
-        return body!.DoctorId;
+        var doctorId = body!.DoctorId;
+        await TestHelpers.ApproveDoctorKycAsync(_factory, doctorId);
+        return doctorId;
     }
 
     private static async Task<Guid> BookAppointmentAsync(HttpClient patient, Guid doctorId, DateTime? scheduledAt = null)

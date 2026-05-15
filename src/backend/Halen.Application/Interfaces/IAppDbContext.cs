@@ -11,6 +11,8 @@ public interface IAppDbContext
     DbSet<DoctorProfile> DoctorProfiles { get; }
     DbSet<PatientProfile> PatientProfiles { get; }
     DbSet<Prescription> Prescriptions { get; }
+    DbSet<KycDocument> KycDocuments { get; }
+    DbSet<KycReview> KycReviews { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

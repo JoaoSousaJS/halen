@@ -124,6 +124,15 @@ namespace Halen.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("KycStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("NotSubmitted");
+
+                    b.Property<DateTime?>("KycSubmittedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string[]>("Languages")
                         .IsRequired()
                         .HasColumnType("text[]");
@@ -154,6 +163,91 @@ namespace Halen.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("DoctorProfiles");
+                });
+
+            modelBuilder.Entity("Halen.Domain.Entities.KycDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DoctorProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DocumentType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorProfileId");
+
+                    b.ToTable("KycDocuments");
+                });
+
+            modelBuilder.Entity("Halen.Domain.Entities.KycReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("DoctorProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ReviewedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DoctorProfileId");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.ToTable("KycReviews");
                 });
 
             modelBuilder.Entity("Halen.Domain.Entities.PatientProfile", b =>
@@ -493,6 +587,36 @@ namespace Halen.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Halen.Domain.Entities.KycDocument", b =>
+                {
+                    b.HasOne("Halen.Domain.Entities.DoctorProfile", "DoctorProfile")
+                        .WithMany("KycDocuments")
+                        .HasForeignKey("DoctorProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DoctorProfile");
+                });
+
+            modelBuilder.Entity("Halen.Domain.Entities.KycReview", b =>
+                {
+                    b.HasOne("Halen.Domain.Entities.DoctorProfile", "DoctorProfile")
+                        .WithMany("KycReviews")
+                        .HasForeignKey("DoctorProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Halen.Domain.Entities.User", "ReviewedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DoctorProfile");
+
+                    b.Navigation("ReviewedByUser");
+                });
+
             modelBuilder.Entity("Halen.Domain.Entities.PatientProfile", b =>
                 {
                     b.HasOne("Halen.Domain.Entities.User", "User")
@@ -577,6 +701,10 @@ namespace Halen.Infrastructure.Migrations
             modelBuilder.Entity("Halen.Domain.Entities.DoctorProfile", b =>
                 {
                     b.Navigation("Appointments");
+
+                    b.Navigation("KycDocuments");
+
+                    b.Navigation("KycReviews");
 
                     b.Navigation("Prescriptions");
                 });

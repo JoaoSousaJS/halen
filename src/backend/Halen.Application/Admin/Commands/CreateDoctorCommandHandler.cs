@@ -22,6 +22,7 @@ public class CreateDoctorCommandHandler(
             Email     = request.Email,
             UserName  = request.Email,
             Role      = UserRole.Doctor,
+            Status    = AccountStatus.PendingReview,
         };
 
         var result = await userManager.CreateAsync(user, request.Password);

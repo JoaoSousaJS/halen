@@ -7,4 +7,6 @@ public static class Topics
     public const string AppointmentCompleted = "appointment.completed";
     public const string PrescriptionIssued = "prescription.issued";
     public const string PrescriptionCancelled = "prescription.cancelled";
+    public const string KycSubmitted = "kyc.submitted";
+    public const string KycReviewed = "kyc.reviewed";
 }

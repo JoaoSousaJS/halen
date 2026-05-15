@@ -23,9 +23,6 @@ public class LoginCommandHandler(
         if (user.Status == AccountStatus.Suspended)
             return new LoginResult(false, null, "Account suspended");
 
-        if (user.Status == AccountStatus.PendingReview)
-            return new LoginResult(false, null, "Account is pending review");
-
         var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
         if (!result.Succeeded)

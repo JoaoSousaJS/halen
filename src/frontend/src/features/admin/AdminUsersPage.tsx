@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { listUsers } from '../../shared/api/admin';
 import type { AdminUserDto } from '../../shared/api/admin';
+import KycReviewPage from './KycReviewPage';
 
 type RoleFilter = 'all' | 'patient' | 'doctor' | 'flagged';
 
@@ -45,6 +46,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [reviewingDoctorId, setReviewingDoctorId] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -91,6 +93,10 @@ export default function AdminUsersPage() {
     { key: 'doctor', label: 'Doctor' },
     { key: 'flagged', label: `Needs review${flaggedCount.data ? ` · ${flaggedCount.data}` : ''}` },
   ];
+
+  if (reviewingDoctorId) {
+    return <KycReviewPage doctorProfileId={reviewingDoctorId} onBack={() => setReviewingDoctorId(null)} />;
+  }
 
   return (
     <>
@@ -170,7 +176,14 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="admin-mono text-dim">{timeAgo(u.lastLoginAt)}</td>
                   <td>
-                    {u.isFlagged ? (
+                    {u.role === 'Doctor' && u.status === 'PendingReview' && u.doctorProfileId ? (
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => setReviewingDoctorId(u.doctorProfileId!)}
+                      >
+                        Review
+                      </button>
+                    ) : u.isFlagged ? (
                       <button className="btn btn-sm btn-danger" disabled>Review</button>
                     ) : null}
                   </td>
