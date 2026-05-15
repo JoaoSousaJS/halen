@@ -1,13 +1,13 @@
 # Halen — Telehealth Platform
 
-A full-stack telehealth platform built with .NET 8 and React 18 as a learning project. It supports patient registration, doctor onboarding with KYC verification, appointment booking, prescription management, and real-time notifications via SignalR.
+A full-stack telehealth platform built with .NET 8 and React 19. It supports patient registration, doctor onboarding with KYC verification, appointment booking, prescription management, and real-time notifications via SignalR.
 
 ## Stack
 
 | Layer | Technology |
 |-------|------------|
 | Backend | .NET 8, ASP.NET Core, EF Core, PostgreSQL 16, MediatR (CQRS), FluentValidation |
-| Frontend | React 18, TypeScript, Vite, TanStack Query |
+| Frontend | React 19, TypeScript, Vite, TanStack Query |
 | Messaging | Apache Kafka (KRaft mode) → SignalR push notifications |
 | Auth | JWT with ASP.NET Core Identity, role-based (Patient, Doctor, Admin) |
 | Infra | Docker Compose (Postgres, Kafka, API) |

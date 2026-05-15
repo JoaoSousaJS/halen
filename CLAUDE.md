@@ -5,7 +5,7 @@ Learning project for .NET 8 backend development. Explain patterns and design dec
 ## Stack
 
 - **Backend**: .NET 8, ASP.NET Core, EF Core + PostgreSQL 16, MediatR (CQRS), FluentValidation
-- **Frontend**: React 18 + TypeScript + Vite
+- **Frontend**: React 19 + TypeScript + Vite
 - **Infra**: Docker Compose (Postgres, Kafka in KRaft mode, API) in `infra/`
 - **Auth**: JWT + ASP.NET Core Identity, role-based (Patient, Doctor, Admin)
 
