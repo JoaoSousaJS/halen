@@ -25,7 +25,7 @@ public class LoginCommandHandlerTests
     public void Initialize()
     {
         _userManagerMock = new Mock<UserManager<User>>(
-            Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
+            Mock.Of<IUserStore<User>>(), null!, null!, null!, null!, null!, null!, null!, null!);
 
         _signInManagerMock = new Mock<SignInManager<User>>(
             _userManagerMock.Object,

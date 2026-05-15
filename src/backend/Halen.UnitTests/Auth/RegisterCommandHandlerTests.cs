@@ -21,7 +21,7 @@ public class RegisterCommandHandlerTests
     public void Initialize()
     {
         _userManagerMock = new Mock<UserManager<User>>(
-            Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
+            Mock.Of<IUserStore<User>>(), null!, null!, null!, null!, null!, null!, null!, null!);
         _jwtServiceMock = new Mock<IJwtService>();
         _loggerMock = new Mock<ILogger<RegisterCommandHandler>>();
 
