@@ -2,7 +2,12 @@ import type { Preview } from '@storybook/react-vite';
 import { initialize, mswLoader } from 'msw-storybook-addon';
 import '../src/index.css';
 
-initialize();
+initialize({
+  serviceWorker: {
+    // Vite injects BASE_URL at build time ("/halen/" in CI, "/" locally)
+    url: import.meta.env.BASE_URL + 'mockServiceWorker.js',
+  },
+});
 
 const preview: Preview = {
   parameters: {
