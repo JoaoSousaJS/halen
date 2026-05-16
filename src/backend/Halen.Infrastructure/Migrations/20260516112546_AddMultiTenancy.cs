@@ -121,6 +121,26 @@ namespace Halen.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            // Data migration: insert default clinic and assign all existing rows to it
+            // before FK constraints are added. Also rename old 'Admin' role to 'PlatformAdmin'.
+            var defaultClinicId = Guid.NewGuid();
+            migrationBuilder.Sql($@"
+                INSERT INTO ""Clinics"" (""Id"", ""Name"", ""Slug"", ""IsActive"", ""CreatedAt"", ""UpdatedAt"")
+                VALUES ('{defaultClinicId}', 'Default Clinic', 'default', true, NOW(), NOW());
+
+                UPDATE ""AspNetUsers"" SET ""Role"" = 'PlatformAdmin' WHERE ""Role"" = 'Admin';
+                UPDATE ""AspNetRoles"" SET ""Name"" = 'PlatformAdmin', ""NormalizedName"" = 'PLATFORMADMIN' WHERE ""Name"" = 'Admin';
+
+                UPDATE ""AspNetUsers"" SET ""ClinicId"" = '{defaultClinicId}' WHERE ""ClinicId"" = '00000000-0000-0000-0000-000000000000';
+                UPDATE ""Appointments"" SET ""ClinicId"" = '{defaultClinicId}' WHERE ""ClinicId"" = '00000000-0000-0000-0000-000000000000';
+                UPDATE ""Prescriptions"" SET ""ClinicId"" = '{defaultClinicId}' WHERE ""ClinicId"" = '00000000-0000-0000-0000-000000000000';
+                UPDATE ""DoctorProfiles"" SET ""ClinicId"" = '{defaultClinicId}' WHERE ""ClinicId"" = '00000000-0000-0000-0000-000000000000';
+                UPDATE ""PatientProfiles"" SET ""ClinicId"" = '{defaultClinicId}' WHERE ""ClinicId"" = '00000000-0000-0000-0000-000000000000';
+                UPDATE ""KycDocuments"" SET ""ClinicId"" = '{defaultClinicId}' WHERE ""ClinicId"" = '00000000-0000-0000-0000-000000000000';
+                UPDATE ""KycReviews"" SET ""ClinicId"" = '{defaultClinicId}' WHERE ""ClinicId"" = '00000000-0000-0000-0000-000000000000';
+                UPDATE ""AuditLogs"" SET ""ClinicId"" = '{defaultClinicId}' WHERE ""ClinicId"" = '00000000-0000-0000-0000-000000000000';
+            ");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Prescriptions_ClinicId_DoctorId_Status",
                 table: "Prescriptions",

@@ -6,7 +6,8 @@ const adminToken = fakeJwt({
   email: 'admin@test.com',
   given_name: 'Lior',
   family_name: 'Adler',
-  role: 'Admin',
+  role: 'ClinicAdmin',
+  clinic_id: 'c-001',
   exp: 9_999_999_999,
 });
 
