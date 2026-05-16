@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { useAuth } from '../../shared/components/AuthProvider';
+import { useQueryClient } from '@tanstack/react-query';
 import CreateDoctorForm from './CreateDoctorForm';
 import AdminUsersPage from './AdminUsersPage';
+import CreateUserDialog from './CreateUserDialog';
 
 type AdminTab = 'create-doctor' | 'users';
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<AdminTab>('users');
+  const [showCreateUser, setShowCreateUser] = useState(false);
 
   return (
     <div className="dashboard-shell">
@@ -16,7 +20,7 @@ export default function AdminDashboard() {
           <div className="brand-mark" />
           <div>
             <div className="brand-name">Halen</div>
-            <div className="brand-sub">Admin · {user?.given_name}</div>
+            <div className="brand-sub">Clinic Admin · {user?.given_name}</div>
           </div>
         </div>
 
@@ -33,6 +37,12 @@ export default function AdminDashboard() {
           >
             Create doctor
           </button>
+          <button
+            className="admin-nav-btn"
+            onClick={() => setShowCreateUser(true)}
+          >
+            + Create user
+          </button>
         </nav>
 
         <span className="dashboard-user">{user?.given_name} {user?.family_name}</span>
@@ -43,6 +53,16 @@ export default function AdminDashboard() {
         {tab === 'users' && <AdminUsersPage />}
         {tab === 'create-doctor' && <CreateDoctorForm />}
       </main>
+
+      {showCreateUser && (
+        <CreateUserDialog
+          onClose={() => setShowCreateUser(false)}
+          onCreated={() => {
+            setShowCreateUser(false);
+            queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+          }}
+        />
+      )}
     </div>
   );
 }

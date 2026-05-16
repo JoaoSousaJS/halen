@@ -1,11 +1,10 @@
 using Halen.Domain.Enums;
+using Halen.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace Halen.Domain.Entities;
 
-// Extends IdentityUser so ASP.NET Identity handles password hashing,
-// login, lockout, etc. We just add our own fields on top.
-public class User : IdentityUser<Guid>
+public class User : IdentityUser<Guid>, ITenantScoped
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
@@ -14,6 +13,9 @@ public class User : IdentityUser<Guid>
     public bool IsFlagged { get; set; }
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public DateTime? LastLoginAt { get; set; }
+
+    public Guid ClinicId { get; set; }
+    public Clinic? Clinic { get; set; }
 
     public DoctorProfile? DoctorProfile { get; set; }
     public PatientProfile? PatientProfile { get; set; }

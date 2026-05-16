@@ -8,6 +8,7 @@ using Halen.Application.Pipeline;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
 using Halen.API.Hubs;
+using Halen.API.Middleware;
 using Halen.Infrastructure.Messaging;
 using Halen.Infrastructure.Persistence;
 using Halen.Infrastructure.Services;
@@ -81,7 +82,9 @@ builder.Services.AddAuthentication(opt =>
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("PatientOnly", p => p.RequireRole("Patient"))
     .AddPolicy("DoctorOnly", p => p.RequireRole("Doctor"))
-    .AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+    .AddPolicy("PlatformAdmin", p => p.RequireRole("PlatformAdmin"))
+    .AddPolicy("ClinicAdmin", p => p.RequireRole("ClinicAdmin", "PlatformAdmin"))
+    .AddPolicy("AdminOnly", p => p.RequireRole("PlatformAdmin", "ClinicAdmin"));
 
 // ── MediatR ───────────────────────────────────────────────────────────────────
 // Scans the Application assembly and registers all IRequestHandler<> implementations.
@@ -94,9 +97,11 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddValidatorsFromAssembly(typeof(RegisterCommand).Assembly);
 
 // ── Application services ──────────────────────────────────────────────────────
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<HalenDbContext>());
 
 // ── Infrastructure services ───────────────────────────────────────────────────
+builder.Services.AddScoped<ITenantContext, TenantContext>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, MockEmailService>();
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
@@ -198,28 +203,40 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("Frontend");
 app.UseRateLimiter();
-app.UseAuthentication();  // order matters — must come before UseAuthorization
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<FeatureFlagMiddleware>();
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
-// Auto-apply migrations and seed roles on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
     await db.Database.MigrateAsync();
 
-    // Roles must exist before any user can be assigned one.
-    // RoleManager.CreateAsync is idempotent — safe to call on every startup.
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-    foreach (var role in new[] { "Patient", "Doctor", "Admin" })
+    foreach (var role in new[] { "Patient", "Doctor", "ClinicAdmin", "PlatformAdmin" })
     {
         if (!await roleManager.RoleExistsAsync(role))
             await roleManager.CreateAsync(new IdentityRole<Guid>(role));
     }
 
-    // Seed a default admin user when credentials are present in configuration.
-    // Skipped if the email already exists — safe to run on every startup.
+    // Seed default clinic — all open registrations go here.
+    var defaultSlug = app.Configuration["Seed:DefaultClinicSlug"] ?? "default";
+    var defaultClinicName = app.Configuration["Seed:DefaultClinicName"] ?? "Default Clinic";
+    var defaultClinic = await db.Clinics.FirstOrDefaultAsync(c => c.Slug == defaultSlug);
+    if (defaultClinic is null)
+    {
+        defaultClinic = new Clinic { Name = defaultClinicName, Slug = defaultSlug };
+        db.Clinics.Add(defaultClinic);
+
+        foreach (var key in Halen.Domain.Constants.FeatureKeys.All)
+            db.ClinicFeatureFlags.Add(new ClinicFeatureFlag { ClinicId = defaultClinic.Id, FeatureKey = key, IsEnabled = true });
+
+        await db.SaveChangesAsync();
+    }
+
+    // Seed platform admin user.
     var adminEmail = app.Configuration["Seed:AdminEmail"];
     var adminPassword = app.Configuration["Seed:AdminPassword"];
     if (!string.IsNullOrEmpty(adminEmail) && !string.IsNullOrEmpty(adminPassword))
@@ -233,11 +250,12 @@ using (var scope = app.Services.CreateScope())
                 LastName  = app.Configuration["Seed:AdminLastName"]  ?? "Admin",
                 Email    = adminEmail,
                 UserName = adminEmail,
-                Role     = UserRole.Admin,
+                Role     = UserRole.PlatformAdmin,
+                ClinicId = defaultClinic.Id,
             };
             var result = await userManager.CreateAsync(admin, adminPassword);
             if (result.Succeeded)
-                await userManager.AddToRoleAsync(admin, "Admin");
+                await userManager.AddToRoleAsync(admin, "PlatformAdmin");
         }
     }
 }

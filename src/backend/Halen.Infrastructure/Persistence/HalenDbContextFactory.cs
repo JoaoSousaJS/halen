@@ -1,11 +1,10 @@
+using Halen.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
 namespace Halen.Infrastructure.Persistence;
 
-// Used only by EF Core design-time tools (dotnet ef migrations add ...).
-// Avoids running the full app host (which would require Jwt:Secret to be set).
 public class HalenDbContextFactory : IDesignTimeDbContextFactory<HalenDbContext>
 {
     public HalenDbContext CreateDbContext(string[] args)
@@ -20,6 +19,12 @@ public class HalenDbContextFactory : IDesignTimeDbContextFactory<HalenDbContext>
             .UseNpgsql(config.GetConnectionString("Default"))
             .Options;
 
-        return new HalenDbContext(options);
+        return new HalenDbContext(options, new DesignTimeTenantContext());
+    }
+
+    private sealed class DesignTimeTenantContext : ITenantContext
+    {
+        public Guid ClinicId => Guid.Empty;
+        public bool IsPlatformAdmin => true;
     }
 }

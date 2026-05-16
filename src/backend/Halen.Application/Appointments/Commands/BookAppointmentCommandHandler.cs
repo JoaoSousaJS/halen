@@ -12,6 +12,7 @@ namespace Halen.Application.Appointments.Commands;
 
 public class BookAppointmentCommandHandler(
     IAppDbContext db,
+    ITenantContext tenantContext,
     IEventBus eventBus,
     ILogger<BookAppointmentCommandHandler> logger
 ) : IRequestHandler<BookAppointmentCommand, BookAppointmentResult>
@@ -36,7 +37,7 @@ public class BookAppointmentCommandHandler(
 
         if (patientProfile is null)
         {
-            patientProfile = new PatientProfile { UserId = request.UserId };
+            patientProfile = new PatientProfile { UserId = request.UserId, ClinicId = tenantContext.ClinicId };
             db.PatientProfiles.Add(patientProfile);
         }
 
@@ -60,6 +61,7 @@ public class BookAppointmentCommandHandler(
                 DoctorId = request.DoctorId,
                 ScheduledAt = request.ScheduledAt,
                 Reason = request.Reason,
+                ClinicId = tenantContext.ClinicId,
             };
 
             db.Appointments.Add(appointment);

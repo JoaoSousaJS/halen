@@ -1,3 +1,4 @@
+using Halen.UnitTests.Helpers;
 using FluentAssertions;
 using Halen.Application.Appointments.Commands;
 using Halen.Application.Common;
@@ -30,7 +31,7 @@ public class CompleteAppointmentCommandHandlerTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _db = new HalenDbContext(options);
+        _db = new HalenDbContext(options, new TestTenantContext());
 
         _doctorUserId = Guid.NewGuid();
         var patientProfileId = Guid.NewGuid();

@@ -1,9 +1,13 @@
 using Halen.Domain.Enums;
+using Halen.Domain.Interfaces;
 
 namespace Halen.Domain.Entities;
 
-public class KycDocument : BaseEntity
+public class KycDocument : BaseEntity, ITenantScoped
 {
+    public Guid ClinicId { get; set; }
+    public Clinic? Clinic { get; set; }
+
     public Guid DoctorProfileId { get; set; }
     public DoctorProfile DoctorProfile { get; set; } = null!;
 

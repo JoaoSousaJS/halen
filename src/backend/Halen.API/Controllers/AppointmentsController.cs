@@ -1,7 +1,5 @@
 using Halen.Application.Appointments.Commands;
 using Halen.Application.Appointments.Queries;
-using Halen.Application.Common;
-using Halen.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +9,7 @@ namespace Halen.API.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize]
-public class AppointmentsController(IMediator mediator) : ControllerBase
+public class AppointmentsController(IMediator mediator) : HalenControllerBase
 {
     [HttpPost]
     [Authorize(Policy = "PatientOnly")]
@@ -70,36 +68,6 @@ public class AppointmentsController(IMediator mediator) : ControllerBase
         return Ok(result.Doctors);
     }
 
-    private Guid GetUserId()
-    {
-        var claim = User.FindFirst("sub")
-            ?? throw new UnauthorizedAccessException("Missing 'sub' claim");
-        if (!Guid.TryParse(claim.Value, out var id))
-            throw new UnauthorizedAccessException("Invalid 'sub' claim");
-        return id;
-    }
-
-    private string GetUserRole()
-    {
-        var claim = User.FindFirst("role")
-            ?? throw new UnauthorizedAccessException("Missing 'role' claim");
-        return claim.Value;
-    }
-
-    private UserRole GetUserRoleEnum()
-    {
-        var role = GetUserRole();
-        if (!Enum.TryParse<UserRole>(role, out var parsed))
-            throw new UnauthorizedAccessException($"Unrecognized role '{role}'");
-        return parsed;
-    }
-
-    private IActionResult MapError(string? error, ErrorKind? kind) => kind switch
-    {
-        ErrorKind.NotFound => NotFound(new { error }),
-        ErrorKind.Forbidden => Forbid(),
-        _ => BadRequest(new { error }),
-    };
 }
 
 public record BookAppointmentRequest(Guid DoctorId, DateTime ScheduledAt, string Reason);

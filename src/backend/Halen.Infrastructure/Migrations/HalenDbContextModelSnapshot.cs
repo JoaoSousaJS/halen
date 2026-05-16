@@ -28,6 +28,9 @@ namespace Halen.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -62,9 +65,13 @@ namespace Halen.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("DoctorId");
+
                     b.HasIndex("PatientId");
 
-                    b.HasIndex("DoctorId", "Status", "ScheduledAt");
+                    b.HasIndex("ClinicId", "PatientId");
+
+                    b.HasIndex("ClinicId", "DoctorId", "Status", "ScheduledAt");
 
                     b.ToTable("Appointments");
                 });
@@ -86,6 +93,9 @@ namespace Halen.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -105,17 +115,84 @@ namespace Halen.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ActorId");
-
                     b.HasIndex("CreatedAt");
 
+                    b.HasIndex("ClinicId", "ActorId");
+
                     b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("Halen.Domain.Entities.Clinic", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Clinics");
+                });
+
+            modelBuilder.Entity("Halen.Domain.Entities.ClinicFeatureFlag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FeatureKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicId", "FeatureKey")
+                        .IsUnique();
+
+                    b.ToTable("ClinicFeatureFlags");
                 });
 
             modelBuilder.Entity("Halen.Domain.Entities.DoctorProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClinicId")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("ConsultationFee")
@@ -156,6 +233,8 @@ namespace Halen.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClinicId");
+
                     b.HasIndex("LicenseNumber")
                         .IsUnique();
 
@@ -169,6 +248,9 @@ namespace Halen.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClinicId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("ContentType")
@@ -207,6 +289,8 @@ namespace Halen.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClinicId");
+
                     b.HasIndex("DoctorProfileId");
 
                     b.ToTable("KycDocuments");
@@ -216,6 +300,9 @@ namespace Halen.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClinicId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -243,6 +330,8 @@ namespace Halen.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClinicId");
+
                     b.HasIndex("DoctorProfileId");
 
                     b.HasIndex("ReviewedByUserId");
@@ -259,6 +348,9 @@ namespace Halen.Infrastructure.Migrations
                     b.Property<string>("City")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -278,6 +370,8 @@ namespace Halen.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClinicId");
+
                     b.HasIndex("UserId")
                         .IsUnique();
 
@@ -288,6 +382,9 @@ namespace Halen.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ClinicId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -326,9 +423,13 @@ namespace Halen.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DoctorId", "Status");
+                    b.HasIndex("DoctorId");
 
-                    b.HasIndex("PatientId", "Status");
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("ClinicId", "DoctorId", "Status");
+
+                    b.HasIndex("ClinicId", "PatientId", "Status");
 
                     b.ToTable("Prescriptions");
                 });
@@ -341,6 +442,9 @@ namespace Halen.Infrastructure.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
+
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -412,6 +516,8 @@ namespace Halen.Infrastructure.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ClinicId");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -559,6 +665,12 @@ namespace Halen.Infrastructure.Migrations
 
             modelBuilder.Entity("Halen.Domain.Entities.Appointment", b =>
                 {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Halen.Domain.Entities.DoctorProfile", "Doctor")
                         .WithMany("Appointments")
                         .HasForeignKey("DoctorId")
@@ -571,35 +683,81 @@ namespace Halen.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Clinic");
+
                     b.Navigation("Doctor");
 
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("Halen.Domain.Entities.AuditLog", b =>
+                {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+                });
+
+            modelBuilder.Entity("Halen.Domain.Entities.ClinicFeatureFlag", b =>
+                {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany("FeatureFlags")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+                });
+
             modelBuilder.Entity("Halen.Domain.Entities.DoctorProfile", b =>
                 {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Halen.Domain.Entities.User", "User")
                         .WithOne("DoctorProfile")
                         .HasForeignKey("Halen.Domain.Entities.DoctorProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Clinic");
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Halen.Domain.Entities.KycDocument", b =>
                 {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Halen.Domain.Entities.DoctorProfile", "DoctorProfile")
                         .WithMany("KycDocuments")
                         .HasForeignKey("DoctorProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Clinic");
+
                     b.Navigation("DoctorProfile");
                 });
 
             modelBuilder.Entity("Halen.Domain.Entities.KycReview", b =>
                 {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Halen.Domain.Entities.DoctorProfile", "DoctorProfile")
                         .WithMany("KycReviews")
                         .HasForeignKey("DoctorProfileId")
@@ -612,6 +770,8 @@ namespace Halen.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("Clinic");
+
                     b.Navigation("DoctorProfile");
 
                     b.Navigation("ReviewedByUser");
@@ -619,17 +779,31 @@ namespace Halen.Infrastructure.Migrations
 
             modelBuilder.Entity("Halen.Domain.Entities.PatientProfile", b =>
                 {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Halen.Domain.Entities.User", "User")
                         .WithOne("PatientProfile")
                         .HasForeignKey("Halen.Domain.Entities.PatientProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Clinic");
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Halen.Domain.Entities.Prescription", b =>
                 {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Halen.Domain.Entities.DoctorProfile", "Doctor")
                         .WithMany("Prescriptions")
                         .HasForeignKey("DoctorId")
@@ -642,9 +816,22 @@ namespace Halen.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Clinic");
+
                     b.Navigation("Doctor");
 
                     b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("Halen.Domain.Entities.User", b =>
+                {
+                    b.HasOne("Halen.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -696,6 +883,11 @@ namespace Halen.Infrastructure.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Halen.Domain.Entities.Clinic", b =>
+                {
+                    b.Navigation("FeatureFlags");
                 });
 
             modelBuilder.Entity("Halen.Domain.Entities.DoctorProfile", b =>

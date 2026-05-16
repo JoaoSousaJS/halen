@@ -10,6 +10,7 @@ namespace Halen.Application.Admin.Commands;
 public class CreateDoctorCommandHandler(
     UserManager<User> userManager,
     IAppDbContext db,
+    ITenantContext tenantContext,
     ILogger<CreateDoctorCommandHandler> logger
 ) : IRequestHandler<CreateDoctorCommand, CreateDoctorResult>
 {
@@ -23,6 +24,7 @@ public class CreateDoctorCommandHandler(
             UserName  = request.Email,
             Role      = UserRole.Doctor,
             Status    = AccountStatus.PendingReview,
+            ClinicId  = tenantContext.ClinicId,
         };
 
         var result = await userManager.CreateAsync(user, request.Password);
@@ -46,6 +48,7 @@ public class CreateDoctorCommandHandler(
         var profile = new DoctorProfile
         {
             UserId            = user.Id,
+            ClinicId          = tenantContext.ClinicId,
             Specialty         = request.Specialty,
             LicenseNumber     = request.LicenseNumber,
             ConsultationFee   = request.ConsultationFee,

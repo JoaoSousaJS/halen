@@ -1,6 +1,5 @@
 using Halen.Application.Admin.Commands;
 using Halen.Application.Admin.Queries;
-using Halen.Application.Common;
 using Halen.Application.Interfaces;
 using Halen.Domain.Enums;
 using MediatR;
@@ -12,7 +11,7 @@ namespace Halen.API.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize(Policy = "AdminOnly")]
-public class AdminController(IMediator mediator, IFileStorage fileStorage) : ControllerBase
+public class AdminController(IMediator mediator, IFileStorage fileStorage) : HalenControllerBase
 {
     [HttpPost("doctors")]
     public async Task<IActionResult> CreateDoctor(CreateDoctorCommand command, CancellationToken ct)
@@ -76,21 +75,6 @@ public class AdminController(IMediator mediator, IFileStorage fileStorage) : Con
         }
     }
 
-    private Guid GetUserId()
-    {
-        var claim = User.FindFirst("sub")
-            ?? throw new UnauthorizedAccessException("Missing 'sub' claim");
-        if (!Guid.TryParse(claim.Value, out var id))
-            throw new UnauthorizedAccessException("Invalid 'sub' claim");
-        return id;
-    }
-
-    private IActionResult MapError(string? error, ErrorKind? kind) => kind switch
-    {
-        ErrorKind.NotFound => NotFound(new { error }),
-        ErrorKind.Forbidden => Forbid(),
-        _ => BadRequest(new { error }),
-    };
 }
 
 public record ReviewKycRequest(KycDecision Decision, string? RejectionReason);

@@ -11,6 +11,7 @@ namespace Halen.Application.Admin.Commands;
 
 public class ReviewKycCommandHandler(
     IAppDbContext db,
+    ITenantContext tenantContext,
     IEventBus eventBus,
     ILogger<ReviewKycCommandHandler> logger
 ) : IRequestHandler<ReviewKycCommand, ReviewKycResult>
@@ -35,6 +36,7 @@ public class ReviewKycCommandHandler(
         {
             DoctorProfileId = doctor.Id,
             ReviewedByUserId = request.AdminUserId,
+            ClinicId = tenantContext.ClinicId,
             Decision = request.Decision,
             RejectionReason = request.Decision == KycDecision.Rejected ? request.RejectionReason : null,
             ReviewedAt = DateTime.UtcNow,

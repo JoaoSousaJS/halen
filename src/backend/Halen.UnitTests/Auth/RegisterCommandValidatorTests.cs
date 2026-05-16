@@ -29,7 +29,7 @@ public class RegisterCommandValidatorTests
     }
 
     [TestMethod]
-    [DataRow(UserRole.Admin)]
+    [DataRow(UserRole.PlatformAdmin)]
     [DataRow(UserRole.Doctor)]
     public async Task Validate_NonPatientRole_FailsWithSelfRegistrationMessage(UserRole role)
     {

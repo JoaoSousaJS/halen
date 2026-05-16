@@ -18,6 +18,7 @@ import { useNotifications } from '../../shared/hooks/useNotifications';
 import { ToastContainer } from '../../shared/components/ToastContainer';
 import { getKycStatus } from '../../shared/api/doctor';
 import KycSetup from './KycSetup';
+import { FeatureGate } from '../../shared/components/FeatureGate';
 
 export default function DoctorDashboard() {
   const { user, logout } = useAuth();
@@ -108,12 +109,12 @@ export default function DoctorDashboard() {
 
       <main className="dashboard-main">
         {!kycApproved ? (
-          <>
+          <FeatureGate feature="kyc">
             <h1 className="auth-heading">
               Welcome,<br /><em>Dr. {user?.family_name}.</em>
             </h1>
             <KycSetup />
-          </>
+          </FeatureGate>
         ) : (
         <>
         <h1 className="auth-heading">
@@ -206,143 +207,145 @@ export default function DoctorDashboard() {
           <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(complete.error)}</p>
         ) : null}
 
-        <section style={{ marginTop: 48 }}>
-          <h2 className="section-heading">Issue a prescription</h2>
+        <FeatureGate feature="prescriptions">
+          <section style={{ marginTop: 48 }}>
+            <h2 className="section-heading">Issue a prescription</h2>
 
-          <div className="auth-card" style={{ marginTop: 20 }}>
-            <form onSubmit={handleIssue} className="auth-form">
-              <label className="field">
-                <span>Patient</span>
-                <select
-                  required
-                  value={rxForm.patientId}
-                  onChange={(e) => setRxForm((f) => ({ ...f, patientId: e.target.value }))}
-                >
-                  <option value="">Select a patient…</option>
-                  {uniquePatients.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="field">
-                <span>Drug name</span>
-                <input
-                  type="text"
-                  required
-                  value={rxForm.drugName}
-                  onChange={(e) => setRxForm((f) => ({ ...f, drugName: e.target.value }))}
-                  placeholder="e.g. Amoxicillin"
-                />
-              </label>
-
-              <label className="field">
-                <span>Dosage</span>
-                <input
-                  type="text"
-                  required
-                  value={rxForm.dosage}
-                  onChange={(e) => setRxForm((f) => ({ ...f, dosage: e.target.value }))}
-                  placeholder="e.g. 500mg"
-                />
-              </label>
-
-              <label className="field">
-                <span>Frequency</span>
-                <input
-                  type="text"
-                  required
-                  value={rxForm.frequency}
-                  onChange={(e) => setRxForm((f) => ({ ...f, frequency: e.target.value }))}
-                  placeholder="e.g. Twice daily"
-                />
-              </label>
-
-              <label className="field">
-                <span>Refills</span>
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  max={24}
-                  value={rxForm.refillsRemaining}
-                  onChange={(e) => setRxForm((f) => ({ ...f, refillsRemaining: Number(e.target.value) }))}
-                />
-              </label>
-
-              <label className="field">
-                <span>Pharmacy (optional)</span>
-                <input
-                  type="text"
-                  value={rxForm.pharmacyName}
-                  onChange={(e) => setRxForm((f) => ({ ...f, pharmacyName: e.target.value }))}
-                  placeholder="e.g. CVS Pharmacy"
-                />
-              </label>
-
-              {issue.isError ? (
-                <p className="auth-error">{getApiError(issue.error)}</p>
-              ) : null}
-              {rxSuccess ? (
-                <p style={{ color: 'var(--accent)', fontSize: 13 }}>{rxSuccess}</p>
-              ) : null}
-
-              <button
-                type="submit"
-                className="btn btn-primary btn-block"
-                disabled={issue.isPending}
-              >
-                {issue.isPending ? 'Issuing…' : 'Issue prescription'}
-              </button>
-            </form>
-          </div>
-        </section>
-
-        <section style={{ marginTop: 40 }}>
-          <h2 className="section-heading">Prescriptions issued</h2>
-
-          {prescriptions.isLoading ? <p className="text-dim">Loading…</p> : null}
-          {prescriptions.isError ? <p className="auth-error">Failed to load prescriptions.</p> : null}
-
-          {prescriptions.data?.length === 0 ? (
-            <p className="text-dim">No prescriptions issued yet.</p>
-          ) : null}
-
-          <div className="appt-list">
-            {prescriptions.data?.map((rx) => (
-              <div key={rx.id} className="appt-card">
-                <div className="appt-card-header">
-                  <span className={`appt-status appt-status--${rx.status.toLowerCase()}`}>
-                    {rx.status}
-                  </span>
-                  <span className="appt-date">
-                    {new Date(rx.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="appt-card-body">
-                  <strong>{rx.drugName}</strong> — {rx.dosage}, {rx.frequency}
-                  <p className="text-dim">Patient: {rx.patientName}</p>
-                  <p className="text-dim">Refills: {rx.refillsRemaining}</p>
-                  {rx.pharmacyName ? <p className="text-dim">Pharmacy: {rx.pharmacyName}</p> : null}
-                </div>
-                {rx.status === 'Active' ? (
-                  <button
-                    className="btn btn-danger btn-sm"
-                    aria-label={`Cancel prescription for ${rx.patientName}`}
-                    disabled={cancelRx.isPending}
-                    onClick={() => cancelRx.mutate(rx.id)}
+            <div className="auth-card" style={{ marginTop: 20 }}>
+              <form onSubmit={handleIssue} className="auth-form">
+                <label className="field">
+                  <span>Patient</span>
+                  <select
+                    required
+                    value={rxForm.patientId}
+                    onChange={(e) => setRxForm((f) => ({ ...f, patientId: e.target.value }))}
                   >
-                    {cancelRx.isPending ? 'Cancelling…' : 'Cancel'}
-                  </button>
-                ) : null}
-              </div>
-            ))}
-          </div>
+                    <option value="">Select a patient…</option>
+                    {uniquePatients.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </label>
 
-          {cancelRx.isError ? (
-            <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(cancelRx.error)}</p>
-          ) : null}
-        </section>
+                <label className="field">
+                  <span>Drug name</span>
+                  <input
+                    type="text"
+                    required
+                    value={rxForm.drugName}
+                    onChange={(e) => setRxForm((f) => ({ ...f, drugName: e.target.value }))}
+                    placeholder="e.g. Amoxicillin"
+                  />
+                </label>
+
+                <label className="field">
+                  <span>Dosage</span>
+                  <input
+                    type="text"
+                    required
+                    value={rxForm.dosage}
+                    onChange={(e) => setRxForm((f) => ({ ...f, dosage: e.target.value }))}
+                    placeholder="e.g. 500mg"
+                  />
+                </label>
+
+                <label className="field">
+                  <span>Frequency</span>
+                  <input
+                    type="text"
+                    required
+                    value={rxForm.frequency}
+                    onChange={(e) => setRxForm((f) => ({ ...f, frequency: e.target.value }))}
+                    placeholder="e.g. Twice daily"
+                  />
+                </label>
+
+                <label className="field">
+                  <span>Refills</span>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    max={24}
+                    value={rxForm.refillsRemaining}
+                    onChange={(e) => setRxForm((f) => ({ ...f, refillsRemaining: Number(e.target.value) }))}
+                  />
+                </label>
+
+                <label className="field">
+                  <span>Pharmacy (optional)</span>
+                  <input
+                    type="text"
+                    value={rxForm.pharmacyName}
+                    onChange={(e) => setRxForm((f) => ({ ...f, pharmacyName: e.target.value }))}
+                    placeholder="e.g. CVS Pharmacy"
+                  />
+                </label>
+
+                {issue.isError ? (
+                  <p className="auth-error">{getApiError(issue.error)}</p>
+                ) : null}
+                {rxSuccess ? (
+                  <p style={{ color: 'var(--accent)', fontSize: 13 }}>{rxSuccess}</p>
+                ) : null}
+
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-block"
+                  disabled={issue.isPending}
+                >
+                  {issue.isPending ? 'Issuing…' : 'Issue prescription'}
+                </button>
+              </form>
+            </div>
+          </section>
+
+          <section style={{ marginTop: 40 }}>
+            <h2 className="section-heading">Prescriptions issued</h2>
+
+            {prescriptions.isLoading ? <p className="text-dim">Loading…</p> : null}
+            {prescriptions.isError ? <p className="auth-error">Failed to load prescriptions.</p> : null}
+
+            {prescriptions.data?.length === 0 ? (
+              <p className="text-dim">No prescriptions issued yet.</p>
+            ) : null}
+
+            <div className="appt-list">
+              {prescriptions.data?.map((rx) => (
+                <div key={rx.id} className="appt-card">
+                  <div className="appt-card-header">
+                    <span className={`appt-status appt-status--${rx.status.toLowerCase()}`}>
+                      {rx.status}
+                    </span>
+                    <span className="appt-date">
+                      {new Date(rx.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="appt-card-body">
+                    <strong>{rx.drugName}</strong> — {rx.dosage}, {rx.frequency}
+                    <p className="text-dim">Patient: {rx.patientName}</p>
+                    <p className="text-dim">Refills: {rx.refillsRemaining}</p>
+                    {rx.pharmacyName ? <p className="text-dim">Pharmacy: {rx.pharmacyName}</p> : null}
+                  </div>
+                  {rx.status === 'Active' ? (
+                    <button
+                      className="btn btn-danger btn-sm"
+                      aria-label={`Cancel prescription for ${rx.patientName}`}
+                      disabled={cancelRx.isPending}
+                      onClick={() => cancelRx.mutate(rx.id)}
+                    >
+                      {cancelRx.isPending ? 'Cancelling…' : 'Cancel'}
+                    </button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+
+            {cancelRx.isError ? (
+              <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(cancelRx.error)}</p>
+            ) : null}
+          </section>
+        </FeatureGate>
         </>
         )}
       </main>

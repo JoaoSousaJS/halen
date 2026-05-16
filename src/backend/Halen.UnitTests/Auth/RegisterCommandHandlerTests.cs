@@ -3,7 +3,10 @@ using Halen.Application.Auth.Commands;
 using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
+using Halen.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -14,22 +17,39 @@ public class RegisterCommandHandlerTests
 {
     private Mock<UserManager<User>> _userManagerMock = null!;
     private Mock<IJwtService> _jwtServiceMock = null!;
+    private HalenDbContext _db = null!;
     private Mock<ILogger<RegisterCommandHandler>> _loggerMock = null!;
     private RegisterCommandHandler _handler = null!;
 
     [TestInitialize]
-    public void Initialize()
+    public async Task Initialize()
     {
+        var options = new DbContextOptionsBuilder<HalenDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        _db = new HalenDbContext(options, new Helpers.TestTenantContext());
+        _db.Clinics.Add(new Clinic { Id = Helpers.TestTenantContext.DefaultClinicId, Name = "Default", Slug = "default" });
+        await _db.SaveChangesAsync();
+
         _userManagerMock = new Mock<UserManager<User>>(
             Mock.Of<IUserStore<User>>(), null!, null!, null!, null!, null!, null!, null!, null!);
         _jwtServiceMock = new Mock<IJwtService>();
         _loggerMock = new Mock<ILogger<RegisterCommandHandler>>();
 
+        var configMock = new Mock<IConfiguration>();
+        configMock.Setup(c => c["Seed:DefaultClinicSlug"]).Returns("default");
+
         _handler = new RegisterCommandHandler(
             _userManagerMock.Object,
             _jwtServiceMock.Object,
+            _db,
+            configMock.Object,
             _loggerMock.Object);
     }
+
+    [TestCleanup]
+    public void Cleanup() => _db.Dispose();
 
     [TestMethod]
     public async Task Handle_ValidPatientCommand_ReturnsSuccessWithToken()
@@ -88,7 +108,7 @@ public class RegisterCommandHandlerTests
     }
 
     [TestMethod]
-    [DataRow(UserRole.Admin)]
+    [DataRow(UserRole.PlatformAdmin)]
     [DataRow(UserRole.Doctor)]
     public async Task Handle_NonPatientRole_ReturnsErrorWithoutCreatingUser(UserRole role)
     {

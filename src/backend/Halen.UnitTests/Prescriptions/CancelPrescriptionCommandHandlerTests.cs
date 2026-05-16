@@ -1,3 +1,4 @@
+using Halen.UnitTests.Helpers;
 using FluentAssertions;
 using Halen.Application.Common;
 using Halen.Application.Events;
@@ -31,7 +32,7 @@ public class CancelPrescriptionCommandHandlerTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _db = new HalenDbContext(options);
+        _db = new HalenDbContext(options, new TestTenantContext());
 
         _doctorUserId = Guid.NewGuid();
         _patientUserId = Guid.NewGuid();

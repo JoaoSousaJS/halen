@@ -1,3 +1,4 @@
+using Halen.UnitTests.Helpers;
 using FluentAssertions;
 using Halen.Application.Appointments.Commands;
 using Halen.Application.Common;
@@ -33,7 +34,7 @@ public class CancelAppointmentCommandHandlerTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _db = new HalenDbContext(options);
+        _db = new HalenDbContext(options, new TestTenantContext());
 
         _patientUserId = Guid.NewGuid();
         _doctorUserId = Guid.NewGuid();
@@ -104,7 +105,7 @@ public class CancelAppointmentCommandHandlerTests
     public async Task Handle_AdminCancelsAnyAppointment_Succeeds()
     {
         var adminUserId = Guid.NewGuid();
-        var command = new CancelAppointmentCommand(adminUserId, UserRole.Admin, _appointmentId);
+        var command = new CancelAppointmentCommand(adminUserId, UserRole.PlatformAdmin, _appointmentId);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 

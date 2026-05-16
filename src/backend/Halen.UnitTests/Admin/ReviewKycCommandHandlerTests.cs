@@ -1,3 +1,4 @@
+using Halen.UnitTests.Helpers;
 using FluentAssertions;
 using Halen.Application.Admin.Commands;
 using Halen.Application.Common;
@@ -31,7 +32,7 @@ public class ReviewKycCommandHandlerTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _db = new HalenDbContext(options);
+        _db = new HalenDbContext(options, new TestTenantContext());
         _adminUserId = Guid.NewGuid();
         _doctorUserId = Guid.NewGuid();
         _doctorProfileId = Guid.NewGuid();
@@ -40,7 +41,7 @@ public class ReviewKycCommandHandlerTests
             new User
             {
                 Id = _adminUserId, FirstName = "Admin", LastName = "User",
-                Email = "admin@test.com", UserName = "admin@test.com", Role = UserRole.Admin,
+                Email = "admin@test.com", UserName = "admin@test.com", Role = UserRole.PlatformAdmin,
             },
             new User
             {
@@ -62,7 +63,7 @@ public class ReviewKycCommandHandlerTests
 
         _eventBus = new Mock<IEventBus>();
         _handler = new ReviewKycCommandHandler(
-            _db, _eventBus.Object, Mock.Of<ILogger<ReviewKycCommandHandler>>());
+            _db, new Helpers.TestTenantContext(), _eventBus.Object, Mock.Of<ILogger<ReviewKycCommandHandler>>());
     }
 
     [TestCleanup]

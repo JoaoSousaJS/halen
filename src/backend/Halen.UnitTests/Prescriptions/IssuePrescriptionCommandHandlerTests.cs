@@ -1,3 +1,4 @@
+using Halen.UnitTests.Helpers;
 using FluentAssertions;
 using Halen.Application.Common;
 using Halen.Application.Events;
@@ -32,7 +33,7 @@ public class IssuePrescriptionCommandHandlerTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _db = new HalenDbContext(options);
+        _db = new HalenDbContext(options, new TestTenantContext());
 
         _doctorUserId = Guid.NewGuid();
         _doctorProfileId = Guid.NewGuid();
@@ -57,7 +58,7 @@ public class IssuePrescriptionCommandHandlerTests
 
         _eventBus = new Mock<IEventBus>();
         _handler = new IssuePrescriptionCommandHandler(
-            _db, _eventBus.Object, Mock.Of<ILogger<IssuePrescriptionCommandHandler>>());
+            _db, new Helpers.TestTenantContext(), _eventBus.Object, Mock.Of<ILogger<IssuePrescriptionCommandHandler>>());
     }
 
     [TestCleanup]

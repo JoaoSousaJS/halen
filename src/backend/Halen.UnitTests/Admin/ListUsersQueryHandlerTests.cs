@@ -1,3 +1,4 @@
+using Halen.UnitTests.Helpers;
 using FluentAssertions;
 using Halen.Application.Admin.Queries;
 using Halen.Domain.Entities;
@@ -22,7 +23,7 @@ public class ListUsersQueryHandlerTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _db = new HalenDbContext(options);
+        _db = new HalenDbContext(options, new TestTenantContext());
 
         var mayaId = Guid.NewGuid();
         var elenaId = Guid.NewGuid();
@@ -31,7 +32,7 @@ public class ListUsersQueryHandlerTests
             new User { Id = mayaId, FirstName = "Maya", LastName = "Chen", Email = "maya@test.com", UserName = "maya@test.com", Role = UserRole.Patient, LastLoginAt = DateTime.UtcNow },
             new User { Id = Guid.NewGuid(), FirstName = "Dr", LastName = "House", Email = "house@test.com", UserName = "house@test.com", Role = UserRole.Doctor, LastLoginAt = DateTime.UtcNow },
             new User { Id = elenaId, FirstName = "Elena", LastName = "Kowalski", Email = "elena@test.com", UserName = "elena@test.com", Role = UserRole.Patient, IsFlagged = true, Status = AccountStatus.PendingReview, LastLoginAt = DateTime.UtcNow },
-            new User { Id = Guid.NewGuid(), FirstName = "Admin", LastName = "User", Email = "admin@test.com", UserName = "admin@test.com", Role = UserRole.Admin, LastLoginAt = DateTime.UtcNow }
+            new User { Id = Guid.NewGuid(), FirstName = "Admin", LastName = "User", Email = "admin@test.com", UserName = "admin@test.com", Role = UserRole.PlatformAdmin, LastLoginAt = DateTime.UtcNow }
         );
 
         _db.PatientProfiles.Add(new PatientProfile { Id = Guid.NewGuid(), UserId = mayaId, SubscriptionPlan = "HALEN+" });
@@ -52,7 +53,7 @@ public class ListUsersQueryHandlerTests
 
         result.Users.Should().HaveCount(3);
         result.TotalCount.Should().Be(3);
-        result.Users.Should().NotContain(u => u.Role == "Admin");
+        result.Users.Should().NotContain(u => u.Role == "PlatformAdmin");
     }
 
     [TestMethod]

@@ -14,7 +14,7 @@ public class ListUsersQueryHandler(IAppDbContext db)
     {
         var query = db.Users
             .AsNoTracking()
-            .Where(u => u.Role != UserRole.Admin)
+            .Where(u => u.Role != UserRole.PlatformAdmin)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Role) &&

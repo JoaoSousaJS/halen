@@ -40,7 +40,7 @@ public class CancelAppointmentCommandHandler(
                     return new CancelAppointmentResult(false, "You do not have permission to cancel this appointment", ErrorKind.Forbidden);
                 break;
             }
-            case UserRole.Admin:
+            case UserRole.PlatformAdmin:
                 break;
         }
 

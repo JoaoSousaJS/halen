@@ -1,4 +1,4 @@
-using Halen.Application.Common;
+using Halen.Application.Attributes;
 using Halen.Application.Doctor.Commands;
 using Halen.Application.Doctor.Queries;
 using Halen.Application.Interfaces;
@@ -12,9 +12,10 @@ namespace Halen.API.Controllers;
 [ApiController]
 [Route("api/v1/[controller]")]
 [Authorize(Policy = "DoctorOnly")]
-public class DoctorController(IMediator mediator, IFileStorage fileStorage) : ControllerBase
+public class DoctorController(IMediator mediator, IFileStorage fileStorage) : HalenControllerBase
 {
     [HttpPost("kyc/documents")]
+    [RequireFeature("kyc")]
     [RequestSizeLimit(35_000_000)]
     public async Task<IActionResult> SubmitKycDocuments(
         IFormFile licensePhoto,
@@ -67,6 +68,7 @@ public class DoctorController(IMediator mediator, IFileStorage fileStorage) : Co
     }
 
     [HttpGet("kyc/status")]
+    [RequireFeature("kyc")]
     public async Task<IActionResult> GetKycStatus(CancellationToken ct)
     {
         var result = await mediator.Send(new GetKycStatusQuery(GetUserId()), ct);
@@ -82,19 +84,4 @@ public class DoctorController(IMediator mediator, IFileStorage fileStorage) : Co
         }
     }
 
-    private Guid GetUserId()
-    {
-        var claim = User.FindFirst("sub")
-            ?? throw new UnauthorizedAccessException("Missing 'sub' claim");
-        if (!Guid.TryParse(claim.Value, out var id))
-            throw new UnauthorizedAccessException("Invalid 'sub' claim");
-        return id;
-    }
-
-    private IActionResult MapError(string? error, ErrorKind? kind) => kind switch
-    {
-        ErrorKind.NotFound => NotFound(new { error }),
-        ErrorKind.Forbidden => Forbid(),
-        _ => BadRequest(new { error }),
-    };
 }

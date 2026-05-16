@@ -11,6 +11,7 @@ namespace Halen.Application.Doctor.Commands;
 
 public class SubmitKycDocumentsCommandHandler(
     IAppDbContext db,
+    ITenantContext tenantContext,
     IEventBus eventBus,
     ILogger<SubmitKycDocumentsCommandHandler> logger
 ) : IRequestHandler<SubmitKycDocumentsCommand, SubmitKycDocumentsResult>
@@ -45,6 +46,7 @@ public class SubmitKycDocumentsCommandHandler(
             db.KycDocuments.Add(new KycDocument
             {
                 DoctorProfileId = doctor.Id,
+                ClinicId = tenantContext.ClinicId,
                 DocumentType = doc.DocumentType,
                 FileName = doc.FileName,
                 FilePath = doc.FilePath,

@@ -12,7 +12,7 @@ public class NotificationHub : Hub<INotificationClient>
     public override async Task OnConnectedAsync()
     {
         var role = Context.User?.FindFirst("role")?.Value;
-        if (role == "Admin")
+        if (role is "PlatformAdmin" or "ClinicAdmin")
             await Groups.AddToGroupAsync(Context.ConnectionId, AdminGroup);
 
         await base.OnConnectedAsync();

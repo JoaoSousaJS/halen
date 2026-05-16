@@ -1,9 +1,13 @@
 using Halen.Domain.Enums;
+using Halen.Domain.Interfaces;
 
 namespace Halen.Domain.Entities;
 
-public class Prescription : BaseEntity
+public class Prescription : BaseEntity, ITenantScoped
 {
+    public Guid ClinicId { get; set; }
+    public Clinic? Clinic { get; set; }
+
     public Guid PatientId { get; set; }
     public PatientProfile Patient { get; set; } = null!;
 

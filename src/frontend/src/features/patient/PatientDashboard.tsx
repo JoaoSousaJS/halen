@@ -13,6 +13,7 @@ import type { DoctorDto } from '../../shared/api/appointments';
 import { getMyPrescriptions } from '../../shared/api/prescriptions';
 import { useNotifications } from '../../shared/hooks/useNotifications';
 import { ToastContainer } from '../../shared/components/ToastContainer';
+import { FeatureGate } from '../../shared/components/FeatureGate';
 
 function toLocalDatetime(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -204,37 +205,39 @@ export default function PatientDashboard() {
           ) : null}
         </section>
 
-        <section style={{ marginTop: 40 }}>
-          <h2 className="section-heading">Your prescriptions</h2>
+        <FeatureGate feature="prescriptions">
+          <section style={{ marginTop: 40 }}>
+            <h2 className="section-heading">Your prescriptions</h2>
 
-          {prescriptions.isLoading ? <p className="text-dim">Loading…</p> : null}
-          {prescriptions.isError ? <p className="auth-error">Failed to load prescriptions.</p> : null}
+            {prescriptions.isLoading ? <p className="text-dim">Loading…</p> : null}
+            {prescriptions.isError ? <p className="auth-error">Failed to load prescriptions.</p> : null}
 
-          {prescriptions.data?.length === 0 ? (
-            <p className="text-dim">No prescriptions yet.</p>
-          ) : null}
+            {prescriptions.data?.length === 0 ? (
+              <p className="text-dim">No prescriptions yet.</p>
+            ) : null}
 
-          <div className="appt-list">
-            {prescriptions.data?.map((rx) => (
-              <div key={rx.id} className="appt-card">
-                <div className="appt-card-header">
-                  <span className={`appt-status appt-status--${rx.status.toLowerCase()}`}>
-                    {rx.status}
-                  </span>
-                  <span className="appt-date">
-                    {new Date(rx.createdAt).toLocaleDateString()}
-                  </span>
+            <div className="appt-list">
+              {prescriptions.data?.map((rx) => (
+                <div key={rx.id} className="appt-card">
+                  <div className="appt-card-header">
+                    <span className={`appt-status appt-status--${rx.status.toLowerCase()}`}>
+                      {rx.status}
+                    </span>
+                    <span className="appt-date">
+                      {new Date(rx.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="appt-card-body">
+                    <strong>{rx.drugName}</strong> — {rx.dosage}, {rx.frequency}
+                    <p className="text-dim">Prescribed by: {rx.doctorName}</p>
+                    <p className="text-dim">Refills remaining: {rx.refillsRemaining}</p>
+                    {rx.pharmacyName ? <p className="text-dim">Pharmacy: {rx.pharmacyName}</p> : null}
+                  </div>
                 </div>
-                <div className="appt-card-body">
-                  <strong>{rx.drugName}</strong> — {rx.dosage}, {rx.frequency}
-                  <p className="text-dim">Prescribed by: {rx.doctorName}</p>
-                  <p className="text-dim">Refills remaining: {rx.refillsRemaining}</p>
-                  {rx.pharmacyName ? <p className="text-dim">Pharmacy: {rx.pharmacyName}</p> : null}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        </FeatureGate>
       </main>
     </div>
   );

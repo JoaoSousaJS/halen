@@ -4,5 +4,6 @@ public enum UserRole
 {
     Patient,
     Doctor,
-    Admin
+    ClinicAdmin,
+    PlatformAdmin
 }

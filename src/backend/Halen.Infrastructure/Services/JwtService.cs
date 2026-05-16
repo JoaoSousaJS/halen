@@ -25,10 +25,9 @@ public class JwtService(IConfiguration configuration) : IJwtService
             new(JwtRegisteredClaimNames.GivenName, user.FirstName),
             new(JwtRegisteredClaimNames.FamilyName, user.LastName),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("clinic_id", user.ClinicId.ToString()),
         };
 
-        // Use the short "role" claim name so it's readable in JWT payloads on the frontend.
-        // TokenValidationParameters.RoleClaimType = "role" tells ASP.NET Core to use this for policy checks.
         claims.AddRange(roles.Select(r => new Claim("role", r)));
 
         var expiryMinutes = int.TryParse(configuration["Jwt:ExpirationMinutes"], out var m) ? m : 60;

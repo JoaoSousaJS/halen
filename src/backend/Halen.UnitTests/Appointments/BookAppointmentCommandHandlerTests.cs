@@ -29,7 +29,7 @@ public class BookAppointmentCommandHandlerTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        _db = new HalenDbContext(options);
+        _db = new HalenDbContext(options, new Helpers.TestTenantContext());
 
         var doctorUser = new User
         {
@@ -61,6 +61,7 @@ public class BookAppointmentCommandHandlerTests
         _eventBus = new Mock<IEventBus>();
         _handler = new BookAppointmentCommandHandler(
             _db,
+            new Helpers.TestTenantContext(),
             _eventBus.Object,
             Mock.Of<ILogger<BookAppointmentCommandHandler>>());
     }

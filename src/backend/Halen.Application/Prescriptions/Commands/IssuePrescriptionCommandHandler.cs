@@ -11,6 +11,7 @@ namespace Halen.Application.Prescriptions.Commands;
 
 public class IssuePrescriptionCommandHandler(
     IAppDbContext db,
+    ITenantContext tenantContext,
     IEventBus eventBus,
     ILogger<IssuePrescriptionCommandHandler> logger
 ) : IRequestHandler<IssuePrescriptionCommand, IssuePrescriptionResult>
@@ -43,6 +44,7 @@ public class IssuePrescriptionCommandHandler(
             RefillsRemaining = request.RefillsRemaining,
             PharmacyName = request.PharmacyName,
             Status = PrescriptionStatus.Active,
+            ClinicId = tenantContext.ClinicId,
         };
 
         db.Prescriptions.Add(prescription);

@@ -13,6 +13,8 @@ public interface IAppDbContext
     DbSet<Prescription> Prescriptions { get; }
     DbSet<KycDocument> KycDocuments { get; }
     DbSet<KycReview> KycReviews { get; }
+    DbSet<Clinic> Clinics { get; }
+    DbSet<ClinicFeatureFlag> ClinicFeatureFlags { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

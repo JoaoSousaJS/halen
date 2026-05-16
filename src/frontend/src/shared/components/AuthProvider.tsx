@@ -7,6 +7,7 @@ interface JwtPayload {
   given_name: string;
   family_name: string;
   role: string;
+  clinic_id: string;
 }
 
 interface AuthContextValue {
