@@ -229,12 +229,20 @@ using (var scope = app.Services.CreateScope())
     {
         defaultClinic = new Clinic { Name = defaultClinicName, Slug = defaultSlug };
         db.Clinics.Add(defaultClinic);
-
-        foreach (var key in Halen.Domain.Constants.FeatureKeys.All)
-            db.ClinicFeatureFlags.Add(new ClinicFeatureFlag { ClinicId = defaultClinic.Id, FeatureKey = key, IsEnabled = true });
-
         await db.SaveChangesAsync();
     }
+
+    // Ensure all feature flags exist for the default clinic (migration may have
+    // created the clinic without flags).
+    var existingKeys = await db.ClinicFeatureFlags
+        .Where(f => f.ClinicId == defaultClinic.Id)
+        .Select(f => f.FeatureKey)
+        .ToListAsync();
+    var missingKeys = Halen.Domain.Constants.FeatureKeys.All.Except(existingKeys);
+    foreach (var key in missingKeys)
+        db.ClinicFeatureFlags.Add(new ClinicFeatureFlag { ClinicId = defaultClinic.Id, FeatureKey = key, IsEnabled = true });
+    if (missingKeys.Any())
+        await db.SaveChangesAsync();
 
     // Seed platform admin user.
     var adminEmail = app.Configuration["Seed:AdminEmail"];
