@@ -13,7 +13,7 @@ vi.mock('../../shared/api/admin', () => ({
 function fakeJwt(): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const body = btoa(JSON.stringify({
-    sub: '1', email: 'admin@test.com', given_name: 'Lior', family_name: 'Adler', role: 'Admin', exp: 9999999999,
+    sub: '1', email: 'admin@test.com', given_name: 'Lior', family_name: 'Adler', role: 'ClinicAdmin', clinic_id: 'c-001', exp: 9999999999,
   }));
   return `${header}.${body}.fake`;
 }
@@ -38,7 +38,7 @@ describe('AdminDashboard', () => {
   it('renders header with brand and admin name', () => {
     renderDashboard();
     expect(screen.getByText('Halen')).toBeDefined();
-    expect(screen.getByText('Admin · Lior')).toBeDefined();
+    expect(screen.getByText('Clinic Admin · Lior')).toBeDefined();
   });
 
   it('shows Users tab by default', () => {

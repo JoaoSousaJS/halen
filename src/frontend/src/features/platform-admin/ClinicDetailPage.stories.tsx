@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../../shared/components/AuthProvider';
 import ClinicDetailPage from './ClinicDetailPage';
 import { http, HttpResponse } from 'msw';
-import { fn } from '@storybook/test';
+import { fn } from 'storybook/test';
 
 function fakeJwt(): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
