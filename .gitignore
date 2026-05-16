@@ -23,3 +23,6 @@ storybook-static/
 .idea/
 .vs/
 *.user
+
+# C# Dev Kit cache
+*.lscache

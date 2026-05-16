@@ -7,6 +7,10 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
+  viteFinal: (config) => {
+    config.base = process.env.CI ? '/halen/' : '/';
+    return config;
+  },
 };
 
 export default config;
