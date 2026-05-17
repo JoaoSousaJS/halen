@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 
 interface DashboardShellProps {
@@ -25,7 +26,7 @@ export function DashboardShell({ subtitle, userName, nav, children, wide }: Dash
 
         {nav}
 
-        <span className="dashboard-user">{userName}</span>
+        <Link to="/profile" className="dashboard-user">{userName}</Link>
         <button className="btn btn-sm" onClick={logout}>Sign out</button>
       </header>
 

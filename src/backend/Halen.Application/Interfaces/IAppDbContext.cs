@@ -15,6 +15,7 @@ public interface IAppDbContext
     DbSet<KycReview> KycReviews { get; }
     DbSet<Clinic> Clinics { get; }
     DbSet<ClinicFeatureFlag> ClinicFeatureFlags { get; }
+    DbSet<DoctorAvailability> DoctorAvailabilities { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

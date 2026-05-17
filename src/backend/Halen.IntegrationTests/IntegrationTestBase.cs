@@ -1,5 +1,7 @@
 using System.Net.Http.Json;
+using Halen.Domain.Entities;
 using Halen.Domain.Enums;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Halen.IntegrationTests;
 
@@ -130,6 +132,29 @@ public abstract class IntegrationTestBase
         {
             await TestHelpers.ApproveDoctorKycAsync(_factory, doctorId);
         }
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<Halen.Infrastructure.Persistence.HalenDbContext>();
+            var clinic = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
+                .FirstAsync(db.Clinics, c => c.Slug == "default");
+
+            foreach (DayOfWeek day in Enum.GetValues<DayOfWeek>())
+            {
+                db.DoctorAvailabilities.Add(new DoctorAvailability
+                {
+                    DoctorProfileId = doctorId,
+                    ClinicId = clinic.Id,
+                    DayOfWeek = day,
+                    StartTime = new TimeOnly(0, 0),
+                    EndTime = new TimeOnly(23, 40),
+                    SlotDurationMinutes = 20,
+                    IsActive = true,
+                });
+            }
+            await db.SaveChangesAsync();
+        }
+
         var client = await TestHelpers.GetBearerClientAsync(_factory, email, "Doctor1234!");
         return (doctorId, client, email);
     }

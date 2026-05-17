@@ -18,6 +18,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
     public DbSet<KycDocument> KycDocuments => Set<KycDocument>();
     public DbSet<KycReview> KycReviews => Set<KycReview>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
     /// <summary>Intentionally unfiltered — Clinic is the tenant root, not scoped to another tenant.</summary>
     public DbSet<Clinic> Clinics => Set<Clinic>();
     /// <summary>Intentionally unfiltered — managed cross-tenant by PlatformAdmin; handlers scope by ClinicId explicitly.</summary>
@@ -43,6 +44,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         builder.Entity<Prescription>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<KycDocument>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<KycReview>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<DoctorAvailability>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<AuditLog>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
 
         // ── Clinic ───────────────────────────────────────────────────────────
@@ -129,6 +131,18 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(d => d.Specialty).HasMaxLength(100);
             e.Property(d => d.LicenseNumber).HasMaxLength(50);
             e.HasIndex(d => d.KycStatus);
+        });
+
+        // ── DoctorAvailability ────────────────────────────────────────────────
+        builder.Entity<DoctorAvailability>(e =>
+        {
+            e.HasOne(a => a.Clinic).WithMany().HasForeignKey(a => a.ClinicId);
+            e.HasOne(a => a.DoctorProfile).WithMany(d => d.Availabilities).HasForeignKey(a => a.DoctorProfileId);
+            e.HasIndex(a => new { a.ClinicId, a.DoctorProfileId, a.DayOfWeek });
+            e.Property(a => a.DayOfWeek).HasConversion<string>();
+            e.Property(a => a.StartTime).HasColumnType("time");
+            e.Property(a => a.EndTime).HasColumnType("time");
+            e.Property(a => a.SlotDurationMinutes).HasDefaultValue(20);
         });
 
         // ── PatientProfile ───────────────────────────────────────────────────

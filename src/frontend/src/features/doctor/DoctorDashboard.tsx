@@ -19,6 +19,7 @@ import { useNotifications } from '../../shared/hooks/useNotifications';
 import { ToastContainer } from '../../shared/components/ToastContainer';
 import { getKycStatus } from '../../shared/api/doctor';
 import KycSetup from './KycSetup';
+import AvailabilityEditor from './AvailabilityEditor';
 import { FeatureGate } from '../../shared/components/FeatureGate';
 import { Button, Field } from '../../shared/components';
 
@@ -109,6 +110,11 @@ export default function DoctorDashboard() {
           </FeatureGate>
         ) : (
         <>
+        <section>
+          <h2 className="section-heading">Your availability</h2>
+          <AvailabilityEditor />
+        </section>
+
         <section>
         <h1 className="auth-heading">
           Your<br /><em>schedule.</em>

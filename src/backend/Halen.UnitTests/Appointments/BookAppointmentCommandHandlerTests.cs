@@ -50,6 +50,20 @@ public class BookAppointmentCommandHandlerTests
         _db.DoctorProfiles.Add(doctorProfile);
         _doctorProfileId = doctorProfile.Id;
 
+        foreach (DayOfWeek day in Enum.GetValues<DayOfWeek>())
+        {
+            _db.DoctorAvailabilities.Add(new DoctorAvailability
+            {
+                DoctorProfileId = doctorProfile.Id,
+                ClinicId = TestTenantContext.DefaultClinicId,
+                DayOfWeek = day,
+                StartTime = new TimeOnly(0, 0),
+                EndTime = new TimeOnly(23, 40),
+                SlotDurationMinutes = 20,
+                IsActive = true,
+            });
+        }
+
         _patientUserId = Guid.NewGuid();
         var patientUser = new User
         {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { SubmitEvent } from 'react';
+import type { FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../shared/components/AuthProvider';
 import { DashboardShell } from '../../shared/components/DashboardShell';
@@ -12,14 +12,17 @@ import {
 } from '../../shared/api/appointments';
 import type { DoctorDto } from '../../shared/api/appointments';
 import { getMyPrescriptions } from '../../shared/api/prescriptions';
+import { getDoctorAvailability, getAvailableSlots } from '../../shared/api/availability';
+import type { TimeSlot } from '../../shared/api/availability';
 import { useNotifications } from '../../shared/hooks/useNotifications';
 import { ToastContainer } from '../../shared/components/ToastContainer';
 import { FeatureGate } from '../../shared/components/FeatureGate';
 import { Button, Field } from '../../shared/components';
 
-function toLocalDatetime(date: Date): string {
+function todayDate(): string {
+  const d = new Date();
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export default function PatientDashboard() {
@@ -28,7 +31,8 @@ export default function PatientDashboard() {
   const { toasts, dismissToast } = useNotifications();
 
   const [doctorId, setDoctorId] = useState('');
-  const [scheduledAt, setScheduledAt] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [reason, setReason] = useState('');
   const [bookSuccess, setBookSuccess] = useState('');
 
@@ -36,15 +40,28 @@ export default function PatientDashboard() {
   const appointments = useQuery({ queryKey: ['my-appointments'], queryFn: getMyAppointments });
   const prescriptions = useQuery({ queryKey: ['my-prescriptions'], queryFn: getMyPrescriptions });
 
+  const doctorAvailability = useQuery({
+    queryKey: ['doctor-availability', doctorId],
+    queryFn: () => getDoctorAvailability(doctorId),
+    enabled: !!doctorId,
+  });
+
+  const availableSlots = useQuery({
+    queryKey: ['available-slots', doctorId, selectedDate],
+    queryFn: () => getAvailableSlots(doctorId, selectedDate),
+    enabled: !!doctorId && !!selectedDate,
+  });
+
   const book = useMutation({
     mutationFn: () => bookAppointment({
       doctorId,
-      scheduledAt: new Date(scheduledAt).toISOString(),
+      scheduledAt: selectedSlot!.startUtc,
       reason,
     }),
     onSuccess: () => {
       setDoctorId('');
-      setScheduledAt('');
+      setSelectedDate('');
+      setSelectedSlot(null);
       setReason('');
       setBookSuccess('Appointment booked!');
       setTimeout(() => setBookSuccess(''), 4000);
@@ -63,14 +80,15 @@ export default function PatientDashboard() {
     onError: () => setCancellingId(null),
   });
 
-  function handleBook(e: SubmitEvent<HTMLFormElement>) {
+  function handleBook(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBookSuccess('');
     book.mutate();
   }
 
   const selectedDoctor: DoctorDto | undefined = doctors.data?.find((d) => d.id === doctorId);
-  const minDatetime = toLocalDatetime(new Date());
+  const hasAvailability = (doctorAvailability.data?.length ?? 0) > 0;
+  const slotsForDate = availableSlots.data?.filter((s) => s.isAvailable) ?? [];
 
   return (
     <DashboardShell
@@ -89,7 +107,11 @@ export default function PatientDashboard() {
                 <select
                   required
                   value={doctorId}
-                  onChange={(e) => setDoctorId(e.target.value)}
+                  onChange={(e) => {
+                    setDoctorId(e.target.value);
+                    setSelectedDate('');
+                    setSelectedSlot(null);
+                  }}
                 >
                   <option value="">Select a doctor…</option>
                   {doctors.data?.map((d) => (
@@ -106,15 +128,59 @@ export default function PatientDashboard() {
                 </p>
               ) : null}
 
-              <Field label="Date & time">
-                <input
-                  type="datetime-local"
-                  required
-                  value={scheduledAt}
-                  min={minDatetime}
-                  onChange={(e) => setScheduledAt(e.target.value)}
-                />
-              </Field>
+              {doctorId && doctorAvailability.isLoading ? (
+                <p className="text-dim">Checking doctor availability...</p>
+              ) : null}
+
+              {doctorId && !doctorAvailability.isLoading && !hasAvailability ? (
+                <p className="text-dim">This doctor hasn't set up their schedule yet.</p>
+              ) : null}
+
+              {doctorId && hasAvailability ? (
+                <>
+                  <Field label="Date">
+                    <input
+                      type="date"
+                      required
+                      value={selectedDate}
+                      min={todayDate()}
+                      onChange={(e) => {
+                        setSelectedDate(e.target.value);
+                        setSelectedSlot(null);
+                      }}
+                    />
+                  </Field>
+
+                  {selectedDate && availableSlots.isLoading ? (
+                    <p className="text-dim">Loading available slots...</p>
+                  ) : null}
+
+                  {selectedDate && !availableSlots.isLoading && slotsForDate.length === 0 ? (
+                    <p className="text-dim">No available slots on this date. Try another day.</p>
+                  ) : null}
+
+                  {selectedDate && slotsForDate.length > 0 ? (
+                    <div>
+                      <span className="field" style={{ marginBottom: 6 }}>
+                        <span>Available slots</span>
+                      </span>
+                      <div className="slot-grid">
+                        {slotsForDate.map((slot) => (
+                          <Button
+                            key={slot.startUtc}
+                            type="button"
+                            variant={selectedSlot?.startUtc === slot.startUtc ? 'primary' : 'ghost'}
+                            size="sm"
+                            onClick={() => setSelectedSlot(slot)}
+                          >
+                            {slot.startLocal}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
 
               <Field label="Reason for visit">
                 <textarea
@@ -137,7 +203,7 @@ export default function PatientDashboard() {
                 variant="primary"
                 block
                 type="submit"
-                disabled={book.isPending}
+                disabled={book.isPending || !selectedSlot}
               >
                 {book.isPending ? 'Booking…' : 'Book appointment'}
               </Button>

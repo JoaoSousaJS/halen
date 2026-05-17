@@ -61,7 +61,22 @@ public class BookAppointmentCommandHandler(
 
         try
         {
-            var endTime = request.ScheduledAt.AddMinutes(DefaultDurationMinutes);
+            var dayOfWeek = request.ScheduledAt.DayOfWeek;
+            var timeOfDay = TimeOnly.FromDateTime(request.ScheduledAt);
+
+            var matchingWindow = await db.DoctorAvailabilities
+                .Where(a => a.DoctorProfileId == request.DoctorId &&
+                    a.IsActive &&
+                    a.DayOfWeek == dayOfWeek &&
+                    a.StartTime <= timeOfDay &&
+                    timeOfDay.AddMinutes(DefaultDurationMinutes) <= a.EndTime)
+                .Select(a => new { a.SlotDurationMinutes })
+                .FirstOrDefaultAsync(ct);
+
+            if (matchingWindow is null)
+                return new BookAppointmentResult(false, null, "Doctor is not available at the requested time.");
+
+            var endTime = request.ScheduledAt.AddMinutes(matchingWindow.SlotDurationMinutes);
             var hasConflict = await db.Appointments.AnyAsync(a =>
                 a.DoctorId == request.DoctorId &&
                 a.Status == AppointmentStatus.Scheduled &&

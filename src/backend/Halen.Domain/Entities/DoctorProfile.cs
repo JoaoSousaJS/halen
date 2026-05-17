@@ -20,6 +20,7 @@ public class DoctorProfile : BaseEntity, ITenantScoped
     public KycStatus KycStatus { get; set; } = KycStatus.NotSubmitted;
     public DateTime? KycSubmittedAt { get; set; }
 
+    public ICollection<DoctorAvailability> Availabilities { get; set; } = [];
     public ICollection<Appointment> Appointments { get; set; } = [];
     public ICollection<Prescription> Prescriptions { get; set; } = [];
     public ICollection<KycDocument> KycDocuments { get; set; } = [];

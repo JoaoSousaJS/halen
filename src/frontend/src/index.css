@@ -936,3 +936,76 @@ body:has(.dialog-overlay) { overflow: hidden; }
   gap: 10px;
   margin-top: 8px;
 }
+
+/* ── Availability editor ───────────────────────── */
+
+.avail-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.avail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.avail-day-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.avail-day-heading {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.avail-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.avail-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.avail-chip-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.avail-chip-remove:hover {
+  color: var(--danger);
+}
+
+.avail-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.avail-add-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Slot grid (patient booking) ──────────────── */
+
+.slot-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

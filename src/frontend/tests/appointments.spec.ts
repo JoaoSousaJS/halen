@@ -42,6 +42,18 @@ test.describe('Patient Dashboard — Appointments', () => {
   });
 
   test('books an appointment successfully', async ({ page }) => {
+    await page.route('**/api/v1/availability/doc-1', (route) => {
+      if (!route.request().url().includes('/slots')) {
+        return route.fulfill({ status: 200, json: { windows: [{ id: 'w1', dayOfWeek: 'Thursday', startTime: '09:00', endTime: '12:00', slotDurationMinutes: 20 }] } });
+      }
+      return route.fallback();
+    });
+    await page.route('**/api/v1/availability/doc-1/slots**', (route) =>
+      route.fulfill({ status: 200, json: { slots: [
+        { startUtc: '2027-01-15T09:00:00Z', startLocal: '09:00', isAvailable: true },
+        { startUtc: '2027-01-15T09:20:00Z', startLocal: '09:20', isAvailable: true },
+      ] } }),
+    );
     await page.route('**/api/v1/appointments', (route) => {
       if (route.request().method() === 'POST') {
         return route.fulfill({ status: 201, json: { appointmentId: 'new-appt-1' } });
@@ -52,7 +64,8 @@ test.describe('Patient Dashboard — Appointments', () => {
     await page.goto('/dashboard');
 
     await page.getByLabel('Doctor').selectOption('doc-1');
-    await page.getByLabel('Date & time').fill('2027-01-15T10:00');
+    await page.getByLabel('Date').fill('2027-01-15');
+    await page.getByRole('button', { name: '09:00' }).click();
     await page.getByLabel('Reason for visit').fill('Regular checkup');
     await page.getByRole('button', { name: 'Book appointment' }).click();
 
@@ -60,6 +73,17 @@ test.describe('Patient Dashboard — Appointments', () => {
   });
 
   test('shows booking error on conflict', async ({ page }) => {
+    await page.route('**/api/v1/availability/doc-1', (route) => {
+      if (!route.request().url().includes('/slots')) {
+        return route.fulfill({ status: 200, json: { windows: [{ id: 'w1', dayOfWeek: 'Thursday', startTime: '09:00', endTime: '12:00', slotDurationMinutes: 20 }] } });
+      }
+      return route.fallback();
+    });
+    await page.route('**/api/v1/availability/doc-1/slots**', (route) =>
+      route.fulfill({ status: 200, json: { slots: [
+        { startUtc: '2027-01-15T09:00:00Z', startLocal: '09:00', isAvailable: true },
+      ] } }),
+    );
     await page.route('**/api/v1/appointments', (route) => {
       if (route.request().method() === 'POST') {
         return route.fulfill({ status: 400, json: { error: 'This time slot is not available' } });
@@ -70,7 +94,8 @@ test.describe('Patient Dashboard — Appointments', () => {
     await page.goto('/dashboard');
 
     await page.getByLabel('Doctor').selectOption('doc-1');
-    await page.getByLabel('Date & time').fill('2027-01-15T10:00');
+    await page.getByLabel('Date').fill('2027-01-15');
+    await page.getByRole('button', { name: '09:00' }).click();
     await page.getByLabel('Reason for visit').fill('Checkup');
     await page.getByRole('button', { name: 'Book appointment' }).click();
 
