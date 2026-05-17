@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../../shared/api/auth';
 import { getApiError } from '../../shared/api/errors';
 import { useAuth } from '../../shared/components/AuthProvider';
+import { Button, Field } from '../../shared/components';
 
 export default function LoginPage() {
   const { saveToken } = useAuth();
@@ -45,8 +46,7 @@ export default function LoginPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <label className="field">
-            <span>Email</span>
+          <Field label="Email">
             <input
               type="email"
               required
@@ -55,10 +55,9 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
             />
-          </label>
+          </Field>
 
-          <label className="field">
-            <span>Password</span>
+          <Field label="Password">
             <input
               type="password"
               required
@@ -67,13 +66,13 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
             />
-          </label>
+          </Field>
 
           {error ? <p className="auth-error">{error}</p> : null}
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+          <Button variant="primary" block type="submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
-          </button>
+          </Button>
         </form>
 
         <p className="auth-foot">

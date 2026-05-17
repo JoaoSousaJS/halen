@@ -47,7 +47,7 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [reviewingDoctorId, setReviewingDoctorId] = useState<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     clearTimeout(timerRef.current);
@@ -175,14 +175,15 @@ export default function AdminUsersPage() {
                   <td className="admin-mono text-dim">{timeAgo(u.lastLoginAt)}</td>
                   <td>
                     {u.role === 'Doctor' && u.status === 'PendingReview' && u.doctorProfileId ? (
-                      <button
-                        className="btn btn-sm btn-primary"
+                      <Button
+                        size="sm"
+                        variant="primary"
                         onClick={() => setReviewingDoctorId(u.doctorProfileId!)}
                       >
                         Review
-                      </button>
+                      </Button>
                     ) : u.isFlagged ? (
-                      <button className="btn btn-sm btn-danger" disabled>Review</button>
+                      <Button size="sm" variant="danger" disabled>Review</Button>
                     ) : null}
                   </td>
                 </tr>
@@ -194,23 +195,23 @@ export default function AdminUsersPage() {
 
       {totalPages > 1 ? (
         <div className="admin-pagination">
-          <button
-            className="btn btn-sm"
+          <Button
+            size="sm"
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
           >
             ← Prev
-          </button>
+          </Button>
           <span className="text-dim">
             Page {page} of {totalPages}
           </span>
-          <button
-            className="btn btn-sm"
+          <Button
+            size="sm"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
           >
             Next →
-          </button>
+          </Button>
         </div>
       ) : null}
     </>

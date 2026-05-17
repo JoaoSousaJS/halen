@@ -20,6 +20,7 @@ import { ToastContainer } from '../../shared/components/ToastContainer';
 import { getKycStatus } from '../../shared/api/doctor';
 import KycSetup from './KycSetup';
 import { FeatureGate } from '../../shared/components/FeatureGate';
+import { Button, Field } from '../../shared/components';
 
 export default function DoctorDashboard() {
   const { user } = useAuth();
@@ -148,33 +149,36 @@ export default function DoctorDashboard() {
                         placeholder="Session notes (optional)…"
                       />
                       <div className="appt-complete-buttons">
-                        <button
-                          className="btn btn-primary btn-sm"
+                        <Button
+                          variant="primary"
+                          size="sm"
                           disabled={complete.isPending}
                           onClick={() => complete.mutate(a.id)}
                         >
                           {complete.isPending ? 'Saving…' : 'Confirm'}
-                        </button>
-                        <button
-                          className="btn btn-sm"
+                        </Button>
+                        <Button
+                          size="sm"
                           onClick={() => setCompletingId(null)}
                         >
                           Back
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ) : (
                     <>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        aria-label={`Complete appointment with ${a.patientName}`}
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        ariaLabel={`Complete appointment with ${a.patientName}`}
                         onClick={() => setCompletingId(a.id)}
                       >
                         Complete
-                      </button>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        aria-label={`Cancel appointment with ${a.patientName}`}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        ariaLabel={`Cancel appointment with ${a.patientName}`}
                         disabled={cancel.isPending}
                         onClick={() => {
                           cancel.reset();
@@ -183,7 +187,7 @@ export default function DoctorDashboard() {
                         }}
                       >
                         {cancel.isPending && cancellingId === a.id ? 'Cancelling…' : 'Cancel'}
-                      </button>
+                      </Button>
                     </>
                   )}
                 </div>
@@ -206,8 +210,7 @@ export default function DoctorDashboard() {
 
             <div className="auth-card">
               <form onSubmit={handleIssue} className="auth-form">
-                <label className="field">
-                  <span>Patient</span>
+                <Field label="Patient">
                   <select
                     required
                     value={rxForm.patientId}
@@ -218,10 +221,9 @@ export default function DoctorDashboard() {
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
-                </label>
+                </Field>
 
-                <label className="field">
-                  <span>Drug name</span>
+                <Field label="Drug name">
                   <input
                     type="text"
                     required
@@ -229,10 +231,9 @@ export default function DoctorDashboard() {
                     onChange={(e) => setRxForm((f) => ({ ...f, drugName: e.target.value }))}
                     placeholder="e.g. Amoxicillin"
                   />
-                </label>
+                </Field>
 
-                <label className="field">
-                  <span>Dosage</span>
+                <Field label="Dosage">
                   <input
                     type="text"
                     required
@@ -240,10 +241,9 @@ export default function DoctorDashboard() {
                     onChange={(e) => setRxForm((f) => ({ ...f, dosage: e.target.value }))}
                     placeholder="e.g. 500mg"
                   />
-                </label>
+                </Field>
 
-                <label className="field">
-                  <span>Frequency</span>
+                <Field label="Frequency">
                   <input
                     type="text"
                     required
@@ -251,10 +251,9 @@ export default function DoctorDashboard() {
                     onChange={(e) => setRxForm((f) => ({ ...f, frequency: e.target.value }))}
                     placeholder="e.g. Twice daily"
                   />
-                </label>
+                </Field>
 
-                <label className="field">
-                  <span>Refills</span>
+                <Field label="Refills">
                   <input
                     type="number"
                     required
@@ -263,17 +262,16 @@ export default function DoctorDashboard() {
                     value={rxForm.refillsRemaining}
                     onChange={(e) => setRxForm((f) => ({ ...f, refillsRemaining: Number(e.target.value) }))}
                   />
-                </label>
+                </Field>
 
-                <label className="field">
-                  <span>Pharmacy (optional)</span>
+                <Field label="Pharmacy (optional)">
                   <input
                     type="text"
                     value={rxForm.pharmacyName}
                     onChange={(e) => setRxForm((f) => ({ ...f, pharmacyName: e.target.value }))}
                     placeholder="e.g. CVS Pharmacy"
                   />
-                </label>
+                </Field>
 
                 {issue.isError ? (
                   <p className="auth-error">{getApiError(issue.error)}</p>
@@ -282,13 +280,14 @@ export default function DoctorDashboard() {
                   <p style={{ color: 'var(--accent)', fontSize: 13 }}>{rxSuccess}</p>
                 ) : null}
 
-                <button
+                <Button
+                  variant="primary"
+                  block
                   type="submit"
-                  className="btn btn-primary btn-block"
                   disabled={issue.isPending}
                 >
                   {issue.isPending ? 'Issuing…' : 'Issue prescription'}
-                </button>
+                </Button>
               </form>
             </div>
           </section>
@@ -321,14 +320,15 @@ export default function DoctorDashboard() {
                     {rx.pharmacyName ? <p className="text-dim">Pharmacy: {rx.pharmacyName}</p> : null}
                   </div>
                   {rx.status === 'Active' ? (
-                    <button
-                      className="btn btn-danger btn-sm"
-                      aria-label={`Cancel prescription for ${rx.patientName}`}
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      ariaLabel={`Cancel prescription for ${rx.patientName}`}
                       disabled={cancelRx.isPending}
                       onClick={() => cancelRx.mutate(rx.id)}
                     >
                       {cancelRx.isPending ? 'Cancelling…' : 'Cancel'}
-                    </button>
+                    </Button>
                   ) : null}
                 </div>
               ))}

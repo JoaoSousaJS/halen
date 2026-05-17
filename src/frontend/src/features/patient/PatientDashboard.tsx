@@ -15,6 +15,7 @@ import { getMyPrescriptions } from '../../shared/api/prescriptions';
 import { useNotifications } from '../../shared/hooks/useNotifications';
 import { ToastContainer } from '../../shared/components/ToastContainer';
 import { FeatureGate } from '../../shared/components/FeatureGate';
+import { Button, Field } from '../../shared/components';
 
 function toLocalDatetime(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -84,8 +85,7 @@ export default function PatientDashboard() {
 
           <div className="auth-card">
             <form onSubmit={handleBook} className="auth-form">
-              <label className="field">
-                <span>Doctor</span>
+              <Field label="Doctor">
                 <select
                   required
                   value={doctorId}
@@ -98,7 +98,7 @@ export default function PatientDashboard() {
                     </option>
                   ))}
                 </select>
-              </label>
+              </Field>
 
               {selectedDoctor ? (
                 <p className="doctor-hint">
@@ -106,8 +106,7 @@ export default function PatientDashboard() {
                 </p>
               ) : null}
 
-              <label className="field">
-                <span>Date & time</span>
+              <Field label="Date & time">
                 <input
                   type="datetime-local"
                   required
@@ -115,10 +114,9 @@ export default function PatientDashboard() {
                   min={minDatetime}
                   onChange={(e) => setScheduledAt(e.target.value)}
                 />
-              </label>
+              </Field>
 
-              <label className="field">
-                <span>Reason for visit</span>
+              <Field label="Reason for visit">
                 <textarea
                   required
                   rows={3}
@@ -126,7 +124,7 @@ export default function PatientDashboard() {
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Describe your symptoms or reason…"
                 />
-              </label>
+              </Field>
 
               {book.isError ? (
                 <p className="auth-error">{getApiError(book.error)}</p>
@@ -135,13 +133,14 @@ export default function PatientDashboard() {
                 <p style={{ color: 'var(--accent)', fontSize: 13 }}>{bookSuccess}</p>
               ) : null}
 
-              <button
+              <Button
+                variant="primary"
+                block
                 type="submit"
-                className="btn btn-primary btn-block"
                 disabled={book.isPending}
               >
                 {book.isPending ? 'Booking…' : 'Book appointment'}
-              </button>
+              </Button>
             </form>
           </div>
         </section>
@@ -173,9 +172,10 @@ export default function PatientDashboard() {
                   {a.notes ? <p className="text-dim">Notes: {a.notes}</p> : null}
                 </div>
                 {a.status === 'Scheduled' ? (
-                  <button
-                    className="btn btn-danger btn-sm"
-                    aria-label={`Cancel appointment with ${a.doctorName}`}
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    ariaLabel={`Cancel appointment with ${a.doctorName}`}
                     data-testid={`cancel-appointment-${a.id}`}
                     disabled={cancel.isPending}
                     onClick={() => {
@@ -185,7 +185,7 @@ export default function PatientDashboard() {
                     }}
                   >
                     {cancel.isPending && cancellingId === a.id ? 'Cancelling…' : 'Cancel'}
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             ))}

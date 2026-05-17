@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { createDoctor } from '../../shared/api/admin';
 import type { CreateDoctorPayload } from '../../shared/api/admin';
 import { getApiError } from '../../shared/api/errors';
+import { Button, Field } from '../../shared/components';
 
 interface DoctorForm {
   firstName: string;
@@ -55,79 +56,71 @@ export default function CreateDoctorForm() {
 
       <div className="auth-card" style={{ maxWidth: 560 }}>
         <form onSubmit={handleSubmit} className="auth-form">
-          <div className="field-row">
-            <label className="field">
-              <span>First name</span>
+          <Field label="" row>
+            <Field label="First name">
               <input
                 type="text" required value={form.firstName}
                 onChange={(e) => setField('firstName', e.target.value)}
                 placeholder="James"
               />
-            </label>
-            <label className="field">
-              <span>Last name</span>
+            </Field>
+            <Field label="Last name">
               <input
                 type="text" required value={form.lastName}
                 onChange={(e) => setField('lastName', e.target.value)}
                 placeholder="Wilson"
               />
-            </label>
-          </div>
+            </Field>
+          </Field>
 
-          <label className="field">
-            <span>Email</span>
+          <Field label="Email">
             <input
               type="email" required value={form.email}
               onChange={(e) => setField('email', e.target.value)}
               placeholder="doctor@halen.dev"
             />
-          </label>
+          </Field>
 
-          <label className="field">
-            <span>Temporary password</span>
+          <Field label="Temporary password">
             <input
               type="password" required value={form.password}
               onChange={(e) => setField('password', e.target.value)}
               placeholder="8+ characters, include a digit"
             />
-          </label>
+          </Field>
 
-          <label className="field">
-            <span>Specialty</span>
+          <Field label="Specialty">
             <input
               type="text" required value={form.specialty}
               onChange={(e) => setField('specialty', e.target.value)}
               placeholder="Cardiology"
             />
-          </label>
+          </Field>
 
-          <label className="field">
-            <span>License number</span>
+          <Field label="License number">
             <input
               type="text" required value={form.licenseNumber}
               onChange={(e) => setField('licenseNumber', e.target.value)}
               placeholder="MED-12345"
             />
-          </label>
+          </Field>
 
-          <div className="field-row">
-            <label className="field">
-              <span>Consultation fee ($)</span>
+          <Field label="" row>
+            <Field label="Consultation fee ($)">
               <input
                 type="number" required min="1" step="0.01" value={form.consultationFee}
                 onChange={(e) => setField('consultationFee', e.target.value)}
                 placeholder="150"
               />
-            </label>
-            <label className="field">
-              <span>Years of experience</span>
+            </Field>
+            <Field label="Years of experience">
               <input
                 type="number" required min="0" value={form.yearsOfExperience}
                 onChange={(e) => setField('yearsOfExperience', e.target.value)}
                 placeholder="5"
               />
-            </label>
-          </div>
+            </Field>
+          </Field>
 
           {mutation.isError ? (
             <p className="auth-error">{getApiError(mutation.error)}</p>
@@ -136,13 +129,14 @@ export default function CreateDoctorForm() {
             <p style={{ color: 'var(--accent)', fontSize: 13 }}>{success}</p>
           ) : null}
 
-          <button
+          <Button
+            variant="primary"
+            block
             type="submit"
-            className="btn btn-primary btn-block"
             disabled={mutation.isPending}
           >
             {mutation.isPending ? 'Creating account…' : 'Create doctor account'}
-          </button>
+          </Button>
         </form>
       </div>
     </>

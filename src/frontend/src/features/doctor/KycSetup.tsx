@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getKycStatus, submitKycDocuments } from '../../shared/api/doctor';
 import { getApiError } from '../../shared/api/errors';
+import { Button, Field } from '../../shared/components';
 
 export default function KycSetup() {
   const queryClient = useQueryClient();
@@ -80,47 +81,45 @@ export default function KycSetup() {
 
       <div className="auth-card" style={{ maxWidth: 560 }}>
         <form onSubmit={handleSubmit} className="auth-form">
-          <label className="field">
-            <span>License photo</span>
+          <Field label="License photo">
             <input
               type="file"
               required
               accept="image/jpeg,image/png,application/pdf"
               onChange={(e) => setLicensePhoto(e.target.files?.[0] ?? null)}
             />
-          </label>
+          </Field>
 
-          <label className="field">
-            <span>Medical certificate</span>
+          <Field label="Medical certificate">
             <input
               type="file"
               required
               accept="image/jpeg,image/png,application/pdf"
               onChange={(e) => setMedicalCertificate(e.target.files?.[0] ?? null)}
             />
-          </label>
+          </Field>
 
-          <label className="field">
-            <span>Identity proof</span>
+          <Field label="Identity proof">
             <input
               type="file"
               required
               accept="image/jpeg,image/png,application/pdf"
               onChange={(e) => setIdentityProof(e.target.files?.[0] ?? null)}
             />
-          </label>
+          </Field>
 
           {submit.isError ? (
             <p className="auth-error">{getApiError(submit.error)}</p>
           ) : null}
 
-          <button
+          <Button
+            variant="primary"
+            block
             type="submit"
-            className="btn btn-primary btn-block"
             disabled={submit.isPending || !licensePhoto || !medicalCertificate || !identityProof}
           >
             {submit.isPending ? 'Submitting…' : 'Submit for review'}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

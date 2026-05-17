@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDoctorKycDetails, reviewKyc, downloadKycDocument } from '../../shared/api/admin';
 import { getApiError } from '../../shared/api/errors';
-import { Button, Chip } from '../../shared/components';
+import { Button, Field, Chip } from '../../shared/components';
 
 interface KycReviewPageProps {
   doctorProfileId: string;
@@ -129,8 +129,7 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
 
           {showRejectForm ? (
             <div className="auth-card" style={{ maxWidth: 560 }}>
-              <label className="field">
-                <span>Rejection reason</span>
+              <Field label="Rejection reason">
                 <textarea
                   rows={3}
                   required
@@ -138,7 +137,7 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
                   onChange={(e) => setRejectionReason(e.target.value)}
                   placeholder="Explain why the documents are being rejected…"
                 />
-              </label>
+              </Field>
               <div className="kyc-actions">
                 <Button
                   variant="danger"

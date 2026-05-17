@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { register } from '../../shared/api/auth';
 import { getApiError } from '../../shared/api/errors';
 import { useAuth } from '../../shared/components/AuthProvider';
+import { Button, Field } from '../../shared/components';
 
 interface FormState {
   firstName: string;
@@ -61,9 +62,8 @@ export default function RegisterPage() {
         </h1>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <div className="field-row">
-            <label className="field">
-              <span>First name</span>
+          <Field label="" row>
+            <Field label="First name">
               <input
                 type="text"
                 required
@@ -71,9 +71,8 @@ export default function RegisterPage() {
                 onChange={(e) => setField('firstName', e.target.value)}
                 placeholder="Maya"
               />
-            </label>
-            <label className="field">
-              <span>Last name</span>
+            </Field>
+            <Field label="Last name">
               <input
                 type="text"
                 required
@@ -81,11 +80,10 @@ export default function RegisterPage() {
                 onChange={(e) => setField('lastName', e.target.value)}
                 placeholder="Chen"
               />
-            </label>
-          </div>
+            </Field>
+          </Field>
 
-          <label className="field">
-            <span>Email</span>
+          <Field label="Email">
             <input
               type="email"
               required
@@ -94,10 +92,9 @@ export default function RegisterPage() {
               onChange={(e) => setField('email', e.target.value)}
               placeholder="you@example.com"
             />
-          </label>
+          </Field>
 
-          <label className="field">
-            <span>Password</span>
+          <Field label="Password">
             <input
               type="password"
               required
@@ -106,13 +103,13 @@ export default function RegisterPage() {
               onChange={(e) => setField('password', e.target.value)}
               placeholder="8+ characters, include a digit"
             />
-          </label>
+          </Field>
 
           {error ? <p className="auth-error">{error}</p> : null}
 
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+          <Button variant="primary" block type="submit" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account'}
-          </button>
+          </Button>
         </form>
 
         <p className="auth-foot">
