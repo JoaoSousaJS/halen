@@ -66,6 +66,7 @@ Project-local skills in `.agents/skills/` — read them before writing code:
 - `azure-kubernetes` — AKS cluster planning, networking, security, operations
 - `using-superpowers` — advanced agent capabilities for planning and development
 - `frontend-design` — UI/UX design guidance for distinctive, production-grade interfaces
+- `web-design-guidelines` — accessibility, consistency, and design system audit (use after `frontend-design` to catch gaps)
 - `code-reviewer` — 3-round structured review protocol (writes to `reviews/`)
 - `code-planner` — 3-round structured planning protocol (writes to `plans/`). Also loads `brainstorming` and `using-superpowers`.
 
@@ -77,7 +78,7 @@ Every new feature must follow this sequence:
 2. **Plan** — run the 3-round planning protocol with the `code-planner` skill (which also loads `brainstorming` + `using-superpowers`). Writes to `plans/`.
 3. **Backend** — domain entities, CQRS commands/queries, validators, controller
 4. **Frontend** — API client types, React components, state management
-5. **Design** — use `frontend-design` skill to ensure UI components have polished, intentional aesthetics (not generic)
+5. **Design** — use `frontend-design` skill to build polished, intentional UI, then audit with `web-design-guidelines` to catch accessibility and consistency gaps
 6. **Unit tests** — load `test-driven-development`, then write handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
 7. **Integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
 8. **Storybook stories** — component stories in `*.stories.tsx` co-located with components

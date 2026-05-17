@@ -194,6 +194,9 @@ html, body {
   max-width: 640px;
   margin: 0 auto;
   padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
 }
 
 .section-heading {
@@ -204,6 +207,48 @@ html, body {
 }
 
 .text-dim { color: var(--text-dim); font-size: 13px; }
+
+/* ── KYC pages ──────────────────────────────── */
+
+.kyc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kyc-docs-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.kyc-doc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kyc-doc-card p:first-child { font-weight: 600; font-size: 13px; }
+
+.kyc-history-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 16px;
+}
+
+.kyc-history-item + .kyc-history-item { margin-top: 8px; }
+
+.kyc-actions {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
 
 /* ── Select & textarea ───────────────────────── */
 
@@ -554,6 +599,9 @@ html, body {
 
 /* ── Dialog / Modal system ─────────────────────── */
 
+body:has(.dialog-overlay) { overflow: hidden; }
+
+
 .dialog-overlay {
   position: fixed;
   inset: 0;
@@ -563,6 +611,8 @@ html, body {
   display: grid;
   place-items: center;
   padding: 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
   animation: dialog-fade-in 0.15s ease-out;
 }
 
@@ -760,4 +810,117 @@ html, body {
   font-size: 32px;
   color: var(--text-muted);
   margin-bottom: 4px;
+}
+
+/* ── Clinic Detail page ──────────────────────────── */
+
+.clinic-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.clinic-detail-back {
+  align-self: flex-start;
+}
+
+.clinic-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.clinic-detail-header h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.clinic-detail-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.clinic-detail-meta-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px;
+}
+
+.clinic-detail-meta-card dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.clinic-detail-meta-card dd {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.clinic-detail-meta-card code {
+  font-size: 13px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+}
+
+.clinic-detail-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 24px;
+}
+
+.clinic-detail-section h3 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.feature-flags-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.feature-flag-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  transition: border-color 0.15s;
+}
+
+.feature-flag-card:has(input:checked) {
+  border-color: var(--accent);
+}
+
+.feature-flag-card span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.edit-form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.edit-form-card .edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
 }

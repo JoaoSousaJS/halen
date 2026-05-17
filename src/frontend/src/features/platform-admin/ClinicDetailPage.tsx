@@ -58,28 +58,39 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
   const c = clinic.data;
 
   return (
-    <section>
-      <button className="btn btn-sm" onClick={onBack}>&larr; Back to clinics</button>
+    <section className="clinic-detail">
+      <button className="btn btn-sm clinic-detail-back" onClick={onBack}>&larr; Back to clinics</button>
 
-      <div className="detail-header">
+      <div className="clinic-detail-header">
         <h2>{c.name}</h2>
-        <span className={`badge ${c.isActive ? 'badge-success' : 'badge-muted'}`}>
+        <span className={`chip ${c.isActive ? 'chip-good' : ''}`}>
           {c.isActive ? 'Active' : 'Inactive'}
         </span>
       </div>
 
-      <dl className="detail-meta">
-        <dt>Slug</dt><dd><code>{c.slug}</code></dd>
-        <dt>Users</dt><dd>{c.userCount}</dd>
-        <dt>Created</dt><dd>{new Date(c.createdAt).toLocaleDateString()}</dd>
-      </dl>
+      <div className="clinic-detail-meta">
+        <div className="clinic-detail-meta-card">
+          <dt>Slug</dt>
+          <dd><code>{c.slug}</code></dd>
+        </div>
+        <div className="clinic-detail-meta-card">
+          <dt>Users</dt>
+          <dd>{c.userCount}</dd>
+        </div>
+        <div className="clinic-detail-meta-card">
+          <dt>Created</dt>
+          <dd>{new Date(c.createdAt).toLocaleDateString()}</dd>
+        </div>
+      </div>
 
-      {!editing && (
-        <button className="btn" onClick={startEditing}>Edit clinic</button>
-      )}
-
-      {editing && (
-        <form onSubmit={handleSave} className="edit-form">
+      {!editing ? (
+        <div className="clinic-detail-section">
+          <h3>Clinic Settings</h3>
+          <button className="btn btn-primary btn-sm" onClick={startEditing}>Edit clinic</button>
+        </div>
+      ) : (
+        <form onSubmit={handleSave} className="edit-form-card">
+          <h3>Edit Clinic</h3>
           <label className="field">
             <span>Name</span>
             <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} required />
@@ -88,27 +99,29 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
             <input type="checkbox" checked={editActive} onChange={(e) => setEditActive(e.target.checked)} />
             <span>Active</span>
           </label>
-          {error && <p className="text-error">{error}</p>}
-          <div className="modal-actions">
-            <button type="button" className="btn" onClick={() => setEditing(false)}>Cancel</button>
+          {error && <p className="dialog-error">{error}</p>}
+          <div className="edit-actions">
+            <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={update.isPending}>Save</button>
           </div>
         </form>
       )}
 
-      <h3>Feature Flags</h3>
-      <div className="feature-flags">
-        {c.featureFlags.map((flag) => (
-          <label key={flag.featureKey} className="field field-inline feature-flag-toggle">
-            <input
-              type="checkbox"
-              checked={flag.isEnabled}
-              onChange={() => toggleFlag.mutate({ featureKey: flag.featureKey, isEnabled: !flag.isEnabled })}
-              disabled={toggleFlag.isPending}
-            />
-            <span>{flag.featureKey}</span>
-          </label>
-        ))}
+      <div className="clinic-detail-section">
+        <h3>Feature Flags</h3>
+        <div className="feature-flags-grid">
+          {c.featureFlags.map((flag) => (
+            <label key={flag.featureKey} className="feature-flag-card">
+              <input
+                type="checkbox"
+                checked={flag.isEnabled}
+                onChange={() => toggleFlag.mutate({ featureKey: flag.featureKey, isEnabled: !flag.isEnabled })}
+                disabled={toggleFlag.isPending}
+              />
+              <span>{flag.featureKey}</span>
+            </label>
+          ))}
+        </div>
       </div>
     </section>
   );
