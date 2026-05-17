@@ -1,28 +1,79 @@
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap');
 
 :root {
-  --bg:            #0b0e0c;
-  --surface:       #131814;
-  --surface-2:     #181f1a;
-  --border:        #232a25;
-  --border-bright: #2e3730;
+  /* ── Base palette ─────────────────────────────── */
+  --bg:              #0b0e0c;
+  --surface:         #131814;
+  --surface-2:       #181f1a;
+  --border:          #232a25;
+  --border-bright:   #2e3730;
 
-  --text:          #e8ecea;
-  --text-dim:      #98a39c;
-  --text-muted:    #5a6660;
+  --text:            #e8ecea;
+  --text-dim:        #98a39c;
+  --text-muted:      #5a6660;
 
-  --accent:        #c4ff3d;
-  --accent-dim:    #2a3712;
-  --accent-ink:    #0b0e0c;
+  --accent:          #c4ff3d;
+  --accent-hover:    #d9ff66;
+  --accent-dim:      #2a3712;
+  --accent-ink:      #0b0e0c;
 
-  --danger:        #ff6b6b;
+  --danger:          #ff6b6b;
+  --danger-tint:     rgba(255,107,107,0.12);
+  --warn:            #ffb43c;
+  --warn-tint:       rgba(255,180,60,0.12);
+  --info:            #8ab4ff;
+  --info-tint:       rgba(138,180,255,0.12);
+  --good-tint:       rgba(196,255,61,0.12);
 
-  --font-display:  'Instrument Serif', 'Times New Roman', serif;
-  --font-sans:     'Helvetica Neue', Helvetica, sans-serif;
+  /* ── Semantic aliases ─────────────────────────── */
+  --fg-1:            var(--text);
+  --fg-2:            var(--text-dim);
+  --fg-3:            var(--text-muted);
+  --bg-1:            var(--bg);
+  --bg-2:            var(--surface);
+  --bg-3:            var(--surface-2);
 
-  --r-sm: 8px;
-  --r-md: 12px;
-  --r-lg: 16px;
+  /* ── Type families ────────────────────────────── */
+  --font-display:    'Instrument Serif', 'Times New Roman', serif;
+  --font-sans:       'Helvetica Neue', Helvetica, 'Inter', system-ui, sans-serif;
+  --font-mono:       'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+
+  /* ── Type scale ───────────────────────────────── */
+  --size-display-xl: 36px;
+  --size-display-lg: 28px;
+  --size-display-md: 24px;
+  --size-display-sm: 22px;
+  --lh-display:      1.1;
+  --tracking-display:-0.02em;
+
+  --size-body:       14px;
+  --size-body-sm:    13px;
+  --size-body-xs:    12px;
+  --size-eyebrow:    11px;
+  --lh-body:         1.5;
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-bold:     600;
+
+  --size-mono:       12px;
+
+  /* ── Radii ────────────────────────────────────── */
+  --r-sm:            8px;
+  --r-md:            12px;
+  --r-lg:            16px;
+  --r-pill:          999px;
+  --r-mark:          6px;
+
+  /* ── Motion ───────────────────────────────────── */
+  --t-fast:          0.12s;
+  --t-base:          0.15s;
+  --t-slow:          0.25s;
+
+  /* ── Shadows ──────────────────────────────────── */
+  --shadow-card-hover: 0 2px 12px rgba(0,0,0,0.2);
+  --shadow-toast:      0 4px 20px rgba(0,0,0,0.4);
+  --shadow-dialog:     0 24px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(196,255,61,0.04);
+  --ring-focus:        0 0 0 3px rgba(196,255,61,0.08);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,8 +82,8 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--size-body);
+  line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
@@ -80,9 +131,10 @@ html, body {
 
 .auth-heading {
   font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 400;
-  line-height: 1.1;
+  font-size: var(--size-display-xl);
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-display);
 }
 
 .auth-heading em { font-style: italic; color: var(--accent); }
@@ -104,7 +156,7 @@ html, body {
   font-size: 14px;
   padding: 10px 12px;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--t-base);
   width: 100%;
 }
 
@@ -112,7 +164,7 @@ html, body {
 
 .field input:focus {
   border-color: var(--border-bright);
-  box-shadow: 0 0 0 3px rgba(196,255,61,0.08);
+  box-shadow: var(--ring-focus);
 }
 
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -132,7 +184,7 @@ html, body {
   gap: 2px;
   padding: 12px;
   text-align: left;
-  transition: border-color 0.15s;
+  transition: border-color var(--t-base);
 }
 
 .role-option strong { font-size: 13px; }
@@ -147,16 +199,16 @@ html, body {
   border-radius: var(--r-sm);
   cursor: pointer;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--size-body);
+  font-weight: var(--weight-medium);
   padding: 11px 18px;
-  transition: opacity 0.15s;
+  transition: opacity var(--t-base);
 }
 
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn-primary  { background: var(--accent); color: var(--accent-ink); }
-.btn-primary:hover:not(:disabled) { background: #d9ff66; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .btn-block { width: 100%; }
 
 /* ── Misc ─────────────────────────────────────── */
@@ -214,12 +266,12 @@ html, body {
 
 .section-heading {
   font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 400;
+  font-size: var(--size-display-sm);
+  font-weight: var(--weight-regular);
   margin-bottom: 16px;
 }
 
-.text-dim { color: var(--text-dim); font-size: 13px; }
+.text-dim { color: var(--text-dim); font-size: var(--size-body-sm); }
 
 /* ── KYC pages ──────────────────────────────── */
 
@@ -272,17 +324,17 @@ html, body {
   border-radius: var(--r-sm);
   color: var(--text);
   font-family: inherit;
-  font-size: 14px;
+  font-size: var(--size-body);
   padding: 10px 12px;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--t-base);
   width: 100%;
 }
 
 .field select:focus,
 .field textarea:focus {
   border-color: var(--border-bright);
-  box-shadow: 0 0 0 3px rgba(196,255,61,0.08);
+  box-shadow: var(--ring-focus);
 }
 
 .field textarea { resize: vertical; }
@@ -325,8 +377,8 @@ html, body {
 
 .appt-status {
   display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--size-eyebrow);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.03em;
   padding: 2px 8px;
   border-radius: 4px;
@@ -334,8 +386,8 @@ html, body {
 }
 
 .appt-status--scheduled { background: var(--accent-dim); color: var(--accent); }
-.appt-status--completed { background: rgba(138,180,255,0.12); color: #8ab4ff; }
-.appt-status--cancelled { background: rgba(255,107,107,0.12); color: var(--danger); }
+.appt-status--completed { background: var(--info-tint); color: var(--info); }
+.appt-status--cancelled { background: var(--danger-tint); color: var(--danger); }
 
 /* ── Appointment actions ─────────────────────── */
 
@@ -382,13 +434,13 @@ html, body {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 12px 16px;
-  animation: toast-slide-in 0.25s ease-out;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  animation: toast-slide-in var(--t-slow) ease-out;
+  box-shadow: var(--shadow-toast);
 }
 
 .toast--booked  { border-left: 3px solid var(--accent); }
 .toast--cancelled { border-left: 3px solid var(--danger); }
-.toast--completed { border-left: 3px solid #8ab4ff; }
+.toast--completed { border-left: 3px solid var(--info); }
 
 .toast-message {
   flex: 1;
@@ -430,10 +482,10 @@ html, body {
   color: var(--text-dim);
   cursor: pointer;
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--size-body-sm);
+  font-weight: var(--weight-medium);
   padding: 6px 14px;
-  transition: color 0.15s, background 0.15s;
+  transition: color var(--t-base), background var(--t-base);
 }
 
 .admin-nav-btn:hover { color: var(--text); }
@@ -450,8 +502,8 @@ html, body {
 
 .admin-tag {
   color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--size-eyebrow);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   margin-bottom: 8px;
@@ -480,10 +532,10 @@ html, body {
   color: var(--text-dim);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--size-body-xs);
+  font-weight: var(--weight-medium);
   padding: 6px 12px;
-  transition: color 0.15s, background 0.15s;
+  transition: color var(--t-base), background var(--t-base);
   white-space: nowrap;
 }
 .admin-pill-tab button:hover { color: var(--text); }
@@ -498,16 +550,16 @@ html, body {
   border-radius: var(--r-sm);
   color: var(--text);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--size-body-sm);
   padding: 7px 12px;
   outline: none;
   width: 260px;
   margin-left: auto;
-  transition: border-color 0.15s;
+  transition: border-color var(--t-base);
 }
 .admin-search:focus {
   border-color: var(--border-bright);
-  box-shadow: 0 0 0 3px rgba(196,255,61,0.08);
+  box-shadow: var(--ring-focus);
 }
 .admin-search::placeholder { color: var(--text-muted); }
 
@@ -528,8 +580,8 @@ html, body {
 
 .admin-table th {
   color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--size-eyebrow);
+  font-weight: var(--weight-bold);
   letter-spacing: 0.03em;
   text-transform: uppercase;
   text-align: left;
@@ -569,8 +621,8 @@ html, body {
 .admin-user-name { font-weight: 600; }
 
 .admin-mono {
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--size-mono);
 }
 
 /* ── Pagination ─────────────────────────────── */
@@ -587,26 +639,26 @@ html, body {
 
 .chip {
   display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--size-eyebrow);
+  font-weight: var(--weight-bold);
   padding: 3px 8px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--surface-2);
   color: var(--text-dim);
 }
 
 .chip-good {
-  background: rgba(196,255,61,0.12);
+  background: var(--good-tint);
   color: var(--accent);
 }
 
 .chip-warn {
-  background: rgba(255,180,60,0.12);
-  color: #ffb43c;
+  background: var(--warn-tint);
+  color: var(--warn);
 }
 
 .chip-danger {
-  background: rgba(255,107,107,0.12);
+  background: var(--danger-tint);
   color: var(--danger);
 }
 
@@ -626,14 +678,14 @@ body:has(.dialog-overlay) { overflow: hidden; }
   padding: 24px;
   overflow-x: hidden;
   overflow-y: auto;
-  animation: dialog-fade-in 0.15s ease-out;
+  animation: dialog-fade-in var(--t-base) ease-out;
 }
 
 .dialog {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(196, 255, 61, 0.04);
+  box-shadow: var(--shadow-dialog);
   width: 100%;
   max-width: 420px;
   max-height: 90vh;
@@ -652,8 +704,8 @@ body:has(.dialog-overlay) { overflow: hidden; }
 
 .dialog-title {
   font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 400;
+  font-size: var(--size-display-md);
+  font-weight: var(--weight-regular);
   line-height: 1.2;
 }
 
@@ -672,7 +724,7 @@ body:has(.dialog-overlay) { overflow: hidden; }
   line-height: 1;
   padding: 4px 8px;
   border-radius: var(--r-sm);
-  transition: color 0.15s, background 0.15s;
+  transition: color var(--t-base), background var(--t-base);
 }
 .dialog-close:hover {
   color: var(--text);
@@ -768,7 +820,7 @@ body:has(.dialog-overlay) { overflow: hidden; }
 
 .clinics-row {
   cursor: pointer;
-  transition: background 0.12s;
+  transition: background var(--t-fast);
 }
 .clinics-row:hover { background: var(--surface-2); }
 
@@ -797,7 +849,7 @@ body:has(.dialog-overlay) { overflow: hidden; }
 .clinics-row-arrow {
   color: var(--text-muted);
   font-size: 18px;
-  transition: color 0.12s, transform 0.12s;
+  transition: color var(--t-fast), transform var(--t-fast);
 }
 .clinics-row:hover .clinics-row-arrow {
   color: var(--accent);
@@ -845,8 +897,8 @@ body:has(.dialog-overlay) { overflow: hidden; }
 
 .clinic-detail-header h2 {
   font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 400;
+  font-size: var(--size-display-lg);
+  font-weight: var(--weight-regular);
 }
 
 .clinic-detail-meta {
@@ -910,7 +962,7 @@ body:has(.dialog-overlay) { overflow: hidden; }
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  transition: border-color 0.15s;
+  transition: border-color var(--t-base);
 }
 
 .feature-flag-card:has(input:checked) {
@@ -1062,10 +1114,10 @@ body:has(.dialog-overlay) { overflow: hidden; }
   color: var(--text-dim);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--size-body-xs);
+  font-weight: var(--weight-medium);
   padding: 6px 14px;
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color var(--t-base), color var(--t-base);
 }
 
 .doctor-search-pagination button:hover:not(:disabled) {
@@ -1098,12 +1150,12 @@ body:has(.dialog-overlay) { overflow: hidden; }
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--t-base), box-shadow var(--t-base);
 }
 
 .doctor-card:hover {
   border-color: var(--border-bright);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .doctor-card:focus-within {
@@ -1130,10 +1182,10 @@ body:has(.dialog-overlay) { overflow: hidden; }
 
 .doctor-card-fee {
   font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 400;
+  font-size: var(--size-display-sm);
+  font-weight: var(--weight-regular);
   color: var(--accent);
-  letter-spacing: -0.02em;
+  letter-spacing: var(--tracking-display);
 }
 
 .doctor-card-meta {
@@ -1203,6 +1255,6 @@ body:has(.dialog-overlay) { overflow: hidden; }
 /* ── In-progress status ─────────────────────────── */
 
 .appt-status--inprogress {
-  background: rgba(255, 180, 60, 0.12);
-  color: #ffb43c;
+  background: var(--warn-tint);
+  color: var(--warn);
 }
