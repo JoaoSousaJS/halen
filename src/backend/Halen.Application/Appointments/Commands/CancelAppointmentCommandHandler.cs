@@ -11,7 +11,8 @@ namespace Halen.Application.Appointments.Commands;
 public class CancelAppointmentCommandHandler(
     IAppDbContext db,
     IEventBus eventBus,
-    ILogger<CancelAppointmentCommandHandler> logger
+    ILogger<CancelAppointmentCommandHandler> logger,
+    IPaymentService paymentService
 ) : IRequestHandler<CancelAppointmentCommand, CancelAppointmentResult>
 {
     public async Task<CancelAppointmentResult> Handle(CancelAppointmentCommand request, CancellationToken ct)
@@ -55,6 +56,24 @@ public class CancelAppointmentCommandHandler(
         logger.LogInformation("Appointment {AppointmentId} cancelled by {UserRole} {UserId}",
             request.AppointmentId, request.UserRole, request.UserId);
 
+        var payment = await db.Payments
+            .FirstOrDefaultAsync(p => p.AppointmentId == appointment.Id, ct);
+
+        if (payment is { Status: PaymentStatus.Authorized, PaymentIntentId: not null })
+        {
+            var refundResult = await paymentService.RefundIntentAsync(payment.PaymentIntentId, ct);
+            if (refundResult.Success)
+            {
+                payment.Refund();
+                await db.SaveChangesAsync(ct);
+            }
+            else
+            {
+                logger.LogWarning("Payment refund failed for appointment {AppointmentId}: {Error}",
+                    appointment.Id, refundResult.ErrorMessage);
+            }
+        }
+
         var patientUserId = await db.PatientProfiles
             .Where(p => p.Id == appointment.PatientId)
             .Select(p => p.UserId)
@@ -76,6 +95,12 @@ public class CancelAppointmentCommandHandler(
                 doctorUserId,
                 cancellerName,
                 request.UserRole.ToString()), ct);
+
+            if (payment is { Status: PaymentStatus.Refunded })
+            {
+                await eventBus.PublishAsync(Topics.PaymentRefunded, new PaymentRefundedEvent(
+                    payment.Id, appointment.Id, patientUserId, payment.Amount, payment.Currency), ct);
+            }
         }
         catch (Exception ex)
         {

@@ -5,19 +5,35 @@ import { useAuth } from '../../shared/components/AuthProvider';
 import { DashboardShell } from '../../shared/components/DashboardShell';
 import { getApiError } from '../../shared/api/errors';
 import {
-  listDoctors,
   getMyAppointments,
   bookAppointment,
   cancelAppointment,
 } from '../../shared/api/appointments';
-import type { DoctorDto } from '../../shared/api/appointments';
+import type { PaymentStatusType } from '../../shared/api/appointments';
 import { getMyPrescriptions } from '../../shared/api/prescriptions';
 import { getDoctorAvailability, getAvailableSlots } from '../../shared/api/availability';
 import type { TimeSlot } from '../../shared/api/availability';
 import { useNotifications } from '../../shared/hooks/useNotifications';
 import { ToastContainer } from '../../shared/components/ToastContainer';
 import { FeatureGate } from '../../shared/components/FeatureGate';
-import { Button, Field } from '../../shared/components';
+import { Button, Field, Chip } from '../../shared/components';
+import DoctorSearch from './DoctorSearch';
+import type { DoctorSearchDto } from '../../shared/api/doctors';
+
+const PAYMENT_CHIP_CONFIG: Record<PaymentStatusType, { label: (amount: number | null) => string; variant?: 'good' | 'warn' | 'danger' }> = {
+  Pending:    { label: (amt) => `Pending — $${amt}`, variant: 'warn' },
+  Authorized: { label: (amt) => `Payment held — $${amt}`, variant: 'warn' },
+  Captured:   { label: (amt) => `Paid — $${amt}`, variant: 'good' },
+  Refunded:   { label: (amt) => `Refunded — $${amt}` },
+  Failed:     { label: () => 'Payment failed', variant: 'danger' },
+};
+
+function PaymentChip({ status, amount }: { status: PaymentStatusType | null; amount: number | null }) {
+  if (!status) return null;
+  const config = PAYMENT_CHIP_CONFIG[status];
+  if (!config) return null;
+  return <Chip status={config.label(amount)} variant={config.variant} />;
+}
 
 function todayDate(): string {
   const d = new Date();
@@ -30,13 +46,14 @@ export default function PatientDashboard() {
   const queryClient = useQueryClient();
   const { toasts, dismissToast } = useNotifications();
 
-  const [doctorId, setDoctorId] = useState('');
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorSearchDto | null>(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [reason, setReason] = useState('');
   const [bookSuccess, setBookSuccess] = useState('');
 
-  const doctors = useQuery({ queryKey: ['doctors'], queryFn: listDoctors });
+  const doctorId = selectedDoctor?.id ?? '';
+
   const appointments = useQuery({ queryKey: ['my-appointments'], queryFn: getMyAppointments });
   const prescriptions = useQuery({ queryKey: ['my-prescriptions'], queryFn: getMyPrescriptions });
 
@@ -59,11 +76,12 @@ export default function PatientDashboard() {
       reason,
     }),
     onSuccess: () => {
-      setDoctorId('');
+      const fee = selectedDoctor?.consultationFee;
+      setSelectedDoctor(null);
       setSelectedDate('');
       setSelectedSlot(null);
       setReason('');
-      setBookSuccess('Appointment booked!');
+      setBookSuccess(`Appointment booked! Payment of $${fee} authorized.`);
       setTimeout(() => setBookSuccess(''), 4000);
       queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
     },
@@ -86,7 +104,6 @@ export default function PatientDashboard() {
     book.mutate();
   }
 
-  const selectedDoctor: DoctorDto | undefined = doctors.data?.find((d) => d.id === doctorId);
   const hasAvailability = (doctorAvailability.data?.length ?? 0) > 0;
   const slotsForDate = availableSlots.data?.filter((s) => s.isAvailable) ?? [];
 
@@ -102,38 +119,27 @@ export default function PatientDashboard() {
           </h1>
 
           <div className="auth-card">
-            <form onSubmit={handleBook} className="auth-form">
-              <Field label="Doctor">
-                <select
-                  required
-                  value={doctorId}
-                  onChange={(e) => {
-                    setDoctorId(e.target.value);
-                    setSelectedDate('');
-                    setSelectedSlot(null);
-                  }}
-                >
-                  <option value="">Select a doctor…</option>
-                  {doctors.data?.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} — {d.specialty} (${d.consultationFee})
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
+            <form onSubmit={handleBook} className="auth-form" aria-label="Book an appointment">
               {selectedDoctor ? (
-                <p className="doctor-hint">
-                  {selectedDoctor.yearsOfExperience} years of experience · ${selectedDoctor.consultationFee} per visit
-                </p>
-              ) : null}
+                <div className="selected-doctor-card">
+                  <strong>{selectedDoctor.name}</strong> — {selectedDoctor.specialty}
+                  <span>${selectedDoctor.consultationFee}</span>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedDoctor(null)}>Change</Button>
+                </div>
+              ) : (
+                <DoctorSearch onSelect={(d) => {
+                  setSelectedDoctor(d);
+                  setSelectedDate('');
+                  setSelectedSlot(null);
+                }} />
+              )}
 
               {doctorId && doctorAvailability.isLoading ? (
-                <p className="text-dim">Checking doctor availability...</p>
+                <p className="text-dim" role="status">Checking doctor availability...</p>
               ) : null}
 
               {doctorId && !doctorAvailability.isLoading && !hasAvailability ? (
-                <p className="text-dim">This doctor hasn't set up their schedule yet.</p>
+                <p className="text-dim" role="status">This doctor hasn't set up their schedule yet.</p>
               ) : null}
 
               {doctorId && hasAvailability ? (
@@ -152,11 +158,11 @@ export default function PatientDashboard() {
                   </Field>
 
                   {selectedDate && availableSlots.isLoading ? (
-                    <p className="text-dim">Loading available slots...</p>
+                    <p className="text-dim" role="status">Loading available slots...</p>
                   ) : null}
 
                   {selectedDate && !availableSlots.isLoading && slotsForDate.length === 0 ? (
-                    <p className="text-dim">No available slots on this date. Try another day.</p>
+                    <p className="text-dim" role="status">No available slots on this date. Try another day.</p>
                   ) : null}
 
                   {selectedDate && slotsForDate.length > 0 ? (
@@ -171,6 +177,7 @@ export default function PatientDashboard() {
                             type="button"
                             variant={selectedSlot?.startUtc === slot.startUtc ? 'primary' : 'ghost'}
                             size="sm"
+                            ariaLabel={`Select time slot ${slot.startLocal}`}
                             onClick={() => setSelectedSlot(slot)}
                           >
                             {slot.startLocal}
@@ -192,6 +199,12 @@ export default function PatientDashboard() {
                 />
               </Field>
 
+              {selectedSlot && reason && selectedDoctor ? (
+                <div className="payment-summary" data-testid="payment-summary">
+                  <p>Consultation fee: <strong>${selectedDoctor.consultationFee}</strong></p>
+                </div>
+              ) : null}
+
               {book.isError ? (
                 <p className="auth-error">{getApiError(book.error)}</p>
               ) : null}
@@ -205,7 +218,7 @@ export default function PatientDashboard() {
                 type="submit"
                 disabled={book.isPending || !selectedSlot}
               >
-                {book.isPending ? 'Booking…' : 'Book appointment'}
+                {book.isPending ? 'Processing payment...' : selectedDoctor ? `Confirm & Pay $${selectedDoctor.consultationFee}` : 'Book appointment'}
               </Button>
             </form>
           </div>
@@ -214,7 +227,7 @@ export default function PatientDashboard() {
         <section>
           <h2 className="section-heading">Your appointments</h2>
 
-          {appointments.isLoading ? <p className="text-dim">Loading…</p> : null}
+          {appointments.isLoading ? <p className="text-dim" role="status">Loading…</p> : null}
 
           {appointments.data?.length === 0 ? (
             <p className="text-dim">No appointments yet — book one above.</p>
@@ -236,6 +249,7 @@ export default function PatientDashboard() {
                   <span className="text-dim">{a.specialty}</span>
                   <p>{a.reason}</p>
                   {a.notes ? <p className="text-dim">Notes: {a.notes}</p> : null}
+                  <PaymentChip status={a.paymentStatus} amount={a.paymentAmount} />
                 </div>
                 {a.status === 'Scheduled' ? (
                   <Button

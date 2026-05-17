@@ -9,6 +9,7 @@ export interface DoctorDto {
 }
 
 export type AppointmentStatus = 'Scheduled' | 'InProgress' | 'Completed' | 'Cancelled';
+export type PaymentStatusType = 'Pending' | 'Authorized' | 'Captured' | 'Refunded' | 'Failed';
 
 export interface AppointmentDto {
   id: string;
@@ -22,6 +23,8 @@ export interface AppointmentDto {
   consultationFee: number;
   patientName: string;
   patientId: string;
+  paymentStatus: PaymentStatusType | null;
+  paymentAmount: number | null;
 }
 
 export interface BookAppointmentPayload {
@@ -40,8 +43,13 @@ export async function getMyAppointments(): Promise<AppointmentDto[]> {
   return data.appointments;
 }
 
-export async function bookAppointment(payload: BookAppointmentPayload): Promise<{ appointmentId: string }> {
-  const { data } = await client.post<{ appointmentId: string }>('/api/v1/appointments', payload);
+export interface BookAppointmentResponse {
+  appointmentId: string;
+  paymentStatus: string;
+}
+
+export async function bookAppointment(payload: BookAppointmentPayload): Promise<BookAppointmentResponse> {
+  const { data } = await client.post<BookAppointmentResponse>('/api/v1/appointments', payload);
   return data;
 }
 

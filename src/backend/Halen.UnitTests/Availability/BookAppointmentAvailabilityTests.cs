@@ -63,11 +63,18 @@ public class BookAppointmentAvailabilityTests
         await _db.SaveChangesAsync();
 
         _eventBus = new Mock<IEventBus>();
+        var paymentService = new Mock<IPaymentService>();
+        paymentService
+            .Setup(p => p.CreateIntentAsync(
+                It.IsAny<Guid>(), It.IsAny<decimal>(), It.IsAny<string>(),
+                It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PaymentIntentResult(true, "mock_intent"));
         _handler = new BookAppointmentCommandHandler(
             _db,
             new TestTenantContext(),
             _eventBus.Object,
-            Mock.Of<ILogger<BookAppointmentCommandHandler>>());
+            Mock.Of<ILogger<BookAppointmentCommandHandler>>(),
+            paymentService.Object);
     }
 
     [TestCleanup]

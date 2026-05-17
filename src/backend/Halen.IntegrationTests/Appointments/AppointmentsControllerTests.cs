@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Halen.Domain.Enums;
 using Halen.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -173,6 +174,84 @@ public class AppointmentsControllerTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
+    // ── Payment Verification Tests ────────────────────────────────────────────
+
+    [TestMethod]
+    public async Task Book_CreatesPaymentWithAuthorizedStatus()
+    {
+        var (patient, _) = await PatientClientWithEmailAsync();
+        var doctorId = await CreateDoctorAsync();
+        var appointmentId = await BookAppointmentAsync(patient, doctorId);
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+        var payment = await db.Payments.FirstOrDefaultAsync(p => p.AppointmentId == appointmentId);
+
+        payment.Should().NotBeNull();
+        payment!.Status.Should().Be(PaymentStatus.Authorized);
+        payment.Amount.Should().Be(100m);
+        payment.PaymentIntentId.Should().NotBeNull();
+    }
+
+    [TestMethod]
+    public async Task Complete_CapturesPayment()
+    {
+        var (patient, _) = await PatientClientWithEmailAsync();
+        var doctorId = await CreateDoctorAsync();
+        var appointmentId = await BookAppointmentAsync(patient, doctorId);
+
+        var doctorEmail = await GetDoctorEmailAsync(doctorId);
+        var doctor = await TestHelpers.GetBearerClientAsync(Factory, doctorEmail, "Doctor1234!");
+
+        var completeResponse = await doctor.PostAsJsonAsync(
+            $"/api/v1/appointments/{appointmentId}/complete",
+            new { Notes = "Patient is healthy" });
+        completeResponse.EnsureSuccessStatusCode();
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+        var payment = await db.Payments.FirstOrDefaultAsync(p => p.AppointmentId == appointmentId);
+
+        payment.Should().NotBeNull();
+        payment!.Status.Should().Be(PaymentStatus.Captured);
+        payment.CapturedAt.Should().NotBeNull();
+    }
+
+    [TestMethod]
+    public async Task Cancel_RefundsPayment()
+    {
+        var (patient, _) = await PatientClientWithEmailAsync();
+        var doctorId = await CreateDoctorAsync();
+        var appointmentId = await BookAppointmentAsync(patient, doctorId);
+
+        var cancelResponse = await patient.PostAsync($"/api/v1/appointments/{appointmentId}/cancel", null);
+        cancelResponse.EnsureSuccessStatusCode();
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+        var payment = await db.Payments.FirstOrDefaultAsync(p => p.AppointmentId == appointmentId);
+
+        payment.Should().NotBeNull();
+        payment!.Status.Should().Be(PaymentStatus.Refunded);
+        payment.RefundedAt.Should().NotBeNull();
+    }
+
+    [TestMethod]
+    public async Task GetMine_IncludesPaymentFields()
+    {
+        var (patient, _) = await PatientClientWithEmailAsync();
+        var doctorId = await CreateDoctorAsync();
+        await BookAppointmentAsync(patient, doctorId);
+
+        var response = await patient.GetAsync("/api/v1/appointments");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await response.Content.ReadFromJsonAsync<AppointmentsResponse>();
+        body!.Appointments.Should().NotBeEmpty();
+        body.Appointments[0].PaymentStatus.Should().NotBeNullOrEmpty();
+        body.Appointments[0].PaymentAmount.Should().NotBeNull();
+    }
+
     // ── Doctor Schedule & Pagination Tests ─────────────────────────────────────
 
     [TestMethod]
@@ -317,7 +396,8 @@ public class AppointmentsControllerTests : IntegrationTestBase
     private sealed record AppointmentDto(
         Guid Id, DateTime ScheduledAt, int DurationMinutes, string Reason,
         string Status, string? Notes, string DoctorName, string Specialty,
-        decimal ConsultationFee, string PatientName, Guid PatientId);
+        decimal ConsultationFee, string PatientName, Guid PatientId,
+        string? PaymentStatus = null, decimal? PaymentAmount = null);
     private sealed record AppointmentsResponse(AppointmentDto[] Appointments, int TotalCount);
     private sealed record DoctorsResponse(DoctorDto[] Doctors, int TotalCount);
 }

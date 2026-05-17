@@ -20,4 +20,5 @@ public class Appointment : BaseEntity, ITenantScoped
     public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
     public string? VideoRoomId { get; set; }
     public string? Notes { get; set; }
+    public Payment? Payment { get; set; }
 }

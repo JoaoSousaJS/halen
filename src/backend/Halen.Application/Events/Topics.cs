@@ -9,4 +9,6 @@ public static class Topics
     public const string PrescriptionCancelled = "prescription.cancelled";
     public const string KycSubmitted = "kyc.submitted";
     public const string KycReviewed = "kyc.reviewed";
+    public const string PaymentCaptured = "payment.captured";
+    public const string PaymentRefunded = "payment.refunded";
 }

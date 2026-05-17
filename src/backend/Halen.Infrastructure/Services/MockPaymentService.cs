@@ -5,16 +5,30 @@ namespace Halen.Infrastructure.Services;
 
 public class MockPaymentService(ILogger<MockPaymentService> logger) : IPaymentService
 {
-    public Task<PaymentResult> ChargeAsync(Guid userId, decimal amount, string description, CancellationToken ct = default)
+    public Task<PaymentIntentResult> CreateIntentAsync(Guid userId, decimal amount, string currency, string idempotencyKey, CancellationToken ct = default)
     {
-        var txId = $"mock_tx_{Guid.NewGuid():N}";
-        logger.LogInformation("[MOCK PAYMENT] Charge ${Amount} for user {UserId} — txId: {TxId}", amount, userId, txId);
-        return Task.FromResult(new PaymentResult(true, txId));
+        if (idempotencyKey.Contains("FAIL", StringComparison.OrdinalIgnoreCase))
+        {
+            logger.LogInformation("[MOCK PAYMENT] Simulated failure for idempotencyKey={Key}", idempotencyKey);
+            return Task.FromResult(new PaymentIntentResult(false, null, "Simulated payment failure"));
+        }
+
+        var intentId = $"mock_intent_{Guid.NewGuid():N}";
+        logger.LogInformation(
+            "[MOCK PAYMENT] CreateIntent ${Amount} {Currency} for user {UserId}, idempotencyKey={Key} — intentId: {IntentId}",
+            amount, currency, userId, idempotencyKey, intentId);
+        return Task.FromResult(new PaymentIntentResult(true, intentId));
     }
 
-    public Task<PaymentResult> RefundAsync(string transactionId, CancellationToken ct = default)
+    public Task<PaymentCaptureResult> CaptureIntentAsync(string paymentIntentId, CancellationToken ct = default)
     {
-        logger.LogInformation("[MOCK PAYMENT] Refund for txId: {TxId}", transactionId);
-        return Task.FromResult(new PaymentResult(true, transactionId));
+        logger.LogInformation("[MOCK PAYMENT] Capture intent: {IntentId}", paymentIntentId);
+        return Task.FromResult(new PaymentCaptureResult(true));
+    }
+
+    public Task<PaymentRefundResult> RefundIntentAsync(string paymentIntentId, CancellationToken ct = default)
+    {
+        logger.LogInformation("[MOCK PAYMENT] Refund intent: {IntentId}", paymentIntentId);
+        return Task.FromResult(new PaymentRefundResult(true));
     }
 }

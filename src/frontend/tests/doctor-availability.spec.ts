@@ -3,8 +3,16 @@ import { PATIENT_TOKEN, DOCTOR_TOKEN, loginAs, mockBaseRoutes, mockDoctorRoutes 
 
 // ── Mock Data ─────────────────────────────────────────────────────────────────
 
-const mockDoctors = [
-  { id: 'doc-1', name: 'Dr. House', specialty: 'Diagnostics', consultationFee: 150, yearsOfExperience: 20 },
+const mockSearchDoctors = [
+  {
+    id: 'doc-1',
+    name: 'Dr. House',
+    specialty: 'Diagnostics',
+    consultationFee: 150,
+    yearsOfExperience: 20,
+    languages: ['English'],
+    nextAvailableSlot: { startUtc: '2027-01-15T09:00:00Z', dayOfWeek: 'Thursday' },
+  },
 ];
 
 const mockWindows = [
@@ -125,7 +133,7 @@ test.describe('Doctor — Availability Management', () => {
 test.describe('Patient — Slot Booking', () => {
   test.beforeEach(async ({ page }) => {
     await loginAs(page, PATIENT_TOKEN);
-    await mockBaseRoutes(page, { doctors: mockDoctors });
+    await mockBaseRoutes(page, { searchDoctors: mockSearchDoctors });
   });
 
   test('patient sees "hasn\'t set up schedule" when doctor has no availability', async ({ page }) => {
@@ -138,8 +146,8 @@ test.describe('Patient — Slot Booking', () => {
 
     await page.goto('/dashboard');
 
-    // Select the doctor
-    await page.getByLabel('Doctor').selectOption('doc-1');
+    // Select the doctor via search results
+    await page.getByRole('button', { name: 'Select Dr. House' }).click();
 
     // Should show the "hasn't set up schedule" message
     await expect(page.getByText("This doctor hasn't set up their schedule yet.")).toBeVisible();
@@ -161,8 +169,8 @@ test.describe('Patient — Slot Booking', () => {
 
     await page.goto('/dashboard');
 
-    // Select doctor
-    await page.getByLabel('Doctor').selectOption('doc-1');
+    // Select doctor via search results
+    await page.getByRole('button', { name: 'Select Dr. House' }).click();
 
     // Date field should appear
     await expect(page.getByLabel('Date')).toBeVisible();
@@ -171,11 +179,11 @@ test.describe('Patient — Slot Booking', () => {
     await page.getByLabel('Date').fill('2027-01-15');
 
     // Available slots should appear (only isAvailable === true)
-    await expect(page.getByRole('button', { name: '09:00' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '09:20' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '10:00' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /select time slot 09:00/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /select time slot 09:20/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /select time slot 10:00/i })).toBeVisible();
     // Slot 09:40 is not available, so it should not appear
-    await expect(page.getByRole('button', { name: '09:40' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: /select time slot 09:40/i })).not.toBeVisible();
   });
 
   test('patient picks a slot and books successfully', async ({ page }) => {
@@ -197,22 +205,22 @@ test.describe('Patient — Slot Booking', () => {
 
     await page.goto('/dashboard');
 
-    // Select doctor
-    await page.getByLabel('Doctor').selectOption('doc-1');
+    // Select doctor via search results
+    await page.getByRole('button', { name: 'Select Dr. House' }).click();
 
     // Pick date
     await page.getByLabel('Date').fill('2027-01-15');
 
     // Pick a slot
-    await page.getByRole('button', { name: '09:20' }).click();
+    await page.getByRole('button', { name: /select time slot 09:20/i }).click();
 
     // Fill reason
     await page.getByLabel('Reason for visit').fill('Follow-up checkup');
 
     // Book
-    await page.getByRole('button', { name: 'Book appointment' }).click();
+    await page.getByRole('button', { name: /confirm & pay/i }).click();
 
     // Success message
-    await expect(page.getByText('Appointment booked!')).toBeVisible();
+    await expect(page.getByText(/appointment booked/i)).toBeVisible();
   });
 });

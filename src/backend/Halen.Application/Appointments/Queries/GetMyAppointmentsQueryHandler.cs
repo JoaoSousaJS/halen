@@ -33,7 +33,9 @@ public class GetMyAppointmentsQueryHandler(
                 a.Doctor.Specialty,
                 a.Doctor.ConsultationFee,
                 $"{a.Patient.User.FirstName} {a.Patient.User.LastName}",
-                a.PatientId
+                a.PatientId,
+                a.Payment != null ? a.Payment.Status.ToString() : null,
+                a.Payment != null ? (decimal?)a.Payment.Amount : null
             ))
             .ToListAsync(ct);
 

@@ -26,7 +26,7 @@ public class AppointmentsController(IMediator mediator) : HalenControllerBase
         if (!result.Success)
             return BadRequest(new { result.Error });
 
-        return CreatedAtAction(nameof(GetMine), new { result.AppointmentId });
+        return CreatedAtAction(nameof(GetMine), new { result.AppointmentId, result.PaymentStatus });
     }
 
     [HttpGet]

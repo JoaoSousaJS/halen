@@ -23,5 +23,7 @@ public record AppointmentDto(
     string Specialty,
     decimal ConsultationFee,
     string PatientName,
-    Guid PatientId
+    Guid PatientId,
+    string? PaymentStatus = null,
+    decimal? PaymentAmount = null
 );

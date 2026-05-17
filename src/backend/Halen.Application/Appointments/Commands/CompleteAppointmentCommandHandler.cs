@@ -1,6 +1,7 @@
 using Halen.Application.Common;
 using Halen.Application.Events;
 using Halen.Application.Interfaces;
+using Halen.Domain.Entities;
 using Halen.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,8 @@ namespace Halen.Application.Appointments.Commands;
 public class CompleteAppointmentCommandHandler(
     IAppDbContext db,
     IEventBus eventBus,
-    ILogger<CompleteAppointmentCommandHandler> logger
+    ILogger<CompleteAppointmentCommandHandler> logger,
+    IPaymentService paymentService
 ) : IRequestHandler<CompleteAppointmentCommand, CompleteAppointmentResult>
 {
     public async Task<CompleteAppointmentResult> Handle(CompleteAppointmentCommand request, CancellationToken ct)
@@ -40,6 +42,24 @@ public class CompleteAppointmentCommandHandler(
         logger.LogInformation("Appointment {AppointmentId} completed by doctor {DoctorId}",
             request.AppointmentId, doctorProfile.Id);
 
+        var payment = await db.Payments
+            .FirstOrDefaultAsync(p => p.AppointmentId == appointment.Id, ct);
+
+        if (payment is { Status: PaymentStatus.Authorized, PaymentIntentId: not null })
+        {
+            var captureResult = await paymentService.CaptureIntentAsync(payment.PaymentIntentId, ct);
+            if (captureResult.Success)
+            {
+                payment.Capture();
+                await db.SaveChangesAsync(ct);
+            }
+            else
+            {
+                logger.LogError("Payment capture failed for appointment {AppointmentId}: {Error}",
+                    appointment.Id, captureResult.ErrorMessage);
+            }
+        }
+
         var patientUserId = await db.PatientProfiles
             .Where(p => p.Id == appointment.PatientId)
             .Select(p => p.UserId)
@@ -52,6 +72,12 @@ public class CompleteAppointmentCommandHandler(
                 request.UserId,
                 patientUserId,
                 $"{doctorProfile.FirstName} {doctorProfile.LastName}"), ct);
+
+            if (payment is { Status: PaymentStatus.Captured })
+            {
+                await eventBus.PublishAsync(Topics.PaymentCaptured, new PaymentCapturedEvent(
+                    payment.Id, appointment.Id, patientUserId, payment.Amount, payment.Currency), ct);
+            }
         }
         catch (Exception ex)
         {

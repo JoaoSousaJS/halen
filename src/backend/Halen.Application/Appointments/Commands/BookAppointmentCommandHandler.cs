@@ -14,7 +14,8 @@ public class BookAppointmentCommandHandler(
     IAppDbContext db,
     ITenantContext tenantContext,
     IEventBus eventBus,
-    ILogger<BookAppointmentCommandHandler> logger
+    ILogger<BookAppointmentCommandHandler> logger,
+    IPaymentService paymentService
 ) : IRequestHandler<BookAppointmentCommand, BookAppointmentResult>
 {
     private const int DefaultDurationMinutes = 20;
@@ -23,7 +24,7 @@ public class BookAppointmentCommandHandler(
     {
         var doctor = await db.DoctorProfiles
             .Where(d => d.Id == request.DoctorId)
-            .Select(d => new { d.UserId, d.User.FirstName, d.User.LastName, d.KycStatus })
+            .Select(d => new { d.UserId, d.User.FirstName, d.User.LastName, d.KycStatus, d.ConsultationFee })
             .FirstOrDefaultAsync(ct);
 
         if (doctor is null)
@@ -97,6 +98,31 @@ public class BookAppointmentCommandHandler(
 
             db.Appointments.Add(appointment);
             await db.SaveChangesAsync(ct);
+
+            var idempotencyKey = $"booking_{request.UserId}_{request.DoctorId}_{request.ScheduledAt:O}";
+            var payment = new Payment
+            {
+                ClinicId = tenantContext.ClinicId,
+                AppointmentId = appointment.Id,
+                PatientProfileId = patientProfile.Id,
+                Amount = doctor.ConsultationFee,
+                Currency = "USD",
+                Status = PaymentStatus.Pending,
+                IdempotencyKey = idempotencyKey,
+            };
+            db.Payments.Add(payment);
+            await db.SaveChangesAsync(ct);
+
+            var intentResult = await paymentService.CreateIntentAsync(
+                request.UserId, doctor.ConsultationFee, "USD", idempotencyKey, ct);
+
+            if (!intentResult.Success)
+            {
+                return new BookAppointmentResult(false, null, "Payment authorization failed");
+            }
+
+            payment.Authorize(intentResult.PaymentIntentId!);
+            await db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
 
             logger.LogInformation("Appointment {AppointmentId} booked by patient {PatientId} with doctor {DoctorId}",
@@ -117,7 +143,7 @@ public class BookAppointmentCommandHandler(
                 logger.LogWarning(ex, "Failed to publish booked event for appointment {AppointmentId}", appointment.Id);
             }
 
-            return new BookAppointmentResult(true, appointment.Id);
+            return new BookAppointmentResult(true, appointment.Id, null, payment.Status.ToString());
         }
         catch (DbUpdateException)
         {

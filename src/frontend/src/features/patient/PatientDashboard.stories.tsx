@@ -5,9 +5,25 @@ import { AuthProvider } from '../../shared/components/AuthProvider';
 import PatientDashboard from './PatientDashboard';
 import { http, HttpResponse } from 'msw';
 
-const mockDoctors = [
-  { id: 'doc-1', name: 'Dr. House', specialty: 'Diagnostics', consultationFee: 150, yearsOfExperience: 20 },
-  { id: 'doc-2', name: 'Dr. Grey', specialty: 'Surgery', consultationFee: 200, yearsOfExperience: 8 },
+const mockDoctorsSearch = [
+  {
+    id: 'doc-1',
+    name: 'Dr. House',
+    specialty: 'Diagnostics',
+    consultationFee: 150,
+    yearsOfExperience: 20,
+    languages: ['English'],
+    nextAvailableSlot: { startUtc: '2026-05-19T09:00:00Z', dayOfWeek: 'Monday' },
+  },
+  {
+    id: 'doc-2',
+    name: 'Dr. Grey',
+    specialty: 'Surgery',
+    consultationFee: 200,
+    yearsOfExperience: 8,
+    languages: ['English', 'Spanish'],
+    nextAvailableSlot: null,
+  },
 ];
 
 const mockAppointments = [
@@ -23,6 +39,8 @@ const mockAppointments = [
     consultationFee: 150,
     patientName: 'Maya Chen',
     patientId: 'patient-1',
+    paymentStatus: 'Authorized',
+    paymentAmount: 150,
   },
   {
     id: 'appt-2',
@@ -36,6 +54,23 @@ const mockAppointments = [
     consultationFee: 200,
     patientName: 'Maya Chen',
     patientId: 'patient-1',
+    paymentStatus: 'Captured',
+    paymentAmount: 200,
+  },
+  {
+    id: 'appt-3',
+    scheduledAt: new Date(Date.now() - 172800000).toISOString(),
+    durationMinutes: 20,
+    reason: 'Consultation',
+    status: 'Cancelled',
+    notes: null,
+    doctorName: 'Dr. House',
+    specialty: 'Diagnostics',
+    consultationFee: 150,
+    patientName: 'Maya Chen',
+    patientId: 'patient-1',
+    paymentStatus: 'Refunded',
+    paymentAmount: 150,
   },
 ];
 
@@ -54,6 +89,8 @@ const mockPrescriptions = [
   },
 ];
 
+const specialties = ['Cardiology', 'Dermatology', 'Diagnostics', 'Surgery'];
+
 function fakeJwt(): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const body = btoa(JSON.stringify({
@@ -61,6 +98,16 @@ function fakeJwt(): string {
   }));
   return `${header}.${body}.fake`;
 }
+
+const commonHandlers = [
+  http.get('*/api/v1/doctors/search', () =>
+    HttpResponse.json({ doctors: mockDoctorsSearch, totalCount: mockDoctorsSearch.length }),
+  ),
+  http.get('*/api/v1/doctors/specialties', () =>
+    HttpResponse.json({ specialties }),
+  ),
+  http.get('*/api/v1/prescriptions', () => HttpResponse.json(mockPrescriptions)),
+];
 
 const meta: Meta<typeof PatientDashboard> = {
   title: 'Patient/PatientDashboard',
@@ -91,9 +138,10 @@ export const WithAppointments: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/api/v1/appointments/doctors', () => HttpResponse.json({ doctors: mockDoctors, totalCount: mockDoctors.length })),
-        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: mockAppointments, totalCount: mockAppointments.length })),
-        http.get('*/api/v1/prescriptions', () => HttpResponse.json(mockPrescriptions)),
+        ...commonHandlers,
+        http.get('*/api/v1/appointments', () =>
+          HttpResponse.json({ appointments: mockAppointments, totalCount: mockAppointments.length }),
+        ),
       ],
     },
   },
@@ -103,9 +151,33 @@ export const Empty: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/api/v1/appointments/doctors', () => HttpResponse.json({ doctors: mockDoctors, totalCount: mockDoctors.length })),
-        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: [], totalCount: 0 })),
-        http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
+        ...commonHandlers,
+        http.get('*/api/v1/appointments', () =>
+          HttpResponse.json({ appointments: [], totalCount: 0 }),
+        ),
+      ],
+    },
+  },
+};
+
+export const PaymentFailed: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        ...commonHandlers,
+        http.get('*/api/v1/appointments', () =>
+          HttpResponse.json({
+            appointments: [
+              {
+                ...mockAppointments[0],
+                id: 'appt-failed',
+                paymentStatus: 'Failed',
+                paymentAmount: null,
+              },
+            ],
+            totalCount: 1,
+          }),
+        ),
       ],
     },
   },

@@ -9,4 +9,4 @@ public record BookAppointmentCommand(
     string Reason
 ) : IRequest<BookAppointmentResult>;
 
-public record BookAppointmentResult(bool Success, Guid? AppointmentId, string? Error = null);
+public record BookAppointmentResult(bool Success, Guid? AppointmentId, string? Error = null, string? PaymentStatus = null);

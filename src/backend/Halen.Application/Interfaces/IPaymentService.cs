@@ -1,9 +1,12 @@
 namespace Halen.Application.Interfaces;
 
-public record PaymentResult(bool Success, string TransactionId, string? ErrorMessage = null);
+public record PaymentIntentResult(bool Success, string? PaymentIntentId, string? ErrorMessage = null);
+public record PaymentCaptureResult(bool Success, string? ErrorMessage = null);
+public record PaymentRefundResult(bool Success, string? ErrorMessage = null);
 
 public interface IPaymentService
 {
-    Task<PaymentResult> ChargeAsync(Guid userId, decimal amount, string description, CancellationToken ct = default);
-    Task<PaymentResult> RefundAsync(string transactionId, CancellationToken ct = default);
+    Task<PaymentIntentResult> CreateIntentAsync(Guid userId, decimal amount, string currency, string idempotencyKey, CancellationToken ct = default);
+    Task<PaymentCaptureResult> CaptureIntentAsync(string paymentIntentId, CancellationToken ct = default);
+    Task<PaymentRefundResult> RefundIntentAsync(string paymentIntentId, CancellationToken ct = default);
 }

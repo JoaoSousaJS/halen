@@ -69,6 +69,10 @@ export interface MockBaseOptions {
   prescriptions?: unknown[];
   /** Doctors returned by GET /appointments/doctors. Defaults to []. */
   doctors?: unknown[];
+  /** Doctors returned by GET /doctors/search. Defaults to []. */
+  searchDoctors?: unknown[];
+  /** Specialties returned by GET /doctors/specialties. Defaults to []. */
+  specialties?: string[];
 }
 
 /**
@@ -85,6 +89,8 @@ export async function mockBaseRoutes(page: Page, options: MockBaseOptions = {}):
     appointments = [],
     prescriptions = [],
     doctors = [],
+    searchDoctors = [],
+    specialties = [],
   } = options;
 
   await page.route('**/hubs/**', (route) => route.abort());
@@ -93,6 +99,12 @@ export async function mockBaseRoutes(page: Page, options: MockBaseOptions = {}):
   );
   await page.route('**/api/v1/appointments/doctors', (route) =>
     route.fulfill({ status: 200, json: { doctors, totalCount: doctors.length } }),
+  );
+  await page.route('**/api/v1/doctors/search**', (route) =>
+    route.fulfill({ status: 200, json: { doctors: searchDoctors, totalCount: searchDoctors.length } }),
+  );
+  await page.route('**/api/v1/doctors/specialties', (route) =>
+    route.fulfill({ status: 200, json: { specialties } }),
   );
   await page.route('**/api/v1/appointments', (route) => {
     // Skip if this is actually /appointments/doctors (glob matches too broadly)

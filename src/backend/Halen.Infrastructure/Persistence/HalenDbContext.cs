@@ -19,6 +19,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
     public DbSet<KycReview> KycReviews => Set<KycReview>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
+    public DbSet<Payment> Payments => Set<Payment>();
     /// <summary>Intentionally unfiltered — Clinic is the tenant root, not scoped to another tenant.</summary>
     public DbSet<Clinic> Clinics => Set<Clinic>();
     /// <summary>Intentionally unfiltered — managed cross-tenant by PlatformAdmin; handlers scope by ClinicId explicitly.</summary>
@@ -46,6 +47,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         builder.Entity<KycReview>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<DoctorAvailability>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<AuditLog>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<Payment>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
 
         // ── Clinic ───────────────────────────────────────────────────────────
         builder.Entity<Clinic>(e =>
@@ -131,6 +133,12 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(d => d.Specialty).HasMaxLength(100);
             e.Property(d => d.LicenseNumber).HasMaxLength(50);
             e.HasIndex(d => d.KycStatus);
+
+            // Search indexes for doctor search & filtering
+            e.HasIndex(d => d.Specialty)
+                .HasMethod("gin")
+                .HasOperators("gin_trgm_ops");
+            e.HasIndex(d => d.ConsultationFee);
         });
 
         // ── DoctorAvailability ────────────────────────────────────────────────
@@ -172,7 +180,23 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(r => r.RejectionReason).HasMaxLength(1000);
         });
 
+        // ── Payment ──────────────────────────────────────────────────────────
+        builder.Entity<Payment>(e =>
+        {
+            e.HasOne(p => p.Clinic).WithMany().HasForeignKey(p => p.ClinicId);
+            e.HasOne(p => p.Appointment).WithOne(a => a.Payment).HasForeignKey<Payment>(p => p.AppointmentId);
+            e.HasOne(p => p.PatientProfile).WithMany().HasForeignKey(p => p.PatientProfileId);
+            e.Property(p => p.Amount).HasPrecision(10, 2);
+            e.Property(p => p.Currency).HasMaxLength(3);
+            e.Property(p => p.IdempotencyKey).HasMaxLength(200);
+            e.Property(p => p.PaymentIntentId).HasMaxLength(200);
+            e.Property(p => p.FailureReason).HasMaxLength(500);
+            e.HasIndex(p => new { p.ClinicId, p.AppointmentId }).IsUnique();
+            e.HasIndex(p => p.IdempotencyKey).IsUnique();
+        });
+
         // ── Enum conversions (stored as strings) ─────────────────────────────
+        builder.Entity<Payment>().Property(p => p.Status).HasConversion<string>();
         builder.Entity<Appointment>().Property(a => a.Status).HasConversion<string>();
         builder.Entity<Prescription>().Property(p => p.Status).HasConversion<string>();
         builder.Entity<User>().Property(u => u.Role).HasConversion<string>();
