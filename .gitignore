@@ -17,6 +17,7 @@ TestResults/
 # Playwright
 playwright-report/
 test-results/
+test-debug/
 
 # Storybook build output
 storybook-static/
