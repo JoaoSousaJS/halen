@@ -1,15 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fakeJwt } from './helpers';
-
-const platformAdminToken = fakeJwt({
-  sub: 'pa-001',
-  email: 'platform@halen.dev',
-  given_name: 'Platform',
-  family_name: 'Admin',
-  role: 'PlatformAdmin',
-  clinic_id: 'c-root',
-  exp: 9_999_999_999,
-});
+import { PLATFORM_ADMIN_TOKEN, loginAs, mockBaseRoutes } from './helpers';
 
 const mockClinics = [
   { id: 'c-001', name: 'Sunrise Health', slug: 'sunrise-health', isActive: true, createdAt: '2026-03-01T10:00:00Z' },
@@ -32,14 +22,8 @@ const mockClinicDetail = {
 
 test.describe('Platform Admin — Clinics', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, platformAdminToken);
-
-    await page.route('**/hubs/**', (route) => route.abort());
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
+    await loginAs(page, PLATFORM_ADMIN_TOKEN);
+    await mockBaseRoutes(page, { features: [] });
     await page.route(/\/api\/v1\/clinics/, (route) => {
       const url = route.request().url();
       if (url.includes('/features/')) {

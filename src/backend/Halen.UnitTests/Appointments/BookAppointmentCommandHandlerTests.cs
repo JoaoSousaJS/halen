@@ -5,8 +5,8 @@ using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
 using Halen.Infrastructure.Persistence;
+using Halen.UnitTests.Helpers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -24,12 +24,7 @@ public class BookAppointmentCommandHandlerTests
     [TestInitialize]
     public async Task Initialize()
     {
-        var options = new DbContextOptionsBuilder<HalenDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-
-        _db = new HalenDbContext(options, new Helpers.TestTenantContext());
+        _db = TestDbFactory.Create();
 
         var doctorUser = new User
         {
@@ -56,6 +51,16 @@ public class BookAppointmentCommandHandlerTests
         _doctorProfileId = doctorProfile.Id;
 
         _patientUserId = Guid.NewGuid();
+        var patientUser = new User
+        {
+            Id = _patientUserId,
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john@test.com",
+            UserName = "john@test.com",
+            Role = UserRole.Patient,
+        };
+        _db.Users.Add(patientUser);
         await _db.SaveChangesAsync();
 
         _eventBus = new Mock<IEventBus>();
@@ -143,6 +148,13 @@ public class BookAppointmentCommandHandlerTests
         await _db.SaveChangesAsync();
 
         var otherPatientId = Guid.NewGuid();
+        _db.Users.Add(new User
+        {
+            Id = otherPatientId, FirstName = "Other", LastName = "Patient",
+            Email = "other@test.com", UserName = "other@test.com", Role = UserRole.Patient,
+        });
+        await _db.SaveChangesAsync();
+
         var command = new BookAppointmentCommand(
             otherPatientId,
             _doctorProfileId,
@@ -172,6 +184,13 @@ public class BookAppointmentCommandHandlerTests
         await _db.SaveChangesAsync();
 
         var otherPatientId = Guid.NewGuid();
+        _db.Users.Add(new User
+        {
+            Id = otherPatientId, FirstName = "Another", LastName = "Patient",
+            Email = "another@test.com", UserName = "another@test.com", Role = UserRole.Patient,
+        });
+        await _db.SaveChangesAsync();
+
         var command = new BookAppointmentCommand(
             otherPatientId,
             _doctorProfileId,

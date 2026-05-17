@@ -32,13 +32,29 @@ public class BookAppointmentCommandHandler(
         if (doctor.KycStatus != KycStatus.Approved)
             return new BookAppointmentResult(false, null, "Doctor is not yet approved for appointments.");
 
-        var patientProfile = await db.PatientProfiles
-            .FirstOrDefaultAsync(p => p.UserId == request.UserId, ct);
+        var patientData = await db.PatientProfiles
+            .Where(p => p.UserId == request.UserId)
+            .Select(p => new { Profile = p, p.User.FirstName, p.User.LastName })
+            .FirstOrDefaultAsync(ct);
 
-        if (patientProfile is null)
+        PatientProfile patientProfile;
+        string patientName;
+
+        if (patientData is null)
         {
             patientProfile = new PatientProfile { UserId = request.UserId, ClinicId = tenantContext.ClinicId };
             db.PatientProfiles.Add(patientProfile);
+            // Fetch name from User directly since there's no profile yet
+            var user = await db.Users
+                .Where(u => u.Id == request.UserId)
+                .Select(u => new { u.FirstName, u.LastName })
+                .FirstAsync(ct);
+            patientName = $"{user.FirstName} {user.LastName}";
+        }
+        else
+        {
+            patientProfile = patientData.Profile;
+            patientName = $"{patientData.FirstName} {patientData.LastName}";
         }
 
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
@@ -70,11 +86,6 @@ public class BookAppointmentCommandHandler(
 
             logger.LogInformation("Appointment {AppointmentId} booked by patient {PatientId} with doctor {DoctorId}",
                 appointment.Id, patientProfile.Id, request.DoctorId);
-
-            var patientName = await db.PatientProfiles
-                .Where(p => p.Id == patientProfile.Id)
-                .Select(p => p.User.FirstName + " " + p.User.LastName)
-                .FirstOrDefaultAsync(ct) ?? "Patient";
 
             try
             {

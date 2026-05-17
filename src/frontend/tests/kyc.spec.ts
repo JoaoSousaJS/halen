@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fakeJwt } from './helpers';
+import { fakeJwt, CLINIC_ADMIN_TOKEN, loginAs, mockBaseRoutes, mockAdminRoutes } from './helpers';
 
 const doctorToken = fakeJwt({
   sub: '2',
@@ -7,16 +7,6 @@ const doctorToken = fakeJwt({
   given_name: 'Anika',
   family_name: 'Volpe',
   role: 'Doctor',
-  clinic_id: 'c-001',
-  exp: 9_999_999_999,
-});
-
-const adminToken = fakeJwt({
-  sub: 'a-001',
-  email: 'admin@test.com',
-  given_name: 'Lior',
-  family_name: 'Adler',
-  role: 'ClinicAdmin',
   clinic_id: 'c-001',
   exp: 9_999_999_999,
 });
@@ -75,28 +65,15 @@ const mockUsers = [
 
 // ── Doctor KYC Flow ─────────────────────────────────────────────────────────
 
-function mockDoctorBase(page: import('@playwright/test').Page) {
-  return Promise.all([
-    page.route('**/hubs/**', (route) => route.abort()),
-    page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }, { featureKey: 'kyc', isEnabled: true }] }),
-    ),
-    page.route('**/api/v1/appointments', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    ),
-    page.route('**/api/v1/prescriptions', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    ),
-  ]);
-}
+const doctorFeatures = [
+  { featureKey: 'prescriptions', isEnabled: true },
+  { featureKey: 'kyc', isEnabled: true },
+];
 
 test.describe('Doctor KYC — Not Submitted', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, doctorToken);
-
-    await mockDoctorBase(page);
+    await loginAs(page, doctorToken);
+    await mockBaseRoutes(page, { features: doctorFeatures });
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: kycNotSubmitted }),
     );
@@ -155,11 +132,8 @@ test.describe('Doctor KYC — Not Submitted', () => {
 
 test.describe('Doctor KYC — Submitted', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, doctorToken);
-
-    await mockDoctorBase(page);
+    await loginAs(page, doctorToken);
+    await mockBaseRoutes(page, { features: doctorFeatures });
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: kycSubmitted }),
     );
@@ -184,11 +158,8 @@ test.describe('Doctor KYC — Submitted', () => {
 
 test.describe('Doctor KYC — Rejected', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, doctorToken);
-
-    await mockDoctorBase(page);
+    await loginAs(page, doctorToken);
+    await mockBaseRoutes(page, { features: doctorFeatures });
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: kycRejected }),
     );
@@ -205,11 +176,8 @@ test.describe('Doctor KYC — Rejected', () => {
 
 test.describe('Doctor KYC — Approved', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, doctorToken);
-
-    await mockDoctorBase(page);
+    await loginAs(page, doctorToken);
+    await mockBaseRoutes(page, { features: doctorFeatures });
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: kycApproved }),
     );
@@ -227,17 +195,9 @@ test.describe('Doctor KYC — Approved', () => {
 
 test.describe('Admin KYC Review', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, adminToken);
-
-    await page.route('**/hubs/**', (route) => route.abort());
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/admin/users**', (route) =>
-      route.fulfill({ status: 200, json: { users: mockUsers, totalCount: mockUsers.length } }),
-    );
+    await loginAs(page, CLINIC_ADMIN_TOKEN);
+    await mockBaseRoutes(page, { features: [] });
+    await mockAdminRoutes(page, mockUsers);
   });
 
   test('clicking Review navigates to KYC review page', async ({ page }) => {

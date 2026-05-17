@@ -6,42 +6,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Halen.IntegrationTests.Clinics;
 
 [TestClass]
-public class ClinicsControllerTests
+public class ClinicsControllerTests : IntegrationTestBase
 {
-    private static HalenWebApplicationFactory _factory = null!;
-
-    [ClassInitialize]
-    public static async Task ClassInitialize(TestContext _)
-    {
-        _factory = new HalenWebApplicationFactory();
-        await _factory.StartAsync();
-    }
-
-    [ClassCleanup]
-    public static async Task ClassCleanup()
-    {
-        await _factory.StopAsync();
-        await _factory.DisposeAsync();
-    }
-
-    private static async Task<HttpClient> AdminClientAsync() =>
-        await TestHelpers.GetBearerClientAsync(_factory, "admin@test.com", "Admin1234!");
-
-    private static async Task<HttpClient> PatientClientAsync()
-    {
-        var email = $"patient+{Guid.NewGuid():N}@test.com";
-        var anon = _factory.CreateClient();
-        await anon.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            FirstName = "Test",
-            LastName = "Patient",
-            Email = email,
-            Password = "Patient1234!",
-            Role = 0,
-        });
-        return await TestHelpers.GetBearerClientAsync(_factory, email, "Patient1234!");
-    }
-
     [TestMethod]
     public async Task CreateClinic_AsAdmin_ReturnsCreated()
     {

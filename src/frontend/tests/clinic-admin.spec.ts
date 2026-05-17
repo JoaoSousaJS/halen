@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fakeJwt } from './helpers';
+import { fakeJwt, loginAs, mockBaseRoutes } from './helpers';
 
 const clinicAdminToken = fakeJwt({
   sub: 'ca-001',
@@ -18,11 +18,8 @@ const mockUsers = [
 
 test.describe('Clinic Admin — User Management', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, clinicAdminToken);
-
-    await page.route('**/hubs/**', (route) => route.abort());
+    await loginAs(page, clinicAdminToken);
+    await mockBaseRoutes(page, { features: [] });
     await page.route('**/api/v1/admin/users**', (route) =>
       route.fulfill({ status: 200, json: { users: mockUsers, totalCount: mockUsers.length } }),
     );
@@ -38,9 +35,6 @@ test.describe('Clinic Admin — User Management', () => {
       }
       return route.continue();
     });
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
   });
 
   test('shows Clinic Admin branding', async ({ page }) => {

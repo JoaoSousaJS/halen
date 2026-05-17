@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../shared/components/AuthProvider';
+import { DashboardShell } from '../../shared/components/DashboardShell';
 import { getApiError } from '../../shared/api/errors';
 import {
   getMyAppointments,
@@ -21,7 +22,7 @@ import KycSetup from './KycSetup';
 import { FeatureGate } from '../../shared/components/FeatureGate';
 
 export default function DoctorDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toasts, dismissToast } = useNotifications();
   const kyc = useQuery({ queryKey: ['kyc-status'], queryFn: getKycStatus });
@@ -93,21 +94,11 @@ export default function DoctorDashboard() {
   const kycApproved = kyc.data?.status === 'Approved';
 
   return (
-    <div className="dashboard-shell">
+    <DashboardShell
+      subtitle="Doctor portal"
+      userName={`Dr. ${user?.family_name}`}
+    >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <header className="dashboard-header">
-        <div className="brand">
-          <div className="brand-mark" />
-          <div>
-            <div className="brand-name">Halen</div>
-            <div className="brand-sub">Doctor portal</div>
-          </div>
-        </div>
-        <span className="dashboard-user">Dr. {user?.family_name}</span>
-        <button className="btn btn-sm" onClick={logout}>Sign out</button>
-      </header>
-
-      <main className="dashboard-main">
         {!kycApproved ? (
           <FeatureGate feature="kyc">
             <h1 className="auth-heading">
@@ -348,7 +339,6 @@ export default function DoctorDashboard() {
         </FeatureGate>
         </>
         )}
-      </main>
-    </div>
+    </DashboardShell>
   );
 }

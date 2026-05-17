@@ -5,10 +5,12 @@ namespace Halen.Application.Appointments.Queries;
 
 public record GetMyAppointmentsQuery(
     Guid UserId,
-    UserRole UserRole
+    UserRole UserRole,
+    int Page = 1,
+    int PageSize = 50
 ) : IRequest<GetMyAppointmentsResult>;
 
-public record GetMyAppointmentsResult(IReadOnlyList<AppointmentDto> Appointments);
+public record GetMyAppointmentsResult(IReadOnlyList<AppointmentDto> Appointments, int TotalCount);
 
 public record AppointmentDto(
     Guid Id,

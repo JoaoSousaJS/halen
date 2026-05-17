@@ -1,38 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { fakeJwt } from './helpers';
-
-const patientToken = fakeJwt({
-  sub: '1',
-  email: 'patient@test.com',
-  given_name: 'Maya',
-  family_name: 'Chen',
-  role: 'Patient',
-  clinic_id: 'c-001',
-  exp: 9_999_999_999,
-});
+import { PATIENT_TOKEN, loginAs, mockBaseRoutes } from './helpers';
 
 test.describe('Notifications — graceful degradation', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, patientToken);
-
-    await page.route('**/hubs/**', (route) => route.abort());
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }] }),
-    );
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/appointments', (route) => {
-      if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, json: [] });
-      }
-      return route.continue();
-    });
-    await page.route('**/api/v1/prescriptions', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
+    await loginAs(page, PATIENT_TOKEN);
+    await mockBaseRoutes(page);
   });
 
   test('patient dashboard loads when SignalR is unavailable', async ({ page }) => {

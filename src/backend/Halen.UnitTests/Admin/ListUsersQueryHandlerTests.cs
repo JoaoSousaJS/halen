@@ -5,7 +5,6 @@ using Halen.Domain.Entities;
 using Halen.Domain.Enums;
 using Halen.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Halen.UnitTests.Admin;
 
@@ -18,12 +17,7 @@ public class ListUsersQueryHandlerTests
     [TestInitialize]
     public async Task Initialize()
     {
-        var options = new DbContextOptionsBuilder<HalenDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-
-        _db = new HalenDbContext(options, new TestTenantContext());
+        _db = TestDbFactory.Create();
 
         var mayaId = Guid.NewGuid();
         var elenaId = Guid.NewGuid();

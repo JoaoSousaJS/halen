@@ -4,8 +4,8 @@ using Halen.Application.Interfaces;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
 using Halen.Infrastructure.Persistence;
+using Halen.UnitTests.Helpers;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -24,12 +24,8 @@ public class RegisterCommandHandlerTests
     [TestInitialize]
     public async Task Initialize()
     {
-        var options = new DbContextOptionsBuilder<HalenDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        _db = new HalenDbContext(options, new Helpers.TestTenantContext());
-        _db.Clinics.Add(new Clinic { Id = Helpers.TestTenantContext.DefaultClinicId, Name = "Default", Slug = "default" });
+        _db = TestDbFactory.Create();
+        _db.Clinics.Add(new Clinic { Id = TestTenantContext.DefaultClinicId, Name = "Default", Slug = "default" });
         await _db.SaveChangesAsync();
 
         _userManagerMock = new Mock<UserManager<User>>(

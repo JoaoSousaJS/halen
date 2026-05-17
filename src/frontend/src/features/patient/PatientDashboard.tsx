@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { SubmitEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../shared/components/AuthProvider';
+import { DashboardShell } from '../../shared/components/DashboardShell';
 import { getApiError } from '../../shared/api/errors';
 import {
   listDoctors,
@@ -21,7 +22,7 @@ function toLocalDatetime(date: Date): string {
 }
 
 export default function PatientDashboard() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toasts, dismissToast } = useNotifications();
 
@@ -71,21 +72,11 @@ export default function PatientDashboard() {
   const minDatetime = toLocalDatetime(new Date());
 
   return (
-    <div className="dashboard-shell">
+    <DashboardShell
+      subtitle="care · on call"
+      userName={`${user?.given_name} ${user?.family_name}`}
+    >
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
-      <header className="dashboard-header">
-        <div className="brand">
-          <div className="brand-mark" />
-          <div>
-            <div className="brand-name">Halen</div>
-            <div className="brand-sub">care · on call</div>
-          </div>
-        </div>
-        <span className="dashboard-user">{user?.given_name} {user?.family_name}</span>
-        <button className="btn btn-sm" onClick={logout}>Sign out</button>
-      </header>
-
-      <main className="dashboard-main">
         <section>
           <h1 className="auth-heading">
             Book an<br /><em>appointment.</em>
@@ -238,7 +229,6 @@ export default function PatientDashboard() {
             </div>
           </section>
         </FeatureGate>
-      </main>
-    </div>
+    </DashboardShell>
   );
 }

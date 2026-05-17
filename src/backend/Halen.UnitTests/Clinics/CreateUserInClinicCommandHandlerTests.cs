@@ -24,12 +24,8 @@ public class CreateUserInClinicCommandHandlerTests
     [TestInitialize]
     public void Initialize()
     {
-        var options = new DbContextOptionsBuilder<HalenDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
         _tenantContext = new TestTenantContext();
-        _db = new HalenDbContext(options, _tenantContext);
+        _db = TestDbFactory.Create(_tenantContext);
 
         _userManagerMock = new Mock<UserManager<User>>(
             Mock.Of<IUserStore<User>>(), null!, null!, null!, null!, null!, null!, null!, null!);

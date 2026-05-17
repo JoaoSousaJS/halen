@@ -17,11 +17,7 @@ public class CreateClinicCommandHandlerTests
     [TestInitialize]
     public void Initialize()
     {
-        var options = new DbContextOptionsBuilder<HalenDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        _db = new HalenDbContext(options, new TestTenantContext());
+        _db = TestDbFactory.Create();
         _handler = new CreateClinicCommandHandler(_db);
     }
 

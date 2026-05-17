@@ -19,11 +19,7 @@ public class UpdateClinicCommandHandlerTests
     [TestInitialize]
     public async Task Initialize()
     {
-        var options = new DbContextOptionsBuilder<HalenDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
-
-        _db = new HalenDbContext(options, new TestTenantContext());
+        _db = TestDbFactory.Create();
         _handler = new UpdateClinicCommandHandler(_db);
 
         _clinicId = Guid.NewGuid();

@@ -1,73 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
-using Halen.Domain.Enums;
 
 namespace Halen.IntegrationTests.Prescriptions;
 
 [TestClass]
-public class PrescriptionsControllerTests
+public class PrescriptionsControllerTests : IntegrationTestBase
 {
-    private static HalenWebApplicationFactory _factory = null!;
-
-    [ClassInitialize]
-    public static async Task ClassInitialize(TestContext _)
-    {
-        _factory = new HalenWebApplicationFactory();
-        await _factory.StartAsync();
-    }
-
-    [ClassCleanup]
-    public static async Task ClassCleanup()
-    {
-        await _factory.StopAsync();
-        await _factory.DisposeAsync();
-    }
-
-    private static async Task<HttpClient> AdminClientAsync() =>
-        await TestHelpers.GetBearerClientAsync(_factory, "admin@test.com", "Admin1234!");
-
-    private static async Task<HttpClient> PatientClientAsync()
-    {
-        var email = $"patient+{Guid.NewGuid():N}@test.com";
-        var anon = _factory.CreateClient();
-
-        var reg = await anon.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            FirstName = "Test",
-            LastName = "Patient",
-            Email = email,
-            Password = "Patient1234!",
-            Role = (int)UserRole.Patient,
-        });
-        reg.EnsureSuccessStatusCode();
-
-        return await TestHelpers.GetBearerClientAsync(_factory, email, "Patient1234!");
-    }
-
-    private static async Task<(Guid doctorProfileId, HttpClient client)> CreateDoctorWithClientAsync()
-    {
-        var admin = await AdminClientAsync();
-        var email = $"doctor+{Guid.NewGuid():N}@test.com";
-        var response = await admin.PostAsJsonAsync("/api/v1/admin/doctors", new
-        {
-            FirstName = "Dr",
-            LastName = "Prescriber",
-            Email = email,
-            Password = "Doctor1234!",
-            Specialty = "General",
-            LicenseNumber = $"LIC-{Guid.NewGuid().ToString("N")[..8]}",
-            ConsultationFee = 100.00m,
-            YearsOfExperience = 5,
-        });
-        response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<DoctorIdResponse>();
-        var doctorId = body!.DoctorId;
-        await TestHelpers.ApproveDoctorKycAsync(_factory, doctorId);
-        var client = await TestHelpers.GetBearerClientAsync(_factory, email, "Doctor1234!");
-        return (doctorId, client);
-    }
-
     private static async Task<Guid> GetPatientProfileIdAsync(HttpClient patientClient, Guid doctorProfileId)
     {
         var bookResponse = await patientClient.PostAsJsonAsync("/api/v1/appointments", new
@@ -80,8 +19,8 @@ public class PrescriptionsControllerTests
 
         var response = await patientClient.GetAsync("/api/v1/appointments");
         response.EnsureSuccessStatusCode();
-        var appointments = await response.Content.ReadFromJsonAsync<AppointmentDto[]>();
-        return appointments![0].PatientId;
+        var body = await response.Content.ReadFromJsonAsync<AppointmentsResponse>();
+        return body!.Appointments[0].PatientId;
     }
 
     // ── Issue Tests ──────────────────────────────────────────────────────────
@@ -127,7 +66,7 @@ public class PrescriptionsControllerTests
     [TestMethod]
     public async Task Issue_WithoutAuth_Returns401()
     {
-        var anon = _factory.CreateClient();
+        var anon = Factory.CreateClient();
 
         var response = await anon.PostAsJsonAsync("/api/v1/prescriptions", new
         {
@@ -260,12 +199,12 @@ public class PrescriptionsControllerTests
 
     // ── Response DTOs ────────────────────────────────────────────────────────
 
-    private sealed record DoctorIdResponse(Guid DoctorId);
     private sealed record PrescriptionIdResponse(Guid PrescriptionId);
     private sealed record AppointmentDto(
         Guid Id, DateTime ScheduledAt, int DurationMinutes, string Reason,
         string Status, string? Notes, string DoctorName, string Specialty,
         decimal ConsultationFee, string PatientName, Guid PatientId);
+    private sealed record AppointmentsResponse(AppointmentDto[] Appointments, int TotalCount);
     private sealed record PrescriptionDto(
         Guid Id, string DrugName, string Dosage, string Frequency,
         int RefillsRemaining, string Status, string? PharmacyName,

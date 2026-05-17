@@ -25,10 +25,9 @@ const handlers = [
   http.get('*/api/v1/clinics', () =>
     HttpResponse.json({ clinics: mockClinics, totalCount: mockClinics.length }),
   ),
-  http.post('*/api/v1/clinics', async ({ request }) => {
-    const body = await request.json() as { name: string; slug: string };
-    return HttpResponse.json({ clinicId: 'c-new' }, { status: 201 });
-  }),
+  http.post('*/api/v1/clinics', () =>
+    HttpResponse.json({ clinicId: 'c-new' }, { status: 201 }),
+  ),
 ];
 
 const meta: Meta<typeof ClinicsPage> = {

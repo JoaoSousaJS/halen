@@ -31,13 +31,13 @@ export interface BookAppointmentPayload {
 }
 
 export async function listDoctors(): Promise<DoctorDto[]> {
-  const { data } = await client.get<DoctorDto[]>('/api/v1/appointments/doctors');
-  return data;
+  const { data } = await client.get<{ doctors: DoctorDto[]; totalCount: number }>('/api/v1/appointments/doctors');
+  return data.doctors;
 }
 
 export async function getMyAppointments(): Promise<AppointmentDto[]> {
-  const { data } = await client.get<AppointmentDto[]>('/api/v1/appointments');
-  return data;
+  const { data } = await client.get<{ appointments: AppointmentDto[]; totalCount: number }>('/api/v1/appointments');
+  return data.appointments;
 }
 
 export async function bookAppointment(payload: BookAppointmentPayload): Promise<{ appointmentId: string }> {

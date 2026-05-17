@@ -7,24 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Halen.IntegrationTests.Admin;
 
 [TestClass]
-public class AdminControllerTests
+public class AdminControllerTests : IntegrationTestBase
 {
-    private static HalenWebApplicationFactory _factory = null!;
-
-    [ClassInitialize]
-    public static async Task ClassInitialize(TestContext _)
-    {
-        _factory = new HalenWebApplicationFactory();
-        await _factory.StartAsync();
-    }
-
-    [ClassCleanup]
-    public static async Task ClassCleanup()
-    {
-        await _factory.StopAsync();
-        await _factory.DisposeAsync();
-    }
-
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static object ValidDoctorPayload(string suffix = "") => new
@@ -38,27 +22,6 @@ public class AdminControllerTests
         ConsultationFee   = 150.00m,
         YearsOfExperience = 10,
     };
-
-    private static async Task<HttpClient> AdminClientAsync() =>
-        await TestHelpers.GetBearerClientAsync(_factory, "admin@test.com", "Admin1234!");
-
-    private static async Task<HttpClient> PatientClientAsync()
-    {
-        // Register a fresh patient and return an authenticated client for them
-        var email    = $"patient+{Guid.NewGuid():N}@test.com";
-        var anon     = _factory.CreateClient();
-
-        await anon.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            FirstName = "Plain",
-            LastName  = "Patient",
-            Email     = email,
-            Password  = "Patient1234!",
-            Role      = (int)UserRole.Patient,
-        });
-
-        return await TestHelpers.GetBearerClientAsync(_factory, email, "Patient1234!");
-    }
 
     // ── Tests ─────────────────────────────────────────────────────────────────
 
@@ -91,7 +54,7 @@ public class AdminControllerTests
     [TestMethod]
     public async Task CreateDoctor_WithoutAuth_Returns401()
     {
-        var client  = _factory.CreateClient();
+        var client  = Factory.CreateClient();
         var payload = ValidDoctorPayload();
 
         var response = await client.PostAsJsonAsync("/api/v1/admin/doctors", payload);
@@ -158,7 +121,7 @@ public class AdminControllerTests
         var admin = await AdminClientAsync();
 
         // Register a patient with a known name
-        var anon = _factory.CreateClient();
+        var anon = Factory.CreateClient();
         var uniqueName = $"Zara{Guid.NewGuid():N}"[..10];
         await anon.PostAsJsonAsync("/api/v1/auth/register", new
         {
@@ -190,7 +153,7 @@ public class AdminControllerTests
     [TestMethod]
     public async Task ListUsers_WithoutAuth_Returns401()
     {
-        var client = _factory.CreateClient();
+        var client = Factory.CreateClient();
 
         var response = await client.GetAsync("/api/v1/admin/users");
 
@@ -198,8 +161,6 @@ public class AdminControllerTests
     }
 
     // ── Response DTOs ─────────────────────────────────────────────────────────
-
-    private sealed record DoctorIdResponse(Guid DoctorId);
 
     private sealed record AdminUserResponse(
         Guid Id,

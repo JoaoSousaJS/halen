@@ -1,15 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fakeJwt } from './helpers';
-
-const patientToken = fakeJwt({
-  sub: '1',
-  email: 'patient@test.com',
-  given_name: 'Maya',
-  family_name: 'Chen',
-  role: 'Patient',
-  clinic_id: 'c-001',
-  exp: 9_999_999_999,
-});
+import { fakeJwt, PATIENT_TOKEN, mockBaseRoutes } from './helpers';
 
 test.describe('Login', () => {
   test('renders brand and form fields', async ({ page }) => {
@@ -21,22 +11,10 @@ test.describe('Login', () => {
   });
 
   test('navigates to patient dashboard after successful login', async ({ page }) => {
-    await page.route('**/hubs/**', (route) => route.abort());
     await page.route('**/api/v1/auth/login', (route) =>
-      route.fulfill({ status: 200, json: { token: patientToken } }),
+      route.fulfill({ status: 200, json: { token: PATIENT_TOKEN } }),
     );
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }] }),
-    );
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/appointments', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/prescriptions', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
+    await mockBaseRoutes(page);
 
     await page.goto('/login');
     await page.fill('input[type="email"]', 'patient@test.com');
@@ -71,7 +49,6 @@ test.describe('Register', () => {
   });
 
   test('navigates to patient dashboard after successful registration', async ({ page }) => {
-    await page.route('**/hubs/**', (route) => route.abort());
     const token = fakeJwt({
       sub: '2',
       email: 'new@test.com',
@@ -85,18 +62,7 @@ test.describe('Register', () => {
     await page.route('**/api/v1/auth/register', (route) =>
       route.fulfill({ status: 200, json: { token } }),
     );
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }] }),
-    );
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/appointments', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/prescriptions', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
+    await mockBaseRoutes(page);
 
     await page.goto('/register');
     await page.fill('input[placeholder="Maya"]', 'New');

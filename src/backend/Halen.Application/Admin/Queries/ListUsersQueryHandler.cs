@@ -25,11 +25,11 @@ public class ListUsersQueryHandler(IAppDbContext db)
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var term = request.Search.Trim().ToLower();
+            var term = request.Search.Trim();
             query = query.Where(u =>
-                u.FirstName.ToLower().Contains(term) ||
-                u.LastName.ToLower().Contains(term) ||
-                (u.Email != null && u.Email.ToLower().Contains(term)));
+                EF.Functions.ILike(u.FirstName, $"%{term}%") ||
+                EF.Functions.ILike(u.LastName, $"%{term}%") ||
+                (u.Email != null && EF.Functions.ILike(u.Email, $"%{term}%")));
         }
 
         if (request.FlaggedOnly)

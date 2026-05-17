@@ -91,8 +91,8 @@ export const WithAppointments: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/api/v1/appointments/doctors', () => HttpResponse.json(mockDoctors)),
-        http.get('*/api/v1/appointments', () => HttpResponse.json(mockAppointments)),
+        http.get('*/api/v1/appointments/doctors', () => HttpResponse.json({ doctors: mockDoctors, totalCount: mockDoctors.length })),
+        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: mockAppointments, totalCount: mockAppointments.length })),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json(mockPrescriptions)),
       ],
     },
@@ -103,8 +103,8 @@ export const Empty: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get('*/api/v1/appointments/doctors', () => HttpResponse.json(mockDoctors)),
-        http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/appointments/doctors', () => HttpResponse.json({ doctors: mockDoctors, totalCount: mockDoctors.length })),
+        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: [], totalCount: 0 })),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
       ],
     },

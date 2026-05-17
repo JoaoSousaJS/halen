@@ -13,8 +13,8 @@ public class ListClinicsQueryHandler(IAppDbContext db)
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var term = request.Search.Trim().ToLower();
-            query = query.Where(c => c.Name.ToLower().Contains(term) || c.Slug.ToLower().Contains(term));
+            var term = request.Search.Trim();
+            query = query.Where(c => EF.Functions.ILike(c.Name, $"%{term}%") || EF.Functions.ILike(c.Slug, $"%{term}%"));
         }
 
         var totalCount = await query.CountAsync(ct);

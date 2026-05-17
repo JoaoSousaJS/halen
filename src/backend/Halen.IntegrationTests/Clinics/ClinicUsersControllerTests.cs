@@ -8,42 +8,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Halen.IntegrationTests.Clinics;
 
 [TestClass]
-public class ClinicUsersControllerTests
+public class ClinicUsersControllerTests : IntegrationTestBase
 {
-    private static HalenWebApplicationFactory _factory = null!;
-
-    [ClassInitialize]
-    public static async Task ClassInitialize(TestContext _)
-    {
-        _factory = new HalenWebApplicationFactory();
-        await _factory.StartAsync();
-    }
-
-    [ClassCleanup]
-    public static async Task ClassCleanup()
-    {
-        await _factory.StopAsync();
-        await _factory.DisposeAsync();
-    }
-
-    private static async Task<HttpClient> AdminClientAsync() =>
-        await TestHelpers.GetBearerClientAsync(_factory, "admin@test.com", "Admin1234!");
-
-    private static async Task<HttpClient> PatientClientAsync()
-    {
-        var email = $"patient+{Guid.NewGuid():N}@test.com";
-        var anon = _factory.CreateClient();
-        await anon.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            FirstName = "Test",
-            LastName = "Patient",
-            Email = email,
-            Password = "Patient1234!",
-            Role = 0,
-        });
-        return await TestHelpers.GetBearerClientAsync(_factory, email, "Patient1234!");
-    }
-
     [TestMethod]
     public async Task CreateUser_AsAdmin_ReturnsCreated()
     {
@@ -115,7 +81,7 @@ public class ClinicUsersControllerTests
     {
         var clinicAdminEmail = $"cadmin+{Guid.NewGuid():N}@test.com";
 
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var userManager = scope.ServiceProvider
                 .GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<Halen.Domain.Entities.User>>();
@@ -138,7 +104,7 @@ public class ClinicUsersControllerTests
             await userManager.AddToRoleAsync(user, "ClinicAdmin");
         }
 
-        var client = await TestHelpers.GetBearerClientAsync(_factory, clinicAdminEmail, "Admin1234!");
+        var client = await TestHelpers.GetBearerClientAsync(Factory, clinicAdminEmail, "Admin1234!");
 
         var response = await client.PostAsJsonAsync("/api/v1/clinic/users", new
         {

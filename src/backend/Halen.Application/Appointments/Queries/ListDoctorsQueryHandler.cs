@@ -11,8 +11,16 @@ public class ListDoctorsQueryHandler(
 {
     public async Task<ListDoctorsResult> Handle(ListDoctorsQuery request, CancellationToken ct)
     {
-        var doctors = await db.DoctorProfiles
-            .Where(d => d.KycStatus == KycStatus.Approved && d.User.Status == AccountStatus.Active)
+        var query = db.DoctorProfiles
+            .AsNoTracking()
+            .Where(d => d.KycStatus == KycStatus.Approved && d.User.Status == AccountStatus.Active);
+
+        var totalCount = await query.CountAsync(ct);
+
+        var doctors = await query
+            .OrderBy(d => d.User.LastName)
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
             .Select(d => new DoctorDto(
                 d.Id,
                 $"{d.User.FirstName} {d.User.LastName}",
@@ -22,6 +30,6 @@ public class ListDoctorsQueryHandler(
             ))
             .ToListAsync(ct);
 
-        return new ListDoctorsResult(doctors);
+        return new ListDoctorsResult(doctors, totalCount);
     }
 }

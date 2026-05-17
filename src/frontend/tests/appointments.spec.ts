@@ -1,25 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fakeJwt } from './helpers';
-
-const patientToken = fakeJwt({
-  sub: '1',
-  email: 'patient@test.com',
-  given_name: 'Maya',
-  family_name: 'Chen',
-  role: 'Patient',
-  clinic_id: 'c-001',
-  exp: 9_999_999_999,
-});
-
-const doctorToken = fakeJwt({
-  sub: '2',
-  email: 'doctor@test.com',
-  given_name: 'Gregory',
-  family_name: 'House',
-  role: 'Doctor',
-  clinic_id: 'c-001',
-  exp: 9_999_999_999,
-});
+import { PATIENT_TOKEN, DOCTOR_TOKEN, loginAs, mockBaseRoutes, mockDoctorRoutes } from './helpers';
 
 const mockDoctors = [
   { id: 'doc-1', name: 'Dr. House', specialty: 'Diagnostics', consultationFee: 150, yearsOfExperience: 20 },
@@ -41,43 +21,15 @@ const mockAppointments = [
   },
 ];
 
-async function loginAsPatient(page: import('@playwright/test').Page) {
-  await page.addInitScript((token: string) => {
-    localStorage.setItem('token', token);
-  }, patientToken);
-}
-
-async function loginAsDoctor(page: import('@playwright/test').Page) {
-  await page.addInitScript((token: string) => {
-    localStorage.setItem('token', token);
-  }, doctorToken);
-}
-
 // ── Patient Dashboard ─────────────────────────────────────────────────────
 
 test.describe('Patient Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsPatient(page);
-    await page.route('**/hubs/**', (route) => route.abort());
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }] }),
-    );
-    await page.route('**/api/v1/prescriptions', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
+    await loginAs(page, PATIENT_TOKEN);
+    await mockBaseRoutes(page, { doctors: mockDoctors });
   });
 
   test('shows booking form with doctor selector', async ({ page }) => {
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: mockDoctors }),
-    );
-    await page.route('**/api/v1/appointments', (route) => {
-      if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, json: [] });
-      }
-      return route.continue();
-    });
-
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
     await expect(page.locator('select')).toBeVisible();
@@ -85,17 +37,11 @@ test.describe('Patient Dashboard — Appointments', () => {
   });
 
   test('books an appointment successfully', async ({ page }) => {
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: mockDoctors }),
-    );
     await page.route('**/api/v1/appointments', (route) => {
-      if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, json: [] });
-      }
       if (route.request().method() === 'POST') {
         return route.fulfill({ status: 201, json: { appointmentId: 'new-appt-1' } });
       }
-      return route.continue();
+      return route.fallback();
     });
 
     await page.goto('/dashboard');
@@ -109,17 +55,11 @@ test.describe('Patient Dashboard — Appointments', () => {
   });
 
   test('shows booking error on conflict', async ({ page }) => {
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: mockDoctors }),
-    );
     await page.route('**/api/v1/appointments', (route) => {
-      if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, json: [] });
-      }
       if (route.request().method() === 'POST') {
         return route.fulfill({ status: 400, json: { error: 'This time slot is not available' } });
       }
-      return route.continue();
+      return route.fallback();
     });
 
     await page.goto('/dashboard');
@@ -133,14 +73,12 @@ test.describe('Patient Dashboard — Appointments', () => {
   });
 
   test('displays existing appointments', async ({ page }) => {
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: mockDoctors }),
-    );
     await page.route('**/api/v1/appointments', (route) => {
+      if (route.request().url().includes('/appointments/')) return route.fallback();
       if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, json: mockAppointments });
+        return route.fulfill({ status: 200, json: { appointments: mockAppointments, totalCount: mockAppointments.length } });
       }
-      return route.continue();
+      return route.fallback();
     });
 
     await page.goto('/dashboard');
@@ -151,23 +89,20 @@ test.describe('Patient Dashboard — Appointments', () => {
   });
 
   test('cancels an appointment', async ({ page }) => {
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: mockDoctors }),
-    );
-
     let getCalls = 0;
     await page.route('**/api/v1/appointments', (route) => {
+      if (route.request().url().includes('/appointments/')) return route.fallback();
       if (route.request().method() === 'GET') {
         getCalls++;
         if (getCalls === 1) {
-          return route.fulfill({ status: 200, json: mockAppointments });
+          return route.fulfill({ status: 200, json: { appointments: mockAppointments, totalCount: mockAppointments.length } });
         }
         return route.fulfill({
           status: 200,
-          json: [{ ...mockAppointments[0], status: 'Cancelled' }],
+          json: { appointments: [{ ...mockAppointments[0], status: 'Cancelled' }], totalCount: 1 },
         });
       }
-      return route.continue();
+      return route.fallback();
     });
     await page.route('**/api/v1/appointments/appt-1/cancel', (route) =>
       route.fulfill({ status: 200 }),
@@ -184,23 +119,20 @@ test.describe('Patient Dashboard — Appointments', () => {
 
 test.describe('Doctor Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
-    await loginAsDoctor(page);
-    await page.route('**/hubs/**', (route) => route.abort());
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }, { featureKey: 'kyc', isEnabled: true }] }),
-    );
-    await page.route('**/api/v1/doctor/kyc/status', (route) =>
-      route.fulfill({ status: 200, json: { status: 'Approved', submittedAt: null, lastRejectionReason: null, documents: [] } }),
-    );
-    await page.route('**/api/v1/prescriptions', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
+    await loginAs(page, DOCTOR_TOKEN);
+    await mockBaseRoutes(page, {
+      features: [
+        { featureKey: 'prescriptions', isEnabled: true },
+        { featureKey: 'kyc', isEnabled: true },
+      ],
+    });
+    await mockDoctorRoutes(page);
   });
 
   test('shows doctor schedule', async ({ page }) => {
     await page.route('**/api/v1/appointments', (route) => {
       if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, json: mockAppointments });
+        return route.fulfill({ status: 200, json: { appointments: mockAppointments, totalCount: mockAppointments.length } });
       }
       return route.continue();
     });
@@ -217,11 +149,11 @@ test.describe('Doctor Dashboard — Appointments', () => {
       if (route.request().method() === 'GET') {
         getCalls++;
         if (getCalls === 1) {
-          return route.fulfill({ status: 200, json: mockAppointments });
+          return route.fulfill({ status: 200, json: { appointments: mockAppointments, totalCount: mockAppointments.length } });
         }
         return route.fulfill({
           status: 200,
-          json: [{ ...mockAppointments[0], status: 'Completed', notes: 'Patient is fine' }],
+          json: { appointments: [{ ...mockAppointments[0], status: 'Completed', notes: 'Patient is fine' }], totalCount: 1 },
         });
       }
       return route.continue();
@@ -239,13 +171,6 @@ test.describe('Doctor Dashboard — Appointments', () => {
   });
 
   test('shows empty state when no appointments', async ({ page }) => {
-    await page.route('**/api/v1/appointments', (route) => {
-      if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, json: [] });
-      }
-      return route.continue();
-    });
-
     await page.goto('/dashboard');
     await expect(page.getByText('No appointments yet')).toBeVisible();
   });

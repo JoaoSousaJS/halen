@@ -30,6 +30,9 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
     {
         base.OnModelCreating(builder);
 
+        // ── PostgreSQL extensions ────────────────────────────────────────────
+        builder.HasPostgresExtension("pg_trgm");
+
         // ── Tenant query filters ─────────────────────────────────────────────
         // EF Core evaluates these per-query using the current service scope.
         // PlatformAdmin bypasses filters automatically.
@@ -48,6 +51,9 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(c => c.Name).HasMaxLength(200).IsRequired();
             e.Property(c => c.Slug).HasMaxLength(100).IsRequired();
             e.HasIndex(c => c.Slug).IsUnique();
+            e.HasIndex(c => c.Name)
+                .HasMethod("gin")
+                .HasOperators("gin_trgm_ops");
         });
 
         // ── ClinicFeatureFlag ────────────────────────────────────────────────
@@ -73,6 +79,12 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.HasIndex(u => u.ClinicId);
             e.HasIndex(u => u.Role);
             e.HasIndex(u => new { u.IsFlagged, u.LastLoginAt });
+            e.HasIndex(u => u.FirstName)
+                .HasMethod("gin")
+                .HasOperators("gin_trgm_ops");
+            e.HasIndex(u => u.LastName)
+                .HasMethod("gin")
+                .HasOperators("gin_trgm_ops");
         });
 
         // ── Appointment ──────────────────────────────────────────────────────
@@ -81,6 +93,8 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.HasOne(a => a.Clinic).WithMany().HasForeignKey(a => a.ClinicId);
             e.HasIndex(a => new { a.ClinicId, a.DoctorId, a.Status, a.ScheduledAt });
             e.HasIndex(a => new { a.ClinicId, a.PatientId });
+            e.Property(a => a.Reason).HasMaxLength(500);
+            e.Property(a => a.Notes).HasMaxLength(2000);
         });
 
         // ── Prescription ─────────────────────────────────────────────────────
@@ -89,6 +103,10 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.HasOne(p => p.Clinic).WithMany().HasForeignKey(p => p.ClinicId);
             e.HasIndex(p => new { p.ClinicId, p.DoctorId, p.Status });
             e.HasIndex(p => new { p.ClinicId, p.PatientId, p.Status });
+            e.Property(p => p.DrugName).HasMaxLength(200);
+            e.Property(p => p.Dosage).HasMaxLength(100);
+            e.Property(p => p.Frequency).HasMaxLength(100);
+            e.Property(p => p.PharmacyName).HasMaxLength(200);
         });
 
         // ── AuditLog ─────────────────────────────────────────────────────────
@@ -96,7 +114,8 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         {
             e.HasOne(a => a.Clinic).WithMany().HasForeignKey(a => a.ClinicId);
             e.HasIndex(a => new { a.ClinicId, a.ActorId });
-            e.HasIndex(a => a.CreatedAt);
+            e.HasIndex(a => new { a.ClinicId, a.CreatedAt });
+            e.Property(a => a.Action).HasMaxLength(100);
         });
 
         // ── DoctorProfile ────────────────────────────────────────────────────
@@ -106,6 +125,10 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(d => d.Languages).HasColumnType("text[]");
             e.HasIndex(d => d.LicenseNumber).IsUnique();
             e.Property(d => d.KycStatus).HasConversion<string>().HasDefaultValue(KycStatus.NotSubmitted);
+            e.Property(d => d.ConsultationFee).HasPrecision(10, 2);
+            e.Property(d => d.Specialty).HasMaxLength(100);
+            e.Property(d => d.LicenseNumber).HasMaxLength(50);
+            e.HasIndex(d => d.KycStatus);
         });
 
         // ── PatientProfile ───────────────────────────────────────────────────

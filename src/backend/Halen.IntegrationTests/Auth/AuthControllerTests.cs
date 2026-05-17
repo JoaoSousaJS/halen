@@ -7,27 +7,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Halen.IntegrationTests.Auth;
 
 [TestClass]
-public class AuthControllerTests
+public class AuthControllerTests : IntegrationTestBase
 {
-    private static HalenWebApplicationFactory _factory = null!;
-    private static HttpClient _client = null!;
-
-    [ClassInitialize]
-    public static async Task ClassInitialize(TestContext _)
-    {
-        _factory = new HalenWebApplicationFactory();
-        await _factory.StartAsync();
-        _client = _factory.CreateClient();
-    }
-
-    [ClassCleanup]
-    public static async Task ClassCleanup()
-    {
-        _client.Dispose();
-        await _factory.StopAsync();
-        await _factory.DisposeAsync();
-    }
-
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static object ValidPatientPayload(string email = "patient@test.com") => new
@@ -44,8 +25,9 @@ public class AuthControllerTests
     [TestMethod]
     public async Task Register_WithValidPatient_Returns200WithToken()
     {
+        var client = Factory.CreateClient();
         var uniqueEmail = $"patient+{Guid.NewGuid():N}@test.com";
-        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", ValidPatientPayload(uniqueEmail));
+        var response = await client.PostAsJsonAsync("/api/v1/auth/register", ValidPatientPayload(uniqueEmail));
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -57,21 +39,23 @@ public class AuthControllerTests
     [TestMethod]
     public async Task Register_WithDuplicateEmail_Returns400()
     {
+        var client = Factory.CreateClient();
         var email = $"dupe+{Guid.NewGuid():N}@test.com";
         var payload = ValidPatientPayload(email);
 
         // First registration should succeed
-        var first = await _client.PostAsJsonAsync("/api/v1/auth/register", payload);
+        var first = await client.PostAsJsonAsync("/api/v1/auth/register", payload);
         first.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Second registration with same email should fail
-        var second = await _client.PostAsJsonAsync("/api/v1/auth/register", payload);
+        var second = await client.PostAsJsonAsync("/api/v1/auth/register", payload);
         second.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [TestMethod]
     public async Task Register_WithInvalidEmail_Returns400()
     {
+        var client = Factory.CreateClient();
         var payload = new
         {
             FirstName = "Bad",
@@ -81,7 +65,7 @@ public class AuthControllerTests
             Role      = (int)UserRole.Patient,
         };
 
-        var response = await _client.PostAsJsonAsync("/api/v1/auth/register", payload);
+        var response = await client.PostAsJsonAsync("/api/v1/auth/register", payload);
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
@@ -93,12 +77,13 @@ public class AuthControllerTests
     [TestMethod]
     public async Task Login_WithValidCredentials_Returns200WithToken()
     {
+        var client = Factory.CreateClient();
         var email = $"login+{Guid.NewGuid():N}@test.com";
 
         // Register first
-        await _client.PostAsJsonAsync("/api/v1/auth/register", ValidPatientPayload(email));
+        await client.PostAsJsonAsync("/api/v1/auth/register", ValidPatientPayload(email));
 
-        var response = await _client.PostAsJsonAsync("/api/v1/auth/login", new
+        var response = await client.PostAsJsonAsync("/api/v1/auth/login", new
         {
             Email    = email,
             Password = "Patient1234!",
@@ -114,12 +99,13 @@ public class AuthControllerTests
     [TestMethod]
     public async Task Login_WithWrongPassword_Returns401()
     {
+        var client = Factory.CreateClient();
         var email = $"wrongpwd+{Guid.NewGuid():N}@test.com";
 
         // Register first
-        await _client.PostAsJsonAsync("/api/v1/auth/register", ValidPatientPayload(email));
+        await client.PostAsJsonAsync("/api/v1/auth/register", ValidPatientPayload(email));
 
-        var response = await _client.PostAsJsonAsync("/api/v1/auth/login", new
+        var response = await client.PostAsJsonAsync("/api/v1/auth/login", new
         {
             Email    = email,
             Password = "WrongPassword999!",
@@ -131,7 +117,8 @@ public class AuthControllerTests
     [TestMethod]
     public async Task Login_WithNonExistentUser_Returns401()
     {
-        var response = await _client.PostAsJsonAsync("/api/v1/auth/login", new
+        var client = Factory.CreateClient();
+        var response = await client.PostAsJsonAsync("/api/v1/auth/login", new
         {
             Email    = "nobody@nothere.com",
             Password = "Whatever123!",

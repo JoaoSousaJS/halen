@@ -9,49 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Halen.IntegrationTests.Kyc;
 
 [TestClass]
-public class KycControllerTests
+public class KycControllerTests : IntegrationTestBase
 {
-    private static HalenWebApplicationFactory _factory = null!;
-
-    [ClassInitialize]
-    public static async Task ClassInitialize(TestContext _)
-    {
-        _factory = new HalenWebApplicationFactory();
-        await _factory.StartAsync();
-    }
-
-    [ClassCleanup]
-    public static async Task ClassCleanup()
-    {
-        await _factory.StopAsync();
-        await _factory.DisposeAsync();
-    }
-
     // ── Helpers ──────────────────────────────────────────────────────────────
-
-    private static async Task<HttpClient> AdminClientAsync() =>
-        await TestHelpers.GetBearerClientAsync(_factory, "admin@test.com", "Admin1234!");
-
-    private static async Task<(Guid doctorProfileId, HttpClient client, string email)> CreateDoctorWithClientAsync()
-    {
-        var admin = await AdminClientAsync();
-        var email = $"doctor+{Guid.NewGuid():N}@test.com";
-        var response = await admin.PostAsJsonAsync("/api/v1/admin/doctors", new
-        {
-            FirstName = "Dr",
-            LastName = "Kyc",
-            Email = email,
-            Password = "Doctor1234!",
-            Specialty = "General",
-            LicenseNumber = $"LIC-{Guid.NewGuid().ToString("N")[..8]}",
-            ConsultationFee = 100.00m,
-            YearsOfExperience = 5,
-        });
-        response.EnsureSuccessStatusCode();
-        var body = await response.Content.ReadFromJsonAsync<DoctorIdResponse>();
-        var client = await TestHelpers.GetBearerClientAsync(_factory, email, "Doctor1234!");
-        return (body!.DoctorId, client, email);
-    }
 
     private static MultipartFormDataContent CreateKycFormData()
     {
@@ -84,7 +44,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task GetKycStatus_NewDoctor_ReturnsNotSubmitted()
     {
-        var (_, doctor, _) = await CreateDoctorWithClientAsync();
+        var (_, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
 
         var response = await doctor.GetAsync("/api/v1/doctor/kyc/status");
 
@@ -97,7 +57,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task GetKycStatus_WithoutAuth_Returns401()
     {
-        var anon = _factory.CreateClient();
+        var anon = Factory.CreateClient();
 
         var response = await anon.GetAsync("/api/v1/doctor/kyc/status");
 
@@ -107,15 +67,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task GetKycStatus_AsPatient_Returns403()
     {
-        var email = $"patient+{Guid.NewGuid():N}@test.com";
-        var anon = _factory.CreateClient();
-        await anon.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            FirstName = "Test", LastName = "Patient",
-            Email = email, Password = "Patient1234!",
-            Role = (int)UserRole.Patient,
-        });
-        var patient = await TestHelpers.GetBearerClientAsync(_factory, email, "Patient1234!");
+        var patient = await PatientClientAsync();
 
         var response = await patient.GetAsync("/api/v1/doctor/kyc/status");
 
@@ -127,7 +79,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task SubmitKyc_AsDoctor_Returns200AndSetsSubmitted()
     {
-        var (_, doctor, _) = await CreateDoctorWithClientAsync();
+        var (_, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
 
         using var form = CreateKycFormData();
         var response = await doctor.PostAsync("/api/v1/doctor/kyc/documents", form);
@@ -142,7 +94,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task SubmitKyc_Twice_Returns400()
     {
-        var (_, doctor, _) = await CreateDoctorWithClientAsync();
+        var (_, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         await SubmitKycAsync(doctor);
 
         using var form = CreateKycFormData();
@@ -154,7 +106,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task SubmitKyc_WithoutAuth_Returns401()
     {
-        var anon = _factory.CreateClient();
+        var anon = Factory.CreateClient();
 
         using var form = CreateKycFormData();
         var response = await anon.PostAsync("/api/v1/doctor/kyc/documents", form);
@@ -167,7 +119,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task GetKycDetails_AsAdmin_ReturnsDetails()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         await SubmitKycAsync(doctor);
         var admin = await AdminClientAsync();
 
@@ -194,7 +146,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task GetKycDetails_AsDoctor_Returns403()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
 
         var response = await doctor.GetAsync($"/api/v1/admin/doctors/{doctorId}/kyc");
 
@@ -206,7 +158,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task ReviewKyc_Approve_Returns200AndActivatesDoctor()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         await SubmitKycAsync(doctor);
         var admin = await AdminClientAsync();
 
@@ -216,7 +168,7 @@ public class KycControllerTests
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
         var profile = await db.DoctorProfiles.Include(d => d.User).FirstAsync(d => d.Id == doctorId);
         profile.KycStatus.Should().Be(KycStatus.Approved);
@@ -226,7 +178,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task ReviewKyc_Approve_DoctorSeesApprovedStatus()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         await SubmitKycAsync(doctor);
         var admin = await AdminClientAsync();
 
@@ -243,7 +195,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task ReviewKyc_Reject_Returns200AndSetsRejected()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         await SubmitKycAsync(doctor);
         var admin = await AdminClientAsync();
 
@@ -261,7 +213,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task ReviewKyc_RejectWithoutReason_Returns400()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         await SubmitKycAsync(doctor);
         var admin = await AdminClientAsync();
 
@@ -275,7 +227,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task ReviewKyc_AsDoctor_Returns403()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
 
         var response = await doctor.PostAsJsonAsync(
             $"/api/v1/admin/doctors/{doctorId}/kyc/review",
@@ -287,7 +239,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task ReviewKyc_DoctorNotSubmitted_Returns400()
     {
-        var (doctorId, _, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, _, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         var admin = await AdminClientAsync();
 
         var response = await admin.PostAsJsonAsync(
@@ -302,7 +254,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task Resubmit_AfterRejection_ClearsOldDocsAndSetsSubmitted()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         await SubmitKycAsync(doctor);
 
         var admin = await AdminClientAsync();
@@ -322,7 +274,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task DownloadDocument_AsAdmin_ReturnsFile()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
         await SubmitKycAsync(doctor);
 
         var admin = await AdminClientAsync();
@@ -351,7 +303,7 @@ public class KycControllerTests
     [TestMethod]
     public async Task FullFlow_CreateDoctor_SubmitKyc_Approve_CanBookAppointment()
     {
-        var (doctorId, doctor, _) = await CreateDoctorWithClientAsync();
+        var (doctorId, doctor, _) = await CreateDoctorWithClientAndEmailAsync("Kyc", approveKyc: false);
 
         var statusBefore = await doctor.GetFromJsonAsync<KycStatusResponse>("/api/v1/doctor/kyc/status");
         statusBefore!.Status.Should().Be("NotSubmitted");
@@ -369,15 +321,7 @@ public class KycControllerTests
         var statusApproved = await doctor.GetFromJsonAsync<KycStatusResponse>("/api/v1/doctor/kyc/status");
         statusApproved!.Status.Should().Be("Approved");
 
-        var patientEmail = $"patient+{Guid.NewGuid():N}@test.com";
-        var anon = _factory.CreateClient();
-        await anon.PostAsJsonAsync("/api/v1/auth/register", new
-        {
-            FirstName = "Test", LastName = "Patient",
-            Email = patientEmail, Password = "Patient1234!",
-            Role = (int)UserRole.Patient,
-        });
-        var patient = await TestHelpers.GetBearerClientAsync(_factory, patientEmail, "Patient1234!");
+        var patient = await PatientClientAsync();
 
         var bookResponse = await patient.PostAsJsonAsync("/api/v1/appointments", new
         {
@@ -389,8 +333,6 @@ public class KycControllerTests
     }
 
     // ── Response DTOs ────────────────────────────────────────────────────────
-
-    private sealed record DoctorIdResponse(Guid DoctorId);
 
     private sealed record KycStatusResponse(
         string Status,

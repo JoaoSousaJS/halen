@@ -8,7 +8,6 @@ using Halen.Domain.Entities;
 using Halen.Domain.Enums;
 using Halen.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -27,12 +26,7 @@ public class CancelPrescriptionCommandHandlerTests
     [TestInitialize]
     public async Task Initialize()
     {
-        var options = new DbContextOptionsBuilder<HalenDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-            .Options;
-
-        _db = new HalenDbContext(options, new TestTenantContext());
+        _db = TestDbFactory.Create();
 
         _doctorUserId = Guid.NewGuid();
         _patientUserId = Guid.NewGuid();

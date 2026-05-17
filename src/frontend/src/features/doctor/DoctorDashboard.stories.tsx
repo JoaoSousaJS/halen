@@ -144,7 +144,7 @@ export const WithSchedule: Story = {
     msw: {
       handlers: [
         http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycApproved)),
-        http.get('*/api/v1/appointments', () => HttpResponse.json(mockAppointments)),
+        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: mockAppointments, totalCount: mockAppointments.length })),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json(mockPrescriptions)),
       ],
     },
@@ -156,7 +156,7 @@ export const Empty: Story = {
     msw: {
       handlers: [
         http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycApproved)),
-        http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: [], totalCount: 0 })),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
       ],
     },
@@ -168,7 +168,7 @@ export const KycNotSubmitted: Story = {
     msw: {
       handlers: [
         http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycNotSubmitted)),
-        http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: [], totalCount: 0 })),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
       ],
     },
@@ -180,7 +180,7 @@ export const KycSubmitted: Story = {
     msw: {
       handlers: [
         http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycSubmitted)),
-        http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: [], totalCount: 0 })),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
       ],
     },
@@ -192,7 +192,7 @@ export const KycRejected: Story = {
     msw: {
       handlers: [
         http.get('*/api/v1/doctor/kyc/status', () => HttpResponse.json(kycRejected)),
-        http.get('*/api/v1/appointments', () => HttpResponse.json([])),
+        http.get('*/api/v1/appointments', () => HttpResponse.json({ appointments: [], totalCount: 0 })),
         http.get('*/api/v1/prescriptions', () => HttpResponse.json([])),
       ],
     },

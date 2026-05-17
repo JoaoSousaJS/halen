@@ -11,32 +11,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Halen.IntegrationTests.Clinics;
 
 [TestClass]
-public class MultiTenancyTests
+public class MultiTenancyTests : IntegrationTestBase
 {
-    private static HalenWebApplicationFactory _factory = null!;
-
-    [ClassInitialize]
-    public static async Task ClassInitialize(TestContext _)
-    {
-        _factory = new HalenWebApplicationFactory();
-        await _factory.StartAsync();
-    }
-
-    [ClassCleanup]
-    public static async Task ClassCleanup()
-    {
-        await _factory.StopAsync();
-        await _factory.DisposeAsync();
-    }
-
-    private static async Task<HttpClient> AdminClientAsync() =>
-        await TestHelpers.GetBearerClientAsync(_factory, "admin@test.com", "Admin1234!");
-
     private static async Task<(HttpClient Client, string Email)> CreateClinicPatientAsync(Guid clinicId)
     {
         var email = $"patient+{Guid.NewGuid():N}@test.com";
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
 
         var user = new User
@@ -67,7 +48,7 @@ public class MultiTenancyTests
         });
         await db.SaveChangesAsync();
 
-        var client = await TestHelpers.GetBearerClientAsync(_factory, email, "Patient1234!");
+        var client = await TestHelpers.GetBearerClientAsync(Factory, email, "Patient1234!");
         return (client, email);
     }
 
@@ -132,7 +113,7 @@ public class MultiTenancyTests
 
         // Seed an appointment in Clinic A so we have real data to prove filtering
         var appointmentId = Guid.NewGuid();
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
 
@@ -206,7 +187,7 @@ public class MultiTenancyTests
         });
         deactivateResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
         var user = await db.Users
             .IgnoreQueryFilters()

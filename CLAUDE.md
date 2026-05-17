@@ -58,6 +58,9 @@ cd src/backend && dotnet test
 Project-local skills in `.agents/skills/` — read them before writing code:
 - `dotnet-best-practices` — .NET 8 patterns and conventions
 - `vercel-react-best-practices` — React/TypeScript guidance
+- `supabase-postgres-best-practices` — Postgres query optimization, indexing, connection pooling, RLS
+- `kafka-realtime-dotnet` — Kafka consumer/producer patterns for .NET
+- `frontend-design` (plugin) — UI/UX design guidance for distinctive, production-grade interfaces
 - `code-reviewer` — 3-round structured review protocol (writes to `reviews/`)
 - `code-planner` — 3-round structured planning protocol (writes to `plans/`)
 
@@ -65,17 +68,18 @@ Project-local skills in `.agents/skills/` — read them before writing code:
 
 Every new feature must follow this sequence:
 
-1. **Read skills** — load `.agents/skills/dotnet-best-practices` and `.agents/skills/vercel-react-best-practices` before writing code
+1. **Read skills** — load `dotnet-best-practices`, `vercel-react-best-practices`, and `supabase-postgres-best-practices` before writing code. For Kafka features also load `kafka-realtime-dotnet`.
 2. **Plan** — run the 3-round planning protocol with the `code-planner` skill (writes to `plans/`)
 3. **Backend** — domain entities, CQRS commands/queries, validators, controller
 4. **Frontend** — API client types, React components, state management
-5. **Unit tests** — handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
-6. **Integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
-7. **Storybook stories** — component stories in `*.stories.tsx` co-located with components
-8. **Playwright e2e tests** — user flow tests in `src/frontend/e2e/`
-9. **Code review** — run the 3-round review protocol
+5. **Design** — use `frontend-design` skill to ensure UI components have polished, intentional aesthetics (not generic)
+6. **Unit tests** — handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
+7. **Integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
+8. **Storybook stories** — component stories in `*.stories.tsx` co-located with components
+9. **Playwright e2e tests** — user flow tests in `src/frontend/tests/`
+10. **Code review** — run the 3-round review protocol
 
-Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage. Code review (step 9) must only run after all previous steps (1–8) are complete.
+Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage. Code review (step 10) must only run after all previous steps (1–9) are complete.
 
 ## Review process
 
@@ -96,6 +100,16 @@ Use the code-planner skill for a 3-round structured plan:
 5. Round 3: Planner writes consolidated final plan
 
 Implementation begins only after the plan reaches "Status: Plan complete".
+
+## Parallel execution
+
+When performing independent work (backend tests, frontend tests, Playwright e2e, audits, refactors across different layers), always spawn parallel agents instead of running tasks sequentially. Examples:
+
+- Running backend unit tests + integration tests + frontend vitest + Playwright → 4 parallel agents
+- Implementing backend handler + frontend component when they don't depend on each other → parallel
+- Reviewing/auditing multiple independent files or layers → parallel
+
+Only serialize when one task's output is required as input for the next (e.g., backend API must exist before writing the frontend client that calls it).
 
 ## What's built (as of 2026-05-15)
 

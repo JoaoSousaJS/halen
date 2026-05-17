@@ -11,31 +11,17 @@ public class GetMyAppointmentsQueryHandler(
 {
     public async Task<GetMyAppointmentsResult> Handle(GetMyAppointmentsQuery request, CancellationToken ct)
     {
-        IQueryable<Domain.Entities.Appointment> query;
+        var query = request.UserRole == UserRole.Patient
+            ? db.Appointments.Where(a => a.Patient.UserId == request.UserId)
+            : db.Appointments.Where(a => a.Doctor.UserId == request.UserId);
 
-        if (request.UserRole == UserRole.Patient)
-        {
-            var profile = await db.PatientProfiles
-                .FirstOrDefaultAsync(p => p.UserId == request.UserId, ct);
-
-            if (profile is null)
-                return new GetMyAppointmentsResult([]);
-
-            query = db.Appointments.Where(a => a.PatientId == profile.Id);
-        }
-        else
-        {
-            var profile = await db.DoctorProfiles
-                .FirstOrDefaultAsync(d => d.UserId == request.UserId, ct);
-
-            if (profile is null)
-                return new GetMyAppointmentsResult([]);
-
-            query = db.Appointments.Where(a => a.DoctorId == profile.Id);
-        }
+        var totalCount = await query.CountAsync(ct);
 
         var appointments = await query
+            .AsNoTracking()
             .OrderByDescending(a => a.ScheduledAt)
+            .Skip((request.Page - 1) * request.PageSize)
+            .Take(request.PageSize)
             .Select(a => new AppointmentDto(
                 a.Id,
                 a.ScheduledAt,
@@ -51,6 +37,6 @@ public class GetMyAppointmentsQueryHandler(
             ))
             .ToListAsync(ct);
 
-        return new GetMyAppointmentsResult(appointments);
+        return new GetMyAppointmentsResult(appointments, totalCount);
     }
 }

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fakeJwt } from './helpers';
+import { fakeJwt, PATIENT_TOKEN, CLINIC_ADMIN_TOKEN, loginAs, mockBaseRoutes, mockAdminRoutes } from './helpers';
 
 const adminToken = fakeJwt({
   sub: 'a-001',
@@ -11,15 +11,6 @@ const adminToken = fakeJwt({
   exp: 9_999_999_999,
 });
 
-const patientToken = fakeJwt({
-  sub: 'p-001',
-  email: 'patient@test.com',
-  given_name: 'Maya',
-  family_name: 'Chen',
-  role: 'Patient',
-  exp: 9_999_999_999,
-});
-
 const mockUsers = [
   { id: 'd-022', name: 'Dr. Anika Volpe', role: 'Doctor', status: 'PendingReview', plan: null, lastLoginAt: new Date().toISOString(), isFlagged: true },
   { id: 'p-044', name: 'Wesley Tanaka', role: 'Patient', status: 'Active', plan: 'HALEN+', lastLoginAt: new Date().toISOString(), isFlagged: false },
@@ -27,14 +18,8 @@ const mockUsers = [
 
 test.describe('Admin Users Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, adminToken);
-
-    await page.route('**/hubs/**', (route) => route.abort());
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
+    await loginAs(page, adminToken);
+    await mockBaseRoutes(page, { features: [] });
     await page.route('**/api/v1/admin/users**', (route) => {
       const url = new URL(route.request().url());
       const role = url.searchParams.get('role');
@@ -84,17 +69,9 @@ test.describe('Admin Users Page', () => {
 
 test.describe('Admin Dashboard — tab navigation', () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, adminToken);
-
-    await page.route('**/hubs/**', (route) => route.abort());
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/admin/users**', (route) =>
-      route.fulfill({ status: 200, json: { users: mockUsers, totalCount: mockUsers.length } }),
-    );
+    await loginAs(page, adminToken);
+    await mockBaseRoutes(page, { features: [] });
+    await mockAdminRoutes(page, mockUsers);
     await page.route('**/api/v1/admin/doctors', (route) => {
       if (route.request().method() === 'POST') {
         return route.fulfill({ status: 200, json: { doctorId: 'd-new-001' } });
@@ -159,26 +136,8 @@ test.describe('Admin Dashboard — tab navigation', () => {
 
 test.describe('Admin Users — access control', () => {
   test('patient cannot see admin users page', async ({ page }) => {
-    await page.addInitScript((token: string) => {
-      localStorage.setItem('token', token);
-    }, patientToken);
-
-    await page.route('**/hubs/**', (route) => route.abort());
-    await page.route('**/api/v1/me/features', (route) =>
-      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }] }),
-    );
-    await page.route('**/api/v1/appointments/doctors', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
-    await page.route('**/api/v1/appointments', (route) => {
-      if (route.request().method() === 'GET') {
-        return route.fulfill({ status: 200, json: [] });
-      }
-      return route.continue();
-    });
-    await page.route('**/api/v1/prescriptions', (route) =>
-      route.fulfill({ status: 200, json: [] }),
-    );
+    await loginAs(page, PATIENT_TOKEN);
+    await mockBaseRoutes(page);
 
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();

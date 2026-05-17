@@ -6,6 +6,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Halen.IntegrationTests.Auth;
 
+/// <summary>
+/// Rate limit tests use a custom factory configuration (Auth limit = 3),
+/// so they manage their own factory lifecycle instead of inheriting IntegrationTestBase.
+/// </summary>
 [TestClass]
 public class RateLimitTests
 {

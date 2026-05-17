@@ -30,11 +30,11 @@ public class AppointmentsController(IMediator mediator) : HalenControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetMine(CancellationToken ct)
+    public async Task<IActionResult> GetMine([FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
     {
-        var query = new GetMyAppointmentsQuery(GetUserId(), GetUserRoleEnum());
+        var query = new GetMyAppointmentsQuery(GetUserId(), GetUserRoleEnum(), page, pageSize);
         var result = await mediator.Send(query, ct);
-        return Ok(result.Appointments);
+        return Ok(new { result.Appointments, result.TotalCount });
     }
 
     [HttpPost("{id:guid}/cancel")]
@@ -62,10 +62,10 @@ public class AppointmentsController(IMediator mediator) : HalenControllerBase
 
     [HttpGet("doctors")]
     [Authorize(Policy = "PatientOnly")]
-    public async Task<IActionResult> ListDoctors(CancellationToken ct)
+    public async Task<IActionResult> ListDoctors([FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
     {
-        var result = await mediator.Send(new ListDoctorsQuery(), ct);
-        return Ok(result.Doctors);
+        var result = await mediator.Send(new ListDoctorsQuery(page, pageSize), ct);
+        return Ok(new { result.Doctors, result.TotalCount });
     }
 
 }
