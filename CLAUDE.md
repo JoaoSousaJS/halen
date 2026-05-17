@@ -74,18 +74,17 @@ Project-local skills in `.agents/skills/` — read them before writing code:
 
 Every new feature must follow this sequence:
 
-1. **Read skills** — load `dotnet-best-practices`, `vercel-react-best-practices`, `supabase-postgres-best-practices`, and `using-superpowers` before writing code. For Kafka features also load `kafka-realtime-dotnet`. For AKS/infra work load `azure-kubernetes`.
+1. **Read skills** — load `dotnet-best-practices`, `vercel-react-best-practices`, `supabase-postgres-best-practices`, `test-driven-development`, and `using-superpowers` before writing code. For Kafka features also load `kafka-realtime-dotnet`. For AKS/infra work load `azure-kubernetes`.
 2. **Plan** — run the 3-round planning protocol with the `code-planner` skill (which also loads `brainstorming` + `using-superpowers`). Writes to `plans/`.
-3. **Backend** — domain entities, CQRS commands/queries, validators, controller
-4. **Frontend** — API client types, React components, state management
-5. **Design** — use `frontend-design` skill to build polished, intentional UI, then audit with `web-design-guidelines` to catch accessibility and consistency gaps
-6. **Unit tests** — load `test-driven-development`, then write handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
-7. **Integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
-8. **Storybook stories** — component stories in `*.stories.tsx` co-located with components
-9. **Playwright e2e tests** — load `playwright-best-practices`, then write user flow tests in `src/frontend/tests/`
-10. **Code review** — run the 3-round review protocol
+3. **Backend (TDD)** — write tests first (handler tests, validator tests in `Halen.UnitTests/`), then implement domain entities, CQRS commands/queries, validators, and controllers to make them pass. Follow red-green-refactor.
+4. **Backend integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
+5. **Frontend (TDD)** — write component tests first (Vitest + Testing Library), then implement API client types, React components, and state management to make them pass
+6. **Design** — use `frontend-design` skill to build polished, intentional UI, then audit with `web-design-guidelines` to catch accessibility and consistency gaps
+7. **Storybook stories** — component stories in `*.stories.tsx` co-located with components
+8. **Playwright e2e tests** — load `playwright-best-practices`, then write user flow tests in `src/frontend/tests/`
+9. **Code review** — run the 3-round review protocol
 
-Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage. Code review (step 10) must only run after all previous steps (1–9) are complete.
+Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage. Code review (step 9) must only run after all previous steps (1–8) are complete.
 
 When debugging failing tests or production issues, load `systematic-debugging` before investigating.
 
