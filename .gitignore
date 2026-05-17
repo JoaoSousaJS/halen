@@ -12,6 +12,7 @@ infra/.env
 # .NET build output
 **/bin/
 **/obj/
+TestResults/
 
 # Playwright
 playwright-report/

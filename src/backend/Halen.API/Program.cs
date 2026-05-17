@@ -208,6 +208,7 @@ app.UseAuthorization();
 app.UseMiddleware<FeatureFlagMiddleware>();
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapHub<ConsultationHub>("/hubs/consultation");
 
 using (var scope = app.Services.CreateScope())
 {
