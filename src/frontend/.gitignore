@@ -25,6 +25,7 @@ dist-ssr
 
 # Playwright
 test-results/
+test-debug/
 playwright-report/
 blob-report/
 .last-run.json
