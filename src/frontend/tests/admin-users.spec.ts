@@ -32,6 +32,9 @@ test.describe('Admin Users Page', () => {
     }, adminToken);
 
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/me/features', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
     await page.route('**/api/v1/admin/users**', (route) => {
       const url = new URL(route.request().url());
       const role = url.searchParams.get('role');
@@ -86,6 +89,9 @@ test.describe('Admin Dashboard — tab navigation', () => {
     }, adminToken);
 
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/me/features', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
     await page.route('**/api/v1/admin/users**', (route) =>
       route.fulfill({ status: 200, json: { users: mockUsers, totalCount: mockUsers.length } }),
     );
@@ -158,6 +164,9 @@ test.describe('Admin Users — access control', () => {
     }, patientToken);
 
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/me/features', (route) =>
+      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }] }),
+    );
     await page.route('**/api/v1/appointments/doctors', (route) =>
       route.fulfill({ status: 200, json: [] }),
     );

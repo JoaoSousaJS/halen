@@ -7,6 +7,7 @@ const doctorToken = fakeJwt({
   given_name: 'Anika',
   family_name: 'Volpe',
   role: 'Doctor',
+  clinic_id: 'c-001',
   exp: 9_999_999_999,
 });
 
@@ -15,7 +16,8 @@ const adminToken = fakeJwt({
   email: 'admin@test.com',
   given_name: 'Lior',
   family_name: 'Adler',
-  role: 'Admin',
+  role: 'ClinicAdmin',
+  clinic_id: 'c-001',
   exp: 9_999_999_999,
 });
 
@@ -76,6 +78,9 @@ const mockUsers = [
 function mockDoctorBase(page: import('@playwright/test').Page) {
   return Promise.all([
     page.route('**/hubs/**', (route) => route.abort()),
+    page.route('**/api/v1/me/features', (route) =>
+      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }, { featureKey: 'kyc', isEnabled: true }] }),
+    ),
     page.route('**/api/v1/appointments', (route) =>
       route.fulfill({ status: 200, json: [] }),
     ),
@@ -227,6 +232,9 @@ test.describe('Admin KYC Review', () => {
     }, adminToken);
 
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/me/features', (route) =>
+      route.fulfill({ status: 200, json: [] }),
+    );
     await page.route('**/api/v1/admin/users**', (route) =>
       route.fulfill({ status: 200, json: { users: mockUsers, totalCount: mockUsers.length } }),
     );

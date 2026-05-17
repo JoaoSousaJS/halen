@@ -7,6 +7,7 @@ const patientToken = fakeJwt({
   given_name: 'Maya',
   family_name: 'Chen',
   role: 'Patient',
+  clinic_id: 'c-001',
   exp: 9_999_999_999,
 });
 
@@ -16,6 +17,7 @@ const doctorToken = fakeJwt({
   given_name: 'Gregory',
   family_name: 'House',
   role: 'Doctor',
+  clinic_id: 'c-001',
   exp: 9_999_999_999,
 });
 
@@ -57,6 +59,9 @@ test.describe('Patient Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsPatient(page);
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/me/features', (route) =>
+      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }] }),
+    );
     await page.route('**/api/v1/prescriptions', (route) =>
       route.fulfill({ status: 200, json: [] }),
     );
@@ -181,6 +186,9 @@ test.describe('Doctor Dashboard — Appointments', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDoctor(page);
     await page.route('**/hubs/**', (route) => route.abort());
+    await page.route('**/api/v1/me/features', (route) =>
+      route.fulfill({ status: 200, json: [{ featureKey: 'prescriptions', isEnabled: true }, { featureKey: 'kyc', isEnabled: true }] }),
+    );
     await page.route('**/api/v1/doctor/kyc/status', (route) =>
       route.fulfill({ status: 200, json: { status: 'Approved', submittedAt: null, lastRejectionReason: null, documents: [] } }),
     );
