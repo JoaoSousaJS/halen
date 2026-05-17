@@ -205,9 +205,11 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
                 .HasForeignKey<ConsultationRoom>(r => r.AppointmentId);
             e.HasIndex(r => r.AppointmentId).IsUnique();
             e.HasIndex(r => new { r.ClinicId, r.Status });
+            e.HasIndex(r => r.RoomCode).IsUnique();
             e.Property(r => r.RoomCode).HasMaxLength(20).IsRequired();
             e.Property(r => r.Notes).HasMaxLength(5000);
             e.Property(r => r.Status).HasConversion<string>();
+            e.Property<uint>("xmin").IsRowVersion();
         });
 
         // ── Enum conversions (stored as strings) ─────────────────────────────

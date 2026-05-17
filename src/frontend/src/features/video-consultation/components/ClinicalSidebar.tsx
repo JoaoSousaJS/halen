@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { getInitials } from "../utils";
+import "../video-consultation.css";
 
 const TABS = ["Summary", "History", "Vitals", "Notes", "Rx", "Refer"] as const;
 type Tab = (typeof TABS)[number];
@@ -17,37 +19,23 @@ export function ClinicalSidebar({
   const [activeTab, setActiveTab] = useState<Tab>("Summary");
 
   return (
-    <aside
-      className="clinical-sidebar"
-      style={{
-        width: 400,
-        position: "fixed",
-        top: 0,
-        right: 0,
-        bottom: 0,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <header className="clinical-sidebar__header">
-        <span className="clinical-sidebar__patient-name">{patientName}</span>
-        <button
-          className="clinical-sidebar__close"
-          onClick={onClose}
-          aria-label="Close sidebar"
-        >
-          Close
+    <aside className="vc-sidebar">
+      <header className="vc-sidebar__header">
+        <div className="vc-sidebar__avatar">{getInitials(patientName)}</div>
+        <span>{patientName}</span>
+        <button onClick={onClose} aria-label="Close sidebar">
+          ✕
         </button>
       </header>
 
-      <div className="clinical-sidebar__tabs" role="tablist" aria-label="Clinical tabs">
+      <div className="vc-sidebar__tabs" role="tablist" aria-label="Clinical tabs">
         {TABS.map((tab) => (
           <button
             key={tab}
             role="tab"
             aria-label={tab}
             aria-selected={activeTab === tab}
-            className={`clinical-sidebar__tab${activeTab === tab ? " clinical-sidebar__tab--active" : ""}`}
+            className={activeTab === tab ? "vc-sidebar__tab--active" : undefined}
             onClick={() => setActiveTab(tab)}
           >
             {tab}
@@ -55,14 +43,14 @@ export function ClinicalSidebar({
         ))}
       </div>
 
-      <div className="clinical-sidebar__content" role="tabpanel">
+      <div className="vc-sidebar__content" role="tabpanel">
         {activeTab === "Summary" && <p>No conditions recorded</p>}
         {activeTab === "History" && <p>No previous consultations</p>}
         {activeTab === "Vitals" && <p>No vitals recorded</p>}
         {activeTab === "Notes" && (
           <textarea
             role="textbox"
-            className="clinical-sidebar__notes"
+            className="vc-sidebar__notes"
             value={notes}
             onChange={(e) => onUpdateNotes(e.target.value)}
           />

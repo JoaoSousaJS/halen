@@ -1,4 +1,6 @@
-import React from 'react';
+import { MicOffGlyph } from '../glyphs';
+import { getInitials } from '../utils';
+import '../video-consultation.css';
 
 function hashName(name: string): number {
   let hash = 0;
@@ -6,14 +8,6 @@ function hashName(name: string): number {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   return Math.abs(hash);
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word[0].toUpperCase())
-    .join('');
 }
 
 export function VideoTile({
@@ -32,39 +26,20 @@ export function VideoTile({
     <div
       className={`vc-tile vc-tile-${size}`}
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-        background: `linear-gradient(135deg, oklch(0.55 0.15 ${hue}), oklch(0.40 0.12 ${hue + 30}))`,
-        borderRadius: '8px',
-        color: '#fff',
-        fontSize: size === 'lg' ? '3rem' : size === 'sm' ? '1.5rem' : '1rem',
-        fontWeight: 600,
-        overflow: 'hidden',
+        background: `linear-gradient(135deg, oklch(0.28 0.07 ${hue}), oklch(0.18 0.05 ${hue + 30}))`,
       }}
     >
-      {initials}
+      <span className="vc-tile__initials" style={{ mixBlendMode: 'screen', opacity: 0.92 }}>
+        {initials}
+      </span>
+
       {isMuted && (
-        <span
-          aria-label="Muted"
-          style={{
-            position: 'absolute',
-            bottom: '8px',
-            right: '8px',
-            fontSize: '0.75rem',
-            background: 'rgba(0,0,0,0.6)',
-            borderRadius: '50%',
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          🔇
+        <span aria-label="Muted" className="vc-tile__muted">
+          <MicOffGlyph size={14} />
         </span>
       )}
+
+      <span className="vc-tile__label">{name}</span>
     </div>
   );
 }

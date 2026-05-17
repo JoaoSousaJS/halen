@@ -1,62 +1,42 @@
 using Halen.Application.Consultations.Commands;
-using Halen.Application.Interfaces;
-using Halen.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace Halen.API.Hubs;
 
 [Authorize]
 public class ConsultationHub(
     IMediator mediator,
-    IAppDbContext db,
     ILogger<ConsultationHub> logger
 ) : Hub
 {
     public async Task JoinRoom(Guid appointmentId)
     {
+        var ct = Context.ConnectionAborted;
         var userId = GetUserId();
         var role = GetUserRole();
+        var name = GetUserName();
 
-        var result = await mediator.Send(new StartConsultationCommand(userId, appointmentId));
+        var result = await mediator.Send(new StartConsultationCommand(userId, appointmentId), ct);
         if (!result.Success)
             throw new HubException(result.Error);
 
+        var joinResult = await mediator.Send(
+            new JoinConsultationRoomCommand(userId, appointmentId, role), ct);
+        if (!joinResult.Success)
+            throw new HubException(joinResult.Error);
+
         var groupName = $"consultation-{appointmentId}";
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName, ct);
 
-        var room = await db.ConsultationRooms
-            .Include(r => r.Appointment)
-            .FirstAsync(r => r.AppointmentId == appointmentId);
-
-        var user = await db.Users.FirstAsync(u => u.Id == userId);
-        var name = $"{user.FirstName} {user.LastName}";
-
-        if (role == "Doctor")
-            room.DoctorJoinedAt = DateTimeOffset.UtcNow;
-        else
-            room.PatientJoinedAt = DateTimeOffset.UtcNow;
-
-        if (room.DoctorJoinedAt is not null && room.PatientJoinedAt is not null
-            && room.Status == ConsultationRoomStatus.Waiting)
+        if (joinResult.ConsultationStarted)
         {
-            room.Status = ConsultationRoomStatus.Active;
-            room.StartedAt = DateTimeOffset.UtcNow;
-            room.Appointment!.Status = AppointmentStatus.InProgress;
-
-            await db.SaveChangesAsync();
-
             await Clients.Group(groupName).SendAsync("ConsultationStarted", new
             {
-                roomCode = room.RoomCode,
-                startedAt = room.StartedAt,
-            });
-        }
-        else
-        {
-            await db.SaveChangesAsync();
+                roomCode = joinResult.RoomCode,
+                startedAt = joinResult.StartedAt,
+            }, ct);
         }
 
         await Clients.Group(groupName).SendAsync("ParticipantJoined", new
@@ -64,7 +44,7 @@ public class ConsultationHub(
             name,
             role,
             joinedAt = DateTimeOffset.UtcNow,
-        });
+        }, ct);
 
         logger.LogInformation("{Role} {Name} joined consultation room for appointment {AppointmentId}",
             role, name, appointmentId);
@@ -72,73 +52,62 @@ public class ConsultationHub(
 
     public async Task LeaveRoom(Guid appointmentId)
     {
-        var userId = GetUserId();
+        var ct = Context.ConnectionAborted;
         var role = GetUserRole();
-
-        var room = await db.ConsultationRooms
-            .FirstOrDefaultAsync(r => r.AppointmentId == appointmentId);
-
-        if (room is not null)
-        {
-            if (role == "Doctor")
-                room.DoctorJoinedAt = null;
-            else
-                room.PatientJoinedAt = null;
-
-            await db.SaveChangesAsync();
-        }
+        var name = GetUserName();
 
         var groupName = $"consultation-{appointmentId}";
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName, ct);
 
-        var user = await db.Users.FirstAsync(u => u.Id == userId);
         await Clients.Group(groupName).SendAsync("ParticipantLeft", new
         {
-            name = $"{user.FirstName} {user.LastName}",
+            name,
             role,
-        });
+        }, ct);
     }
 
     public async Task SendChat(Guid appointmentId, string text)
     {
+        var ct = Context.ConnectionAborted;
         if (string.IsNullOrWhiteSpace(text) || text.Length > 1000)
             throw new HubException("Chat message must be between 1 and 1000 characters");
 
-        var userId = GetUserId();
         var role = GetUserRole();
-        var user = await db.Users.FirstAsync(u => u.Id == userId);
+        var name = GetUserName();
 
         await Clients.Group($"consultation-{appointmentId}").SendAsync("ReceiveChat", new
         {
-            from = $"{user.FirstName} {user.LastName}",
+            from = name,
             role,
             text,
             sentAt = DateTimeOffset.UtcNow,
-        });
+        }, ct);
     }
 
     public async Task UpdateNotes(Guid appointmentId, string notes)
     {
+        var ct = Context.ConnectionAborted;
         var role = GetUserRole();
         if (role != "Doctor")
             throw new HubException("Only doctors can update notes");
 
         var userId = GetUserId();
-        var result = await mediator.Send(new SaveConsultationNotesCommand(userId, appointmentId, notes));
+        var result = await mediator.Send(new SaveConsultationNotesCommand(userId, appointmentId, notes), ct);
         if (!result.Success)
             throw new HubException(result.Error);
 
-        await Clients.Caller.SendAsync("NotesUpdated", new { notes });
+        await Clients.Caller.SendAsync("NotesUpdated", new { notes }, ct);
     }
 
     public async Task EndConsultation(Guid appointmentId, string? notes)
     {
+        var ct = Context.ConnectionAborted;
         var role = GetUserRole();
         if (role != "Doctor")
             throw new HubException("Only doctors can end consultations");
 
         var userId = GetUserId();
-        var result = await mediator.Send(new EndConsultationCommand(userId, appointmentId, notes));
+        var result = await mediator.Send(new EndConsultationCommand(userId, appointmentId, notes), ct);
         if (!result.Success)
             throw new HubException(result.Error);
 
@@ -147,7 +116,7 @@ public class ConsultationHub(
             endedAt = result.EndedAt,
             notes,
             appointmentId,
-        });
+        }, ct);
     }
 
     private Guid GetUserId()
@@ -163,5 +132,12 @@ public class ConsultationHub(
     {
         return Context.User?.FindFirst("role")?.Value
             ?? throw new HubException("Missing role claim");
+    }
+
+    private string GetUserName()
+    {
+        var given = Context.User?.FindFirst("given_name")?.Value ?? "";
+        var family = Context.User?.FindFirst("family_name")?.Value ?? "";
+        return $"{given} {family}".Trim();
     }
 }

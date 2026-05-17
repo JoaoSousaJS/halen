@@ -13,6 +13,7 @@ export interface ConsultationState {
   chatMessages: { from: string; role: string; text: string; sentAt: string }[];
   notes: string;
   elapsedSeconds: number;
+  error: string | null;
   localControls: {
     mic: boolean;
     cam: boolean;
@@ -28,6 +29,7 @@ const initialState: ConsultationState = {
   chatMessages: [],
   notes: '',
   elapsedSeconds: 0,
+  error: null,
   localControls: {
     mic: true,
     cam: true,
@@ -40,7 +42,10 @@ export function useConsultation(appointmentId: string, token: string | null) {
   const [state, setState] = useState<ConsultationState>(initialState);
   const connectionRef = useRef<HubConnection | null>(null);
 
-  // Build and start the SignalR connection when token is available
+  const setError = (msg: string) => {
+    setState((prev) => ({ ...prev, error: msg }));
+  };
+
   useEffect(() => {
     if (!token) return;
 
@@ -116,10 +121,14 @@ export function useConsultation(appointmentId: string, token: string | null) {
     connection
       .start()
       .then(() => {
-        setState((prev) => ({ ...prev, phase: 'lobby' }));
+        setState((prev) => ({ ...prev, phase: 'lobby', error: null }));
       })
       .catch(() => {
-        setState((prev) => ({ ...prev, phase: 'idle' }));
+        setState((prev) => ({
+          ...prev,
+          phase: 'idle',
+          error: 'Failed to connect to consultation. Please try again.',
+        }));
       });
 
     return () => {
@@ -128,7 +137,6 @@ export function useConsultation(appointmentId: string, token: string | null) {
     };
   }, [token]);
 
-  // Elapsed-seconds timer while phase === 'active'
   useEffect(() => {
     if (state.phase !== 'active') return;
 
@@ -139,37 +147,35 @@ export function useConsultation(appointmentId: string, token: string | null) {
     return () => clearInterval(interval);
   }, [state.phase]);
 
-  // --- Actions ---
-
   const joinRoom = useCallback(() => {
     const conn = connectionRef.current;
     if (conn && conn.state === HubConnectionState.Connected) {
-      conn.invoke('JoinRoom', appointmentId);
+      conn.invoke('JoinRoom', appointmentId).catch(() => setError('Failed to join room.'));
     }
   }, [appointmentId]);
 
   const sendChat = useCallback((text: string) => {
     const conn = connectionRef.current;
     if (conn && conn.state === HubConnectionState.Connected) {
-      conn.invoke('SendChat', text);
+      conn.invoke('SendChat', appointmentId, text).catch(() => setError('Failed to send message.'));
     }
-  }, []);
+  }, [appointmentId]);
 
   const updateNotes = useCallback((notes: string) => {
     const conn = connectionRef.current;
     if (conn && conn.state === HubConnectionState.Connected) {
-      conn.invoke('UpdateNotes', notes);
+      conn.invoke('UpdateNotes', appointmentId, notes).catch(() => setError('Failed to update notes.'));
     }
-  }, []);
+  }, [appointmentId]);
 
   const endConsultation = useCallback(() => {
     const conn = connectionRef.current;
     if (conn && conn.state === HubConnectionState.Connected) {
-      conn.invoke('EndConsultation');
+      conn
+        .invoke('EndConsultation', appointmentId, null)
+        .catch(() => setError('Failed to end consultation.'));
     }
-  }, []);
-
-  // --- Toggle functions ---
+  }, [appointmentId]);
 
   const toggleMic = useCallback(() => {
     setState((prev) => ({

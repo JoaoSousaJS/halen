@@ -25,7 +25,7 @@ public class ConsultationHubTests : IntegrationTestBase
         var response = await patient.PostAsJsonAsync("/api/v1/appointments", new
         {
             DoctorId = doctorId,
-            ScheduledAt = DateTime.UtcNow.AddDays(1),
+            ScheduledAt = DateTime.UtcNow.Date.AddDays(1).AddHours(10),
             Reason = "Hub test",
         });
         response.EnsureSuccessStatusCode();

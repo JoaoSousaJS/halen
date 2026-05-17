@@ -16,6 +16,7 @@ describe('ControlPill', () => {
       <ControlPill
         role="Patient"
         controls={defaultControls}
+        elapsedSeconds={0}
         onToggleMic={vi.fn()}
         onToggleCam={vi.fn()}
         onToggleChat={vi.fn()}
@@ -34,6 +35,7 @@ describe('ControlPill', () => {
       <ControlPill
         role="Patient"
         controls={defaultControls}
+        elapsedSeconds={0}
         onToggleMic={vi.fn()}
         onToggleCam={vi.fn()}
         onToggleChat={vi.fn()}
@@ -51,6 +53,7 @@ describe('ControlPill', () => {
       <ControlPill
         role="Doctor"
         controls={defaultControls}
+        elapsedSeconds={0}
         onToggleMic={vi.fn()}
         onToggleCam={vi.fn()}
         onToggleChat={vi.fn()}
@@ -71,6 +74,7 @@ describe('ControlPill', () => {
       <ControlPill
         role="Doctor"
         controls={defaultControls}
+        elapsedSeconds={0}
         onToggleMic={onToggleMic}
         onToggleCam={vi.fn()}
         onToggleChat={vi.fn()}
@@ -88,6 +92,7 @@ describe('ControlPill', () => {
       <ControlPill
         role="Doctor"
         controls={{ ...defaultControls, mic: false, chatOpen: true }}
+        elapsedSeconds={0}
         onToggleMic={vi.fn()}
         onToggleCam={vi.fn()}
         onToggleChat={vi.fn()}

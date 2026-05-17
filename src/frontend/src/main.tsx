@@ -10,6 +10,7 @@ import DashboardPage from './features/auth/DashboardPage';
 import './index.css';
 
 const ProfilePage = lazy(() => import('./features/profile/ProfilePage'));
+const ConsultationPage = lazy(() => import('./features/video-consultation/ConsultationPage'));
 
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { token } = useAuth();
@@ -35,6 +36,16 @@ function Router() {
           <PrivateRoute>
             <Suspense fallback={<div className="text-dim">Loading…</div>}>
               <ProfilePage />
+            </Suspense>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/consultation/:appointmentId"
+        element={
+          <PrivateRoute>
+            <Suspense fallback={<div className="text-dim">Connecting…</div>}>
+              <ConsultationPage />
             </Suspense>
           </PrivateRoute>
         }

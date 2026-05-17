@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../video-consultation.css";
 
 function PatientSummary({
   doctorName,
@@ -12,30 +13,45 @@ function PatientSummary({
   const durationMinutes = Math.round(elapsedSeconds / 60);
 
   return (
-    <div className="post-call__patient">
-      <h2>Consult complete.</h2>
-      <p>Doctor: {doctorName}</p>
-      <p>Duration: {durationMinutes} minutes</p>
-      <button className="post-call__done" onClick={() => navigate("/dashboard")}>
-        Done
-      </button>
+    <div>
+      <h2 className="vc-post-call__heading">Consult complete.</h2>
+      <p className="vc-post-call__detail">Doctor: {doctorName}</p>
+      <p className="vc-post-call__detail">Duration: {durationMinutes} minutes</p>
+      <div className="vc-post-call__actions">
+        <button className="btn btn-primary" onClick={() => navigate("/dashboard")}>
+          Done
+        </button>
+      </div>
     </div>
   );
 }
 
-function DoctorFinalize({ notes }: { notes: string }) {
+function DoctorFinalize({
+  patientName,
+  notes,
+  onSave,
+}: {
+  patientName: string;
+  notes: string;
+  onSave: (notes: string) => void;
+}) {
   const [draft, setDraft] = useState(notes);
 
   return (
-    <div className="post-call__doctor">
-      <h2>Save your consult.</h2>
+    <div>
+      <h2 className="vc-post-call__heading">Save your consult.</h2>
+      <p className="vc-post-call__detail">Patient: {patientName}</p>
       <textarea
         role="textbox"
-        className="post-call__notes"
+        className="vc-sidebar__notes"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
       />
-      <button className="post-call__save">Save &amp; complete</button>
+      <div className="vc-post-call__actions">
+        <button className="btn btn-primary" onClick={() => onSave(draft)}>
+          Save &amp; complete
+        </button>
+      </div>
     </div>
   );
 }
@@ -46,19 +62,25 @@ export function PostCallWrapUp({
   patientName,
   notes,
   elapsedSeconds,
+  onSave,
 }: {
   role: string;
   doctorName: string;
   patientName: string;
   notes: string;
   elapsedSeconds: number;
+  onSave?: (notes: string) => void;
 }) {
   return (
-    <div className="post-call-wrap-up">
+    <div className="vc-post-call">
       {role === "Patient" ? (
         <PatientSummary doctorName={doctorName} elapsedSeconds={elapsedSeconds} />
       ) : (
-        <DoctorFinalize notes={notes} />
+        <DoctorFinalize
+          patientName={patientName}
+          notes={notes}
+          onSave={onSave ?? (() => {})}
+        />
       )}
     </div>
   );

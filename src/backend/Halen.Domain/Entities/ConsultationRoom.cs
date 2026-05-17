@@ -22,5 +22,5 @@ public class ConsultationRoom : BaseEntity, ITenantScoped
     public string? Notes { get; set; }
 
     public static string GenerateRoomCode() =>
-        $"VC-{Guid.NewGuid().ToString("N")[..4].ToUpperInvariant()}";
+        $"VC-{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}";
 }
