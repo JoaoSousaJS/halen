@@ -88,8 +88,7 @@ export default function CreateUserDialog({ onClose, onCreated }: CreateUserDialo
                 <span>Manage appointments, issue prescriptions</span>
               </button>
             </div>
-            {/* Hidden select preserves programmatic access for any tests that read value */}
-            <select className="sr-only" value={role} onChange={(e) => setRole(e.target.value as 'Patient' | 'Doctor')} tabIndex={-1} aria-hidden="true">
+            <select className="sr-only" aria-label="Role" value={role} onChange={(e) => setRole(e.target.value as 'Patient' | 'Doctor')} tabIndex={-1}>
               <option value="Patient">Patient</option>
               <option value="Doctor">Doctor</option>
             </select>

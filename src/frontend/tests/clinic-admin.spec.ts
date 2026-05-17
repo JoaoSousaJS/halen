@@ -55,7 +55,7 @@ test.describe('Clinic Admin — User Management', () => {
     await page.getByLabel('Temporary password').fill('Secure123!');
     await page.getByLabel('Role').selectOption('Patient');
 
-    await page.locator('.modal button[type="submit"]').click();
+    await page.locator('.dialog button[type="submit"]').click();
     // Dialog closes on success
     await expect(page.getByRole('heading', { name: 'Create User' })).not.toBeVisible();
   });
@@ -76,7 +76,7 @@ test.describe('Clinic Admin — User Management', () => {
     await page.getByLabel('Last name').fill('User');
     await page.getByLabel('Temporary password').fill('Secure123!');
 
-    await page.locator('.modal button[type="submit"]').click();
+    await page.locator('.dialog button[type="submit"]').click();
     await expect(page.getByText('Email already exists in this clinic')).toBeVisible();
   });
 

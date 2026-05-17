@@ -60,26 +60,33 @@ Project-local skills in `.agents/skills/` — read them before writing code:
 - `vercel-react-best-practices` — React/TypeScript guidance
 - `supabase-postgres-best-practices` — Postgres query optimization, indexing, connection pooling, RLS
 - `kafka-realtime-dotnet` — Kafka consumer/producer patterns for .NET
+- `playwright-best-practices` — Playwright e2e test patterns, selectors, assertions
+- `test-driven-development` — TDD workflow: red-green-refactor, test design principles
+- `systematic-debugging` — structured debugging methodology for diagnosing issues
+- `azure-kubernetes` — AKS cluster planning, networking, security, operations
+- `using-superpowers` — advanced agent capabilities for planning and development
 - `frontend-design` (plugin) — UI/UX design guidance for distinctive, production-grade interfaces
 - `code-reviewer` — 3-round structured review protocol (writes to `reviews/`)
-- `code-planner` — 3-round structured planning protocol (writes to `plans/`)
+- `code-planner` — 3-round structured planning protocol (writes to `plans/`). Also loads `brainstorming` and `using-superpowers`.
 
 ## Feature implementation checklist
 
 Every new feature must follow this sequence:
 
-1. **Read skills** — load `dotnet-best-practices`, `vercel-react-best-practices`, and `supabase-postgres-best-practices` before writing code. For Kafka features also load `kafka-realtime-dotnet`.
-2. **Plan** — run the 3-round planning protocol with the `code-planner` skill (writes to `plans/`)
+1. **Read skills** — load `dotnet-best-practices`, `vercel-react-best-practices`, `supabase-postgres-best-practices`, and `using-superpowers` before writing code. For Kafka features also load `kafka-realtime-dotnet`. For AKS/infra work load `azure-kubernetes`.
+2. **Plan** — run the 3-round planning protocol with the `code-planner` skill (which also loads `brainstorming` + `using-superpowers`). Writes to `plans/`.
 3. **Backend** — domain entities, CQRS commands/queries, validators, controller
 4. **Frontend** — API client types, React components, state management
 5. **Design** — use `frontend-design` skill to ensure UI components have polished, intentional aesthetics (not generic)
-6. **Unit tests** — handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
+6. **Unit tests** — load `test-driven-development`, then write handler tests (xUnit + Moq) in `Halen.UnitTests/`, validator tests
 7. **Integration tests** — controller tests with `WebApplicationFactory` in `Halen.IntegrationTests/`, hitting real Postgres
 8. **Storybook stories** — component stories in `*.stories.tsx` co-located with components
-9. **Playwright e2e tests** — user flow tests in `src/frontend/tests/`
+9. **Playwright e2e tests** — load `playwright-best-practices`, then write user flow tests in `src/frontend/tests/`
 10. **Code review** — run the 3-round review protocol
 
 Do not skip steps or mark a feature as complete without tests, stories, and e2e coverage. Code review (step 10) must only run after all previous steps (1–9) are complete.
+
+When debugging failing tests or production issues, load `systematic-debugging` before investigating.
 
 ## Review process
 
