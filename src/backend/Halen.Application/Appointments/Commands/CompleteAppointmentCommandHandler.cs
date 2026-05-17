@@ -32,8 +32,8 @@ public class CompleteAppointmentCommandHandler(
         if (doctorProfile is null || appointment.DoctorId != doctorProfile.Id)
             return new CompleteAppointmentResult(false, "You can only complete your own appointments", ErrorKind.Forbidden);
 
-        if (appointment.Status != AppointmentStatus.Scheduled)
-            return new CompleteAppointmentResult(false, "Only scheduled appointments can be completed");
+        if (appointment.Status is not (AppointmentStatus.Scheduled or AppointmentStatus.InProgress))
+            return new CompleteAppointmentResult(false, "Only scheduled or in-progress appointments can be completed");
 
         appointment.Status = AppointmentStatus.Completed;
         appointment.Notes = request.Notes;

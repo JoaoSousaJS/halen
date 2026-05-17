@@ -11,4 +11,5 @@ public static class Topics
     public const string KycReviewed = "kyc.reviewed";
     public const string PaymentCaptured = "payment.captured";
     public const string PaymentRefunded = "payment.refunded";
+    public const string ConsultationEnded = "consultation.ended";
 }

@@ -17,6 +17,7 @@ public interface IAppDbContext
     DbSet<ClinicFeatureFlag> ClinicFeatureFlags { get; }
     DbSet<DoctorAvailability> DoctorAvailabilities { get; }
     DbSet<Payment> Payments { get; }
+    DbSet<ConsultationRoom> ConsultationRooms { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

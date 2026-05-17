@@ -21,4 +21,5 @@ public class Appointment : BaseEntity, ITenantScoped
     public string? VideoRoomId { get; set; }
     public string? Notes { get; set; }
     public Payment? Payment { get; set; }
+    public ConsultationRoom? ConsultationRoom { get; set; }
 }

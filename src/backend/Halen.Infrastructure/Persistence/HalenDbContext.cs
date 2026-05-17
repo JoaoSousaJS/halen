@@ -20,6 +20,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<ConsultationRoom> ConsultationRooms => Set<ConsultationRoom>();
     /// <summary>Intentionally unfiltered — Clinic is the tenant root, not scoped to another tenant.</summary>
     public DbSet<Clinic> Clinics => Set<Clinic>();
     /// <summary>Intentionally unfiltered — managed cross-tenant by PlatformAdmin; handlers scope by ClinicId explicitly.</summary>
@@ -48,6 +49,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         builder.Entity<DoctorAvailability>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<AuditLog>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<Payment>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<ConsultationRoom>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
 
         // ── Clinic ───────────────────────────────────────────────────────────
         builder.Entity<Clinic>(e =>
@@ -193,6 +195,19 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(p => p.FailureReason).HasMaxLength(500);
             e.HasIndex(p => new { p.ClinicId, p.AppointmentId }).IsUnique();
             e.HasIndex(p => p.IdempotencyKey).IsUnique();
+        });
+
+        // ── ConsultationRoom ─────────────────────────────────────────────────
+        builder.Entity<ConsultationRoom>(e =>
+        {
+            e.HasOne(r => r.Clinic).WithMany().HasForeignKey(r => r.ClinicId);
+            e.HasOne(r => r.Appointment).WithOne(a => a.ConsultationRoom)
+                .HasForeignKey<ConsultationRoom>(r => r.AppointmentId);
+            e.HasIndex(r => r.AppointmentId).IsUnique();
+            e.HasIndex(r => new { r.ClinicId, r.Status });
+            e.Property(r => r.RoomCode).HasMaxLength(20).IsRequired();
+            e.Property(r => r.Notes).HasMaxLength(5000);
+            e.Property(r => r.Status).HasConversion<string>();
         });
 
         // ── Enum conversions (stored as strings) ─────────────────────────────
