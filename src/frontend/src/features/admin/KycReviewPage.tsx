@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getDoctorKycDetails, reviewKyc, downloadKycDocument } from '../../shared/api/admin';
 import { getApiError } from '../../shared/api/errors';
+import { Button, Chip } from '../../shared/components';
 
 interface KycReviewPageProps {
   doctorProfileId: string;
@@ -36,39 +37,39 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
 
   return (
     <>
-      <button className="btn btn-sm" onClick={onBack} style={{ marginBottom: 16 }}>
+      <Button size="sm" onClick={onBack}>
         ← Back to users
-      </button>
+      </Button>
 
       <div className="admin-page-head">
         <div>
           <div className="admin-tag">KYC Review</div>
           <h1 className="auth-heading">{data.doctorName}</h1>
-          <p className="text-dim" style={{ marginTop: 4 }}>
+          <p className="text-dim">
             {data.specialty} · License: {data.licenseNumber}
           </p>
         </div>
-        <span className={`chip ${data.status === 'Submitted' ? 'chip-warn' : data.status === 'Approved' ? 'chip-good' : 'chip-danger'}`}>
-          {data.status}
-        </span>
+        <Chip
+          status={data.status}
+          variant={data.status === 'Submitted' ? 'warn' : data.status === 'Approved' ? 'good' : 'danger'}
+        />
       </div>
 
-      <section style={{ marginTop: 24 }}>
+      <section>
         <h2 className="section-heading">Uploaded documents</h2>
         {data.documents.length === 0 ? (
           <p className="text-dim">No documents uploaded.</p>
         ) : (
-          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 12 }}>
+          <div className="kyc-docs-grid">
             {data.documents.map((doc) => (
-              <div key={doc.id} className="auth-card" style={{ padding: 12, minWidth: 180 }}>
-                <p style={{ fontWeight: 600, fontSize: 13 }}>{doc.documentType}</p>
-                <p className="text-dim" style={{ fontSize: 12 }}>{doc.fileName}</p>
-                <p className="text-dim" style={{ fontSize: 12 }}>
+              <div key={doc.id} className="kyc-doc-card">
+                <p>{doc.documentType}</p>
+                <p className="text-dim">{doc.fileName}</p>
+                <p className="text-dim">
                   {new Date(doc.uploadedAt).toLocaleDateString()}
                 </p>
-                <button
-                  className="btn btn-sm"
-                  style={{ marginTop: 8 }}
+                <Button
+                  size="sm"
                   onClick={async () => {
                     const blob = await downloadKycDocument(doc.id);
                     const url = URL.createObjectURL(blob);
@@ -80,7 +81,7 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
                   }}
                 >
                   Download
-                </button>
+                </Button>
               </div>
             ))}
           </div>
@@ -88,19 +89,17 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
       </section>
 
       {data.reviewHistory.length > 0 ? (
-        <section style={{ marginTop: 24 }}>
+        <section>
           <h2 className="section-heading">Review history</h2>
-          <div style={{ marginTop: 12 }}>
+          <div>
             {data.reviewHistory.map((r) => (
-              <div key={r.id} className="auth-card" style={{ padding: 12, marginBottom: 8 }}>
-                <span className={`chip ${r.decision === 'Approved' ? 'chip-good' : 'chip-danger'}`}>
-                  {r.decision}
-                </span>
+              <div key={r.id} className="kyc-history-item">
+                <Chip status={r.decision} variant={r.decision === 'Approved' ? 'good' : 'danger'} />
                 <span className="text-dim" style={{ marginLeft: 8 }}>
                   by {r.reviewerName} on {new Date(r.reviewedAt).toLocaleDateString()}
                 </span>
                 {r.rejectionReason ? (
-                  <p style={{ marginTop: 4, fontSize: 13 }}>{r.rejectionReason}</p>
+                  <p style={{ fontSize: 13 }}>{r.rejectionReason}</p>
                 ) : null}
               </div>
             ))}
@@ -109,27 +108,27 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
       ) : null}
 
       {data.status === 'Submitted' ? (
-        <section style={{ marginTop: 24 }}>
+        <section>
           <h2 className="section-heading">Review actions</h2>
-          <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-            <button
-              className="btn btn-primary"
+          <div className="kyc-actions">
+            <Button
+              variant="primary"
               disabled={review.isPending}
               onClick={() => review.mutate({ decision: 'Approved' })}
             >
               {review.isPending ? 'Processing…' : 'Approve'}
-            </button>
-            <button
-              className="btn btn-danger"
+            </Button>
+            <Button
+              variant="danger"
               disabled={review.isPending}
               onClick={() => setShowRejectForm(true)}
             >
               Reject
-            </button>
+            </Button>
           </div>
 
           {showRejectForm ? (
-            <div className="auth-card" style={{ marginTop: 12, maxWidth: 560 }}>
+            <div className="auth-card" style={{ maxWidth: 560 }}>
               <label className="field">
                 <span>Rejection reason</span>
                 <textarea
@@ -140,26 +139,27 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
                   placeholder="Explain why the documents are being rejected…"
                 />
               </label>
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button
-                  className="btn btn-danger btn-sm"
+              <div className="kyc-actions">
+                <Button
+                  variant="danger"
+                  size="sm"
                   disabled={review.isPending || !rejectionReason.trim()}
                   onClick={() => review.mutate({ decision: 'Rejected', rejectionReason })}
                 >
                   Confirm rejection
-                </button>
-                <button
-                  className="btn btn-sm"
+                </Button>
+                <Button
+                  size="sm"
                   onClick={() => { setShowRejectForm(false); setRejectionReason(''); }}
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </div>
           ) : null}
 
           {review.isError ? (
-            <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(review.error)}</p>
+            <p className="auth-error">{getApiError(review.error)}</p>
           ) : null}
         </section>
       ) : null}

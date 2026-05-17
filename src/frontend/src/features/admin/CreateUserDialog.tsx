@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { createUserInClinic } from '../../shared/api/clinics';
 import { getApiError } from '../../shared/api/errors';
+import { Button, Field, Input, Dialog, DialogActions } from '../../shared/components';
 
 interface CreateUserDialogProps {
   onClose: () => void;
@@ -36,74 +37,58 @@ export default function CreateUserDialog({ onClose, onCreated }: CreateUserDialo
   }
 
   return (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog dialog--md" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-header">
-          <div>
-            <h3 className="dialog-title">Create User</h3>
-            <p className="dialog-subtitle">Add a new user to this clinic</p>
-          </div>
-          <button type="button" className="dialog-close" onClick={onClose} aria-label="Close dialog">
-            &times;
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="dialog-body">
-          <div className="field-row">
-            <label className="field">
-              <span>First name</span>
-              <input className="input" value={firstName} onChange={(e) => setFirstName(e.target.value)} required placeholder="Jane" />
-            </label>
-            <label className="field">
-              <span>Last name</span>
-              <input className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} required placeholder="Doe" />
-            </label>
-          </div>
-          <label className="field">
-            <span>Email</span>
-            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="user@clinic.com" />
-          </label>
-          <label className="field">
-            <span>Temporary password</span>
-            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="Min. 8 characters" />
-            <span className="field-hint">The user will be asked to change this on first login.</span>
-          </label>
+    <Dialog title="Create User" subtitle="Add a new user to this clinic" onClose={onClose} wide>
+      <form onSubmit={handleSubmit} className="dialog-body">
+        <Field label="" row>
+          <Field label="First name">
+            <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} required placeholder="Jane" />
+          </Field>
+          <Field label="Last name">
+            <Input value={lastName} onChange={(e) => setLastName(e.target.value)} required placeholder="Doe" />
+          </Field>
+        </Field>
+        <Field label="Email">
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="user@clinic.com" />
+        </Field>
+        <Field label="Temporary password" hint="The user will be asked to change this on first login.">
+          <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="Min. 8 characters" />
+        </Field>
 
-          <div className="field">
-            <span>Role</span>
-            <div className="role-picker">
-              <button
-                type="button"
-                className={`role-option ${role === 'Patient' ? 'active' : ''}`}
-                onClick={() => setRole('Patient')}
-              >
-                <strong>Patient</strong>
-                <span>Book appointments, view prescriptions</span>
-              </button>
-              <button
-                type="button"
-                className={`role-option ${role === 'Doctor' ? 'active' : ''}`}
-                onClick={() => setRole('Doctor')}
-              >
-                <strong>Doctor</strong>
-                <span>Manage appointments, issue prescriptions</span>
-              </button>
-            </div>
-            <select className="sr-only" aria-label="Role" value={role} onChange={(e) => setRole(e.target.value as 'Patient' | 'Doctor')} tabIndex={-1}>
-              <option value="Patient">Patient</option>
-              <option value="Doctor">Doctor</option>
-            </select>
-          </div>
-
-          {error && <p className="dialog-error">{error}</p>}
-
-          <div className="dialog-actions">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={create.isPending}>
-              {create.isPending ? 'Creating...' : 'Create user'}
+        <div className="field">
+          <span>Role</span>
+          <div className="role-picker">
+            <button
+              type="button"
+              className={`role-option ${role === 'Patient' ? 'active' : ''}`}
+              onClick={() => setRole('Patient')}
+            >
+              <strong>Patient</strong>
+              <span>Book appointments, view prescriptions</span>
+            </button>
+            <button
+              type="button"
+              className={`role-option ${role === 'Doctor' ? 'active' : ''}`}
+              onClick={() => setRole('Doctor')}
+            >
+              <strong>Doctor</strong>
+              <span>Manage appointments, issue prescriptions</span>
             </button>
           </div>
-        </form>
-      </div>
-    </div>
+          <select className="sr-only" aria-label="Role" value={role} onChange={(e) => setRole(e.target.value as 'Patient' | 'Doctor')} tabIndex={-1}>
+            <option value="Patient">Patient</option>
+            <option value="Doctor">Doctor</option>
+          </select>
+        </div>
+
+        {error && <p className="dialog-error">{error}</p>}
+
+        <DialogActions>
+          <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" type="submit" disabled={create.isPending}>
+            {create.isPending ? 'Creating...' : 'Create user'}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 }

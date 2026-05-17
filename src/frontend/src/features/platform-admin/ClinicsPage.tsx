@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listClinics, createClinic } from '../../shared/api/clinics';
 import { getApiError } from '../../shared/api/errors';
+import { Button, Field, Input, Dialog, DialogActions, Chip } from '../../shared/components';
 
 interface ClinicsPageProps {
   onSelectClinic: (id: string) => void;
@@ -49,10 +50,10 @@ export default function ClinicsPage({ onSelectClinic }: ClinicsPageProps) {
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         />
-        <button className="btn btn-primary clinics-create-btn" onClick={() => setShowCreate(true)}>
+        <Button variant="primary" className="clinics-create-btn" onClick={() => setShowCreate(true)}>
           <span className="clinics-create-icon">+</span>
           Create clinic
-        </button>
+        </Button>
       </div>
 
       {clinics.isLoading && <p className="text-dim">Loading...</p>}
@@ -94,9 +95,7 @@ export default function ClinicsPage({ onSelectClinic }: ClinicsPageProps) {
                     </td>
                     <td><span className="admin-mono">{c.slug}</span></td>
                     <td>
-                      <span className={`chip ${c.isActive ? 'chip-good' : ''}`}>
-                        {c.isActive ? 'Active' : 'Inactive'}
-                      </span>
+                      <Chip status={c.isActive ? 'Active' : 'Inactive'} variant={c.isActive ? 'good' : undefined} />
                     </td>
                     <td className="admin-mono text-dim">{formatDate(c.createdAt)}</td>
                     <td>
@@ -109,17 +108,17 @@ export default function ClinicsPage({ onSelectClinic }: ClinicsPageProps) {
           </div>
 
           <div className="admin-pagination">
-            <button className="btn btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+            <Button size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
               &larr; Prev
-            </button>
+            </Button>
             <span className="text-dim">Page {page}</span>
-            <button
-              className="btn btn-sm"
+            <Button
+              size="sm"
               disabled={clinics.data.clinics.length < 20}
               onClick={() => setPage(page + 1)}
             >
               Next &rarr;
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -160,33 +159,22 @@ function CreateClinicDialog({ onClose, onCreated }: { onClose: () => void; onCre
   }
 
   return (
-    <div className="dialog-overlay" onClick={onClose}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="dialog-header">
-          <h3 className="dialog-title">Create Clinic</h3>
-          <button type="button" className="dialog-close" onClick={onClose} aria-label="Close dialog">
-            &times;
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="dialog-body">
-          <label className="field">
-            <span>Name</span>
-            <input className="input" value={name} onChange={(e) => handleNameChange(e.target.value)} required placeholder="e.g. Sunrise Health" />
-          </label>
-          <label className="field">
-            <span>Slug</span>
-            <input className="input" value={slug} onChange={(e) => setSlug(e.target.value)} required pattern="[a-z0-9-]+" placeholder="auto-generated-from-name" />
-            <span className="field-hint">URL-safe identifier. Lowercase letters, numbers, and hyphens only.</span>
-          </label>
-          {error && <p className="dialog-error">{error}</p>}
-          <div className="dialog-actions">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={create.isPending}>
-              {create.isPending ? 'Creating...' : 'Create'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <Dialog title="Create Clinic" onClose={onClose}>
+      <form onSubmit={handleSubmit} className="dialog-body">
+        <Field label="Name">
+          <Input value={name} onChange={(e) => handleNameChange(e.target.value)} required placeholder="e.g. Sunrise Health" />
+        </Field>
+        <Field label="Slug" hint="URL-safe identifier. Lowercase letters, numbers, and hyphens only.">
+          <Input value={slug} onChange={(e) => setSlug(e.target.value)} required pattern="[a-z0-9-]+" placeholder="auto-generated-from-name" />
+        </Field>
+        {error && <p className="dialog-error">{error}</p>}
+        <DialogActions>
+          <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" type="submit" disabled={create.isPending}>
+            {create.isPending ? 'Creating...' : 'Create'}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 }

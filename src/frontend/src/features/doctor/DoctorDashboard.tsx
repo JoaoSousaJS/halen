@@ -108,6 +108,7 @@ export default function DoctorDashboard() {
           </FeatureGate>
         ) : (
         <>
+        <section>
         <h1 className="auth-heading">
           Your<br /><em>schedule.</em>
         </h1>
@@ -116,10 +117,10 @@ export default function DoctorDashboard() {
         {appointments.isError ? <p className="auth-error">Failed to load appointments.</p> : null}
 
         {appointments.data?.length === 0 ? (
-          <p className="text-dim" style={{ marginTop: 16 }}>No appointments yet.</p>
+          <p className="text-dim">No appointments yet.</p>
         ) : null}
 
-        <div className="appt-list" style={{ marginTop: 20 }}>
+        <div className="appt-list">
           {appointments.data?.map((a) => (
             <div key={a.id} className="appt-card">
               <div className="appt-card-header">
@@ -192,17 +193,18 @@ export default function DoctorDashboard() {
         </div>
 
         {cancel.isError ? (
-          <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(cancel.error)}</p>
+          <p className="auth-error">{getApiError(cancel.error)}</p>
         ) : null}
         {complete.isError ? (
-          <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(complete.error)}</p>
+          <p className="auth-error">{getApiError(complete.error)}</p>
         ) : null}
+        </section>
 
         <FeatureGate feature="prescriptions">
-          <section style={{ marginTop: 48 }}>
+          <section>
             <h2 className="section-heading">Issue a prescription</h2>
 
-            <div className="auth-card" style={{ marginTop: 20 }}>
+            <div className="auth-card">
               <form onSubmit={handleIssue} className="auth-form">
                 <label className="field">
                   <span>Patient</span>
@@ -291,7 +293,7 @@ export default function DoctorDashboard() {
             </div>
           </section>
 
-          <section style={{ marginTop: 40 }}>
+          <section>
             <h2 className="section-heading">Prescriptions issued</h2>
 
             {prescriptions.isLoading ? <p className="text-dim">Loading…</p> : null}
@@ -333,7 +335,7 @@ export default function DoctorDashboard() {
             </div>
 
             {cancelRx.isError ? (
-              <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(cancelRx.error)}</p>
+              <p className="auth-error">{getApiError(cancelRx.error)}</p>
             ) : null}
           </section>
         </FeatureGate>

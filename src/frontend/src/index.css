@@ -199,6 +199,18 @@ html, body {
   gap: 40px;
 }
 
+.dashboard-main > section,
+.dashboard-main > .kyc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-main > section .section-heading,
+.dashboard-main > .kyc-section .section-heading {
+  margin-bottom: 0;
+}
+
 .section-heading {
   font-family: var(--font-display);
   font-size: 22px;

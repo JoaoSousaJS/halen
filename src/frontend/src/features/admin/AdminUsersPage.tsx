@@ -3,18 +3,18 @@ import { useQuery } from '@tanstack/react-query';
 import { listUsers } from '../../shared/api/admin';
 import type { AdminUserDto } from '../../shared/api/admin';
 import KycReviewPage from './KycReviewPage';
+import { Button, Chip } from '../../shared/components';
 
 type RoleFilter = 'all' | 'patient' | 'doctor' | 'flagged';
 
 const PAGE_SIZE = 25;
 
-function statusClass(status: string): string {
+function statusVariant(status: string): 'good' | 'danger' | 'warn' | undefined {
   switch (status) {
-    case 'Active': return 'chip-good';
-    case 'PendingReview': return 'chip-warn';
-    case 'Suspended': return 'chip-danger';
-    case 'Idle': return '';
-    default: return '';
+    case 'Active': return 'good';
+    case 'PendingReview': return 'warn';
+    case 'Suspended': return 'danger';
+    default: return undefined;
   }
 }
 
@@ -170,9 +170,7 @@ export default function AdminUsersPage() {
                   <td>{u.role}</td>
                   <td className="text-dim">{u.plan ?? '—'}</td>
                   <td>
-                    <span className={`chip ${statusClass(u.status)}`}>
-                      {statusLabel(u.status, u.role)}
-                    </span>
+                    <Chip status={statusLabel(u.status, u.role)} variant={statusVariant(u.status)} />
                   </td>
                   <td className="admin-mono text-dim">{timeAgo(u.lastLoginAt)}</td>
                   <td>

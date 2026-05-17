@@ -31,27 +31,29 @@ export default function KycSetup() {
 
   if (status === 'Approved') {
     return (
-      <div className="auth-card" style={{ maxWidth: 560, marginTop: 24 }}>
-        <p style={{ color: 'var(--accent)', fontWeight: 600 }}>Your KYC documents have been approved.</p>
+      <div className="kyc-section">
+        <div className="auth-card" style={{ maxWidth: 560 }}>
+          <p style={{ color: 'var(--accent)', fontWeight: 600 }}>Your KYC documents have been approved.</p>
+        </div>
       </div>
     );
   }
 
   if (status === 'Submitted') {
     return (
-      <div style={{ marginTop: 24 }}>
+      <div className="kyc-section">
         <h2 className="section-heading">KYC documents submitted</h2>
-        <div className="auth-card" style={{ maxWidth: 560, marginTop: 16 }}>
+        <div className="auth-card" style={{ maxWidth: 560 }}>
           <p className="text-dim">
             Your documents are under review. You will be notified once an admin reviews them.
           </p>
           {kyc.data?.submittedAt ? (
-            <p className="text-dim" style={{ marginTop: 8 }}>
+            <p className="text-dim">
               Submitted on {new Date(kyc.data.submittedAt).toLocaleDateString()}
             </p>
           ) : null}
           {kyc.data?.documents.length ? (
-            <ul style={{ marginTop: 12, paddingLeft: 20 }}>
+            <ul style={{ paddingLeft: 20 }}>
               {kyc.data.documents.map((doc) => (
                 <li key={doc.id} className="text-dim">{doc.documentType}: {doc.fileName}</li>
               ))}
@@ -63,20 +65,20 @@ export default function KycSetup() {
   }
 
   return (
-    <div style={{ marginTop: 24 }}>
+    <div className="kyc-section">
       <h2 className="section-heading">Complete your KYC verification</h2>
-      <p className="text-dim" style={{ marginTop: 4 }}>
+      <p className="text-dim">
         Upload your documents to get verified and start seeing patients.
       </p>
 
       {status === 'Rejected' && kyc.data?.lastRejectionReason ? (
-        <div className="auth-error" style={{ marginTop: 16, padding: 12 }}>
+        <div className="auth-error" style={{ padding: 12 }}>
           <strong>Your previous submission was rejected:</strong><br />
           {kyc.data.lastRejectionReason}
         </div>
       ) : null}
 
-      <div className="auth-card" style={{ maxWidth: 560, marginTop: 16 }}>
+      <div className="auth-card" style={{ maxWidth: 560 }}>
         <form onSubmit={handleSubmit} className="auth-form">
           <label className="field">
             <span>License photo</span>

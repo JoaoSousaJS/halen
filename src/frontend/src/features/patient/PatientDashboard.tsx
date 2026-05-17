@@ -82,7 +82,7 @@ export default function PatientDashboard() {
             Book an<br /><em>appointment.</em>
           </h1>
 
-          <div className="auth-card" style={{ marginTop: 20 }}>
+          <div className="auth-card">
             <form onSubmit={handleBook} className="auth-form">
               <label className="field">
                 <span>Doctor</span>
@@ -146,7 +146,7 @@ export default function PatientDashboard() {
           </div>
         </section>
 
-        <section style={{ marginTop: 40 }}>
+        <section>
           <h2 className="section-heading">Your appointments</h2>
 
           {appointments.isLoading ? <p className="text-dim">Loading…</p> : null}
@@ -192,12 +192,12 @@ export default function PatientDashboard() {
           </div>
 
           {cancel.isError ? (
-            <p className="auth-error" style={{ marginTop: 8 }}>{getApiError(cancel.error)}</p>
+            <p className="auth-error">{getApiError(cancel.error)}</p>
           ) : null}
         </section>
 
         <FeatureGate feature="prescriptions">
-          <section style={{ marginTop: 40 }}>
+          <section>
             <h2 className="section-heading">Your prescriptions</h2>
 
             {prescriptions.isLoading ? <p className="text-dim">Loading…</p> : null}

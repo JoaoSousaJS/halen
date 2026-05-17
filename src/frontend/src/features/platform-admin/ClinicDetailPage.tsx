@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClinic, updateClinic, setFeatureFlag } from '../../shared/api/clinics';
 import { getApiError } from '../../shared/api/errors';
+import { Button, Field, Input, Chip } from '../../shared/components';
 
 interface ClinicDetailPageProps {
   clinicId: string;
@@ -59,13 +60,11 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
 
   return (
     <section className="clinic-detail">
-      <button className="btn btn-sm clinic-detail-back" onClick={onBack}>&larr; Back to clinics</button>
+      <Button size="sm" className="clinic-detail-back" onClick={onBack}>&larr; Back to clinics</Button>
 
       <div className="clinic-detail-header">
         <h2>{c.name}</h2>
-        <span className={`chip ${c.isActive ? 'chip-good' : ''}`}>
-          {c.isActive ? 'Active' : 'Inactive'}
-        </span>
+        <Chip status={c.isActive ? 'Active' : 'Inactive'} variant={c.isActive ? 'good' : undefined} />
       </div>
 
       <div className="clinic-detail-meta">
@@ -86,23 +85,21 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
       {!editing ? (
         <div className="clinic-detail-section">
           <h3>Clinic Settings</h3>
-          <button className="btn btn-primary btn-sm" onClick={startEditing}>Edit clinic</button>
+          <Button variant="primary" size="sm" onClick={startEditing}>Edit clinic</Button>
         </div>
       ) : (
         <form onSubmit={handleSave} className="edit-form-card">
           <h3>Edit Clinic</h3>
-          <label className="field">
-            <span>Name</span>
-            <input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} required />
-          </label>
-          <label className="field field-inline">
+          <Field label="Name">
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} required />
+          </Field>
+          <Field label="Active" inline>
             <input type="checkbox" checked={editActive} onChange={(e) => setEditActive(e.target.checked)} />
-            <span>Active</span>
-          </label>
+          </Field>
           {error && <p className="dialog-error">{error}</p>}
           <div className="edit-actions">
-            <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={update.isPending}>Save</button>
+            <Button variant="ghost" type="button" onClick={() => setEditing(false)}>Cancel</Button>
+            <Button variant="primary" type="submit" disabled={update.isPending}>Save</Button>
           </div>
         </form>
       )}
