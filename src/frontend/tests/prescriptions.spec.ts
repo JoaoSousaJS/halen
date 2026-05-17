@@ -78,12 +78,11 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
 
     await expect(page.getByText('Issue a prescription')).toBeVisible();
 
-    const selects = page.locator('select');
-    await selects.last().selectOption('patient-1');
-    await page.locator('input[placeholder*="Amoxicillin"]').fill('Metformin');
-    await page.locator('input[placeholder*="500mg"]').fill('1000mg');
-    await page.locator('input[placeholder*="Twice daily"]').fill('Once daily');
-    await page.click('button:has-text("Issue prescription")');
+    await page.getByLabel('Patient').selectOption('patient-1');
+    await page.getByPlaceholder('e.g. Amoxicillin').fill('Metformin');
+    await page.getByPlaceholder('e.g. 500mg').fill('1000mg');
+    await page.getByPlaceholder('e.g. Twice daily').fill('Once daily');
+    await page.getByRole('button', { name: 'Issue prescription' }).click();
 
     await expect(page.getByText('Prescription issued!')).toBeVisible();
   });
@@ -108,7 +107,7 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
     );
 
     await page.goto('/dashboard');
-    await page.click('button[aria-label="Cancel prescription for Maya Chen"]');
+    await page.getByRole('button', { name: 'Cancel prescription for Maya Chen' }).click();
 
     await expect(page.getByText('Cancelled').first()).toBeVisible();
   });
@@ -126,12 +125,11 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
 
     await page.goto('/dashboard');
 
-    const selects = page.locator('select');
-    await selects.last().selectOption('patient-1');
-    await page.locator('input[placeholder*="Amoxicillin"]').fill('Metformin');
-    await page.locator('input[placeholder*="500mg"]').fill('1000mg');
-    await page.locator('input[placeholder*="Twice daily"]').fill('Once daily');
-    await page.click('button:has-text("Issue prescription")');
+    await page.getByLabel('Patient').selectOption('patient-1');
+    await page.getByPlaceholder('e.g. Amoxicillin').fill('Metformin');
+    await page.getByPlaceholder('e.g. 500mg').fill('1000mg');
+    await page.getByPlaceholder('e.g. Twice daily').fill('Once daily');
+    await page.getByRole('button', { name: 'Issue prescription' }).click();
 
     await expect(page.getByText('Patient not found')).toBeVisible();
   });

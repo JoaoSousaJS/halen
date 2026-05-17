@@ -147,7 +147,55 @@ public class PrescriptionsControllerTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
-    // ── List Tests ───────────────────────────────────────────────────────────
+    // ── Edge Case Tests ────────────────────────────────────────────────────────
+
+    [TestMethod]
+    public async Task Cancel_AlreadyCancelled_Returns400()
+    {
+        var (doctorProfileId, doctor) = await CreateDoctorWithClientAsync();
+        var patient = await PatientClientAsync();
+        var patientProfileId = await GetPatientProfileIdAsync(patient, doctorProfileId);
+
+        var issueResponse = await doctor.PostAsJsonAsync("/api/v1/prescriptions", new
+        {
+            PatientId = patientProfileId,
+            DrugName = "Double Cancel Drug",
+            Dosage = "10mg",
+            Frequency = "Daily",
+            RefillsRemaining = 0,
+        });
+        issueResponse.EnsureSuccessStatusCode();
+        var issued = await issueResponse.Content.ReadFromJsonAsync<PrescriptionIdResponse>();
+
+        // First cancel should succeed
+        var firstCancel = await doctor.PostAsync($"/api/v1/prescriptions/{issued!.PrescriptionId}/cancel", null);
+        firstCancel.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Second cancel should fail
+        var secondCancel = await doctor.PostAsync($"/api/v1/prescriptions/{issued.PrescriptionId}/cancel", null);
+        secondCancel.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task Issue_NonExistentPatient_Returns404()
+    {
+        var (_, doctor) = await CreateDoctorWithClientAsync();
+        var fakePatientId = Guid.NewGuid();
+
+        var response = await doctor.PostAsJsonAsync("/api/v1/prescriptions", new
+        {
+            PatientId = fakePatientId,
+            DrugName = "Ghost Patient Drug",
+            Dosage = "50mg",
+            Frequency = "Once daily",
+            RefillsRemaining = 1,
+            PharmacyName = "Phantom Pharmacy",
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    // ── List Tests ────────────────────────────────────────────────��──────────
 
     [TestMethod]
     public async Task GetMine_AsDoctor_ReturnsIssuedPrescriptions()

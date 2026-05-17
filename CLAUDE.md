@@ -65,7 +65,7 @@ Project-local skills in `.agents/skills/` — read them before writing code:
 - `systematic-debugging` — structured debugging methodology for diagnosing issues
 - `azure-kubernetes` — AKS cluster planning, networking, security, operations
 - `using-superpowers` — advanced agent capabilities for planning and development
-- `frontend-design` (plugin) — UI/UX design guidance for distinctive, production-grade interfaces
+- `frontend-design` — UI/UX design guidance for distinctive, production-grade interfaces
 - `code-reviewer` — 3-round structured review protocol (writes to `reviews/`)
 - `code-planner` — 3-round structured planning protocol (writes to `plans/`). Also loads `brainstorming` and `using-superpowers`.
 

@@ -34,7 +34,7 @@ test.describe('Notifications — graceful degradation', () => {
     });
 
     await expect(page.getByText('New appointment with Maya Chen')).toBeVisible();
-    await page.click('button[aria-label="Dismiss notification"]');
+    await page.getByRole('button', { name: 'Dismiss notification' }).click();
     await expect(page.getByText('New appointment with Maya Chen')).not.toBeVisible();
   });
 });

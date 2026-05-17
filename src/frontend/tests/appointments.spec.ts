@@ -32,7 +32,12 @@ test.describe('Patient Dashboard — Appointments', () => {
   test('shows booking form with doctor selector', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
-    await expect(page.locator('select')).toBeVisible();
+    await expect(page.getByLabel('Doctor')).toBeVisible();
+    await expect(page.getByText('No appointments yet')).toBeVisible();
+  });
+
+  test('shows empty state when no appointments', async ({ page }) => {
+    await page.goto('/dashboard');
     await expect(page.getByText('No appointments yet')).toBeVisible();
   });
 
@@ -46,10 +51,10 @@ test.describe('Patient Dashboard — Appointments', () => {
 
     await page.goto('/dashboard');
 
-    await page.selectOption('select', 'doc-1');
-    await page.fill('input[type="datetime-local"]', '2027-01-15T10:00');
-    await page.fill('textarea', 'Regular checkup');
-    await page.click('button[type="submit"]');
+    await page.getByLabel('Doctor').selectOption('doc-1');
+    await page.getByLabel('Date & time').fill('2027-01-15T10:00');
+    await page.getByLabel('Reason for visit').fill('Regular checkup');
+    await page.getByRole('button', { name: 'Book appointment' }).click();
 
     await expect(page.getByText('Appointment booked!')).toBeVisible();
   });
@@ -64,10 +69,10 @@ test.describe('Patient Dashboard — Appointments', () => {
 
     await page.goto('/dashboard');
 
-    await page.selectOption('select', 'doc-1');
-    await page.fill('input[type="datetime-local"]', '2027-01-15T10:00');
-    await page.fill('textarea', 'Checkup');
-    await page.click('button[type="submit"]');
+    await page.getByLabel('Doctor').selectOption('doc-1');
+    await page.getByLabel('Date & time').fill('2027-01-15T10:00');
+    await page.getByLabel('Reason for visit').fill('Checkup');
+    await page.getByRole('button', { name: 'Book appointment' }).click();
 
     await expect(page.getByText('This time slot is not available')).toBeVisible();
   });
@@ -83,7 +88,7 @@ test.describe('Patient Dashboard — Appointments', () => {
 
     await page.goto('/dashboard');
 
-    await expect(page.locator('.appt-card').getByText('Dr. House')).toBeVisible();
+    await expect(page.getByText('Dr. House', { exact: true })).toBeVisible();
     await expect(page.getByText('Annual checkup')).toBeVisible();
     await expect(page.getByText('Scheduled')).toBeVisible();
   });
@@ -109,7 +114,7 @@ test.describe('Patient Dashboard — Appointments', () => {
     );
 
     await page.goto('/dashboard');
-    await page.click('button[aria-label="Cancel appointment with Dr. House"]');
+    await page.getByRole('button', { name: 'Cancel appointment with Dr. House' }).click();
 
     await expect(page.getByText('Cancelled')).toBeVisible();
   });
@@ -163,9 +168,9 @@ test.describe('Doctor Dashboard — Appointments', () => {
     );
 
     await page.goto('/dashboard');
-    await page.click('button:has-text("Complete")');
-    await page.fill('textarea', 'Patient is fine');
-    await page.click('button:has-text("Confirm")');
+    await page.getByRole('button', { name: 'Complete appointment with Maya Chen' }).click();
+    await page.getByPlaceholder('Session notes (optional)').fill('Patient is fine');
+    await page.getByRole('button', { name: 'Confirm' }).click();
 
     await expect(page.getByText('Completed')).toBeVisible();
   });

@@ -42,6 +42,8 @@ public class CancelAppointmentCommandHandler(
             }
             case UserRole.PlatformAdmin:
                 break;
+            default:
+                return new CancelAppointmentResult(false, "This role is not allowed to cancel appointments", ErrorKind.Forbidden);
         }
 
         if (appointment.Status != AppointmentStatus.Scheduled)

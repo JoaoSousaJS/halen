@@ -53,6 +53,24 @@ public class AuthControllerTests : IntegrationTestBase
     }
 
     [TestMethod]
+    public async Task Register_WeakPassword_Returns400()
+    {
+        var client = Factory.CreateClient();
+        var email = $"weakpwd+{Guid.NewGuid():N}@test.com";
+
+        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            FirstName = "Weak",
+            LastName = "Password",
+            Email = email,
+            Password = "short",  // Too short, no uppercase, no digit, no special char
+            Role = (int)UserRole.Patient,
+        });
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
     public async Task Register_WithInvalidEmail_Returns400()
     {
         var client = Factory.CreateClient();

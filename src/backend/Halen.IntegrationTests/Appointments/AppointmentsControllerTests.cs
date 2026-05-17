@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Halen.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -168,6 +169,118 @@ public class AppointmentsControllerTests : IntegrationTestBase
         var response = await patient.PostAsJsonAsync(
             $"/api/v1/appointments/{appointmentId}/complete",
             new { Notes = "Self-complete" });
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    // ── Doctor Schedule & Pagination Tests ─────────────────────────────────────
+
+    [TestMethod]
+    public async Task GetMine_AsDoctor_ReturnsOnlyOwnSchedule()
+    {
+        var (doctor1Id, doctor1) = await CreateDoctorWithClientAsync("Schedule1");
+        var (doctor2Id, doctor2) = await CreateDoctorWithClientAsync("Schedule2");
+        var (patient, _) = await PatientClientWithEmailAsync();
+
+        // Book with doctor 1
+        var apptId1 = await BookAppointmentAsync(patient, doctor1Id, DateTime.UtcNow.AddDays(10));
+        // Book with doctor 2
+        var apptId2 = await BookAppointmentAsync(patient, doctor2Id, DateTime.UtcNow.AddDays(11));
+
+        // Doctor 1 should only see their own appointment
+        var response1 = await doctor1.GetAsync("/api/v1/appointments");
+        response1.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body1 = await response1.Content.ReadAsStringAsync();
+        body1.Should().Contain(apptId1.ToString());
+        body1.Should().NotContain(apptId2.ToString());
+
+        // Doctor 2 should only see their own appointment
+        var response2 = await doctor2.GetAsync("/api/v1/appointments");
+        response2.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body2 = await response2.Content.ReadAsStringAsync();
+        body2.Should().Contain(apptId2.ToString());
+        body2.Should().NotContain(apptId1.ToString());
+    }
+
+    [TestMethod]
+    public async Task GetMine_Pagination_ReturnsCorrectPage()
+    {
+        var (patient, _) = await PatientClientWithEmailAsync();
+        var doctorId = await CreateDoctorAsync();
+
+        // Book 3 appointments at different times
+        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.AddDays(20));
+        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.AddDays(21));
+        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.AddDays(22));
+
+        // Request page 1 with pageSize 2
+        var response = await patient.GetAsync("/api/v1/appointments?page=1&pageSize=2");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<AppointmentsResponse>();
+        body!.Appointments.Should().HaveCount(2);
+        body.TotalCount.Should().BeGreaterThanOrEqualTo(3);
+
+        // Request page 2 with pageSize 2
+        var response2 = await patient.GetAsync("/api/v1/appointments?page=2&pageSize=2");
+        response2.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body2 = await response2.Content.ReadFromJsonAsync<AppointmentsResponse>();
+        body2!.Appointments.Should().HaveCountGreaterThanOrEqualTo(1);
+    }
+
+    [TestMethod]
+    public async Task Cancel_CompletedAppointment_Returns400()
+    {
+        var (patient, _) = await PatientClientWithEmailAsync();
+        var (doctorId, doctorClient) = await CreateDoctorWithClientAsync("CancelComplete");
+        var appointmentId = await BookAppointmentAsync(patient, doctorId);
+
+        // Complete the appointment first
+        var completeResp = await doctorClient.PostAsJsonAsync(
+            $"/api/v1/appointments/{appointmentId}/complete",
+            new { Notes = "Done" });
+        completeResp.EnsureSuccessStatusCode();
+
+        // Now try to cancel the completed appointment
+        var response = await patient.PostAsync($"/api/v1/appointments/{appointmentId}/cancel", null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task Cancel_AsClinicAdmin_Returns403()
+    {
+        var (patient, _) = await PatientClientWithEmailAsync();
+        var doctorId = await CreateDoctorAsync();
+        var appointmentId = await BookAppointmentAsync(patient, doctorId);
+
+        // Create a ClinicAdmin user
+        var clinicAdminEmail = $"cadmin+{Guid.NewGuid():N}@test.com";
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider
+                .GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<Halen.Domain.Entities.User>>();
+            var db = scope.ServiceProvider.GetRequiredService<Halen.Infrastructure.Persistence.HalenDbContext>();
+
+            var defaultClinic = await db.Clinics.FirstAsync(c => c.Slug == "default");
+
+            var user = new Halen.Domain.Entities.User
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "Clinic",
+                LastName = "Admin",
+                Email = clinicAdminEmail,
+                UserName = clinicAdminEmail,
+                Role = Halen.Domain.Enums.UserRole.ClinicAdmin,
+                ClinicId = defaultClinic.Id,
+                Status = Halen.Domain.Enums.AccountStatus.Active,
+            };
+            await userManager.CreateAsync(user, "Admin1234!");
+            await userManager.AddToRoleAsync(user, "ClinicAdmin");
+        }
+
+        var clinicAdminClient = await TestHelpers.GetBearerClientAsync(Factory, clinicAdminEmail, "Admin1234!");
+
+        var response = await clinicAdminClient.PostAsync($"/api/v1/appointments/{appointmentId}/cancel", null);
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }

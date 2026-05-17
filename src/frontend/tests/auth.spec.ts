@@ -17,9 +17,9 @@ test.describe('Login', () => {
     await mockBaseRoutes(page);
 
     await page.goto('/login');
-    await page.fill('input[type="email"]', 'patient@test.com');
-    await page.fill('input[type="password"]', 'Test1234!');
-    await page.click('button[type="submit"]');
+    await page.getByLabel('Email').fill('patient@test.com');
+    await page.getByLabel('Password').fill('Test1234!');
+    await page.getByRole('button', { name: 'Sign in' }).click();
 
     await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
   });
@@ -30,9 +30,9 @@ test.describe('Login', () => {
     );
 
     await page.goto('/login');
-    await page.fill('input[type="email"]', 'bad@test.com');
-    await page.fill('input[type="password"]', 'wrongpass');
-    await page.click('button[type="submit"]');
+    await page.getByLabel('Email').fill('bad@test.com');
+    await page.getByLabel('Password').fill('wrongpass');
+    await page.getByRole('button', { name: 'Sign in' }).click();
 
     await expect(page.getByText('Invalid email or password')).toBeVisible();
   });
@@ -65,13 +65,32 @@ test.describe('Register', () => {
     await mockBaseRoutes(page);
 
     await page.goto('/register');
-    await page.fill('input[placeholder="Maya"]', 'New');
-    await page.fill('input[placeholder="Chen"]', 'User');
-    await page.fill('input[type="email"]', 'new@test.com');
-    await page.fill('input[placeholder="8+ characters, include a digit"]', 'Test1234!');
-    await page.click('button[type="submit"]');
+    await page.getByLabel('First name').fill('New');
+    await page.getByLabel('Last name').fill('User');
+    await page.getByLabel('Email').fill('new@test.com');
+    await page.getByLabel('Password').fill('Test1234!');
+    await page.getByRole('button', { name: 'Create account' }).click();
 
     await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
+  });
+});
+
+test.describe('Logout', () => {
+  test('user can logout and is redirected to login', async ({ page }) => {
+    await page.route('**/api/v1/auth/login', (route) =>
+      route.fulfill({ status: 200, json: { token: PATIENT_TOKEN } }),
+    );
+    await mockBaseRoutes(page);
+
+    await page.goto('/login');
+    await page.getByLabel('Email').fill('patient@test.com');
+    await page.getByLabel('Password').fill('Test1234!');
+    await page.getByRole('button', { name: 'Sign in' }).click();
+
+    await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Sign out' }).click();
+    await expect(page).toHaveURL(/\/login/);
   });
 });
 
