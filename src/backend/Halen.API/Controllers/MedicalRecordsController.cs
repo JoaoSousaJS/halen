@@ -27,6 +27,9 @@ public class MedicalRecordsController(IMediator mediator) : HalenControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken ct = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = new GetPatientTimelineQuery(
             GetUserId(), GetUserRoleEnum(), patientProfileId,
             filterTypes, from, to, filterDoctorId, page, pageSize);

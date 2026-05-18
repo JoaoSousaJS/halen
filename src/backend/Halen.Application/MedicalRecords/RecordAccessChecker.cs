@@ -27,12 +27,22 @@ public class RecordAccessChecker(IAppDbContext db) : IRecordAccessChecker
                 if (doctorProfile is null)
                     return false;
 
-                return await db.Appointments
+                var hasAppointment = await db.Appointments
                     .AsNoTracking()
                     .AnyAsync(a =>
                         a.DoctorId == doctorProfile.Id &&
                         a.PatientId == patientProfileId &&
                         (a.Status == AppointmentStatus.Scheduled || a.Status == AppointmentStatus.Completed), ct);
+
+                if (hasAppointment)
+                    return true;
+
+                return await db.RecordAccesses
+                    .AsNoTracking()
+                    .AnyAsync(ra =>
+                        ra.GrantedToUserId == callerUserId &&
+                        ra.PatientProfileId == patientProfileId &&
+                        ra.AccessLevel != RecordAccessLevel.Revoked, ct);
 
             default:
                 return false;

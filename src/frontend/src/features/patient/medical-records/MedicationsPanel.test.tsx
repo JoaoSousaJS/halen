@@ -2,7 +2,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import MedicationsPanel from './MedicationsPanel';
 
 /* ------------------------------------------------------------------ */
@@ -35,12 +34,15 @@ function renderPanel(patientProfileId = 'profile-1') {
 function makeMedication(overrides: Record<string, unknown> = {}) {
   return {
     id: 'med-1',
-    name: 'Lisinopril',
+    medicationName: 'Lisinopril',
     dosage: '10mg',
     frequency: 'Once daily',
     startDate: '2026-01-15T00:00:00Z',
     endDate: null,
-    prescribedBy: 'Dr. Santos',
+    prescribedByName: 'Dr. Santos',
+    linkedPrescriptionId: null,
+    addedBy: 'Dr. Santos',
+    createdAt: '2026-01-15T00:00:00Z',
     isActive: true,
     ...overrides,
   };
@@ -76,12 +78,12 @@ describe('MedicationsPanel', () => {
       makeMedication(),
       makeMedication({
         id: 'med-2',
-        name: 'Metformin',
+        medicationName: 'Metformin',
         dosage: '500mg',
         frequency: 'Twice daily',
         isActive: false,
         endDate: '2026-03-01T00:00:00Z',
-        prescribedBy: null,
+        prescribedByName: null,
       }),
     ]);
 
@@ -139,12 +141,12 @@ describe('MedicationsPanel', () => {
 
     await waitFor(() => {
       expect(mockAddMedication).toHaveBeenCalledWith('profile-1', {
-        name: 'Amoxicillin',
+        medicationName: 'Amoxicillin',
         dosage: '500mg',
         frequency: 'Three times daily',
         startDate: '2026-05-01',
         endDate: undefined,
-        prescribedBy: undefined,
+        prescribedByName: undefined,
       });
     });
   });

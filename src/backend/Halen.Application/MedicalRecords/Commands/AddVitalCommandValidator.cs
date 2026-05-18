@@ -10,7 +10,7 @@ public class AddVitalCommandValidator : AbstractValidator<AddVitalCommand>
         RuleFor(x => x.Value).GreaterThan(0);
         RuleFor(x => x.Unit).NotEmpty().MaximumLength(20);
         RuleFor(x => x.MeasuredAt)
-            .LessThanOrEqualTo(DateTime.UtcNow.AddMinutes(5))
+            .Must(measuredAt => measuredAt <= DateTime.UtcNow.AddMinutes(5))
             .WithMessage("MeasuredAt cannot be more than 5 minutes in the future.");
         RuleFor(x => x.Notes).MaximumLength(500);
     }

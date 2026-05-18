@@ -52,12 +52,12 @@ export default function MedicationsPanel({ patientProfileId }: MedicationsPanelP
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     add.mutate({
-      name,
+      medicationName: name,
       dosage,
       frequency,
       startDate,
       endDate: endDate || undefined,
-      prescribedBy: prescribedBy || undefined,
+      prescribedByName: prescribedBy || undefined,
     });
   }
 
@@ -85,7 +85,7 @@ export default function MedicationsPanel({ patientProfileId }: MedicationsPanelP
           {items.map((med: MedicationDto) => (
             <li key={med.id} className="record-card">
               <div className="record-card-header">
-                <strong>{med.name}</strong>
+                <strong>{med.medicationName}</strong>
                 <Chip
                   status={med.isActive ? 'Active' : 'Inactive'}
                   variant={med.isActive ? 'good' : undefined}
@@ -94,12 +94,14 @@ export default function MedicationsPanel({ patientProfileId }: MedicationsPanelP
               <div className="record-card-body">
                 <span>Dosage: {med.dosage}</span>
                 <span>Frequency: {med.frequency}</span>
-                <span>Start: {new Date(med.startDate).toLocaleDateString()}</span>
+                {med.startDate ? (
+                  <span>Start: {new Date(med.startDate).toLocaleDateString()}</span>
+                ) : null}
                 {med.endDate ? (
                   <span>End: {new Date(med.endDate).toLocaleDateString()}</span>
                 ) : null}
-                {med.prescribedBy ? (
-                  <span className="text-dim">Prescribed by: {med.prescribedBy}</span>
+                {med.prescribedByName ? (
+                  <span className="text-dim">Prescribed by: {med.prescribedByName}</span>
                 ) : null}
               </div>
             </li>

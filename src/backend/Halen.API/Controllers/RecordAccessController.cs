@@ -21,6 +21,9 @@ public class RecordAccessController(IMediator mediator) : HalenControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken ct = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = new GetRecordAccessMatrixQuery(
             GetUserId(), GetUserRoleEnum(), patientProfileId, page, pageSize);
 
@@ -38,6 +41,9 @@ public class RecordAccessController(IMediator mediator) : HalenControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken ct = default)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = new GetRecordAccessLogsQuery(
             GetUserId(), GetUserRoleEnum(), patientProfileId, page, pageSize);
 

@@ -2,7 +2,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import DocumentsPanel from './DocumentsPanel';
 
 /* ------------------------------------------------------------------ */
@@ -40,11 +39,12 @@ function makeDocument(overrides: Record<string, unknown> = {}) {
   return {
     id: 'doc-1',
     title: 'Blood Work Results',
-    type: 'LabResult',
+    documentType: 'LabResult',
     fileName: 'bloodwork-2026.pdf',
-    fileSize: 245760,
+    contentType: 'application/pdf',
+    fileSizeBytes: 245760,
     uploadedBy: 'Dr. Santos',
-    uploadedAt: '2026-04-15T10:00:00Z',
+    createdAt: '2026-04-15T10:00:00Z',
     description: null,
     ...overrides,
   };
@@ -83,11 +83,12 @@ describe('DocumentsPanel', () => {
       makeDocument({
         id: 'doc-2',
         title: 'X-Ray Report',
-        type: 'Imaging',
+        documentType: 'Imaging',
         fileName: 'xray-chest.pdf',
-        fileSize: 1048576,
+        contentType: 'image/dicom',
+        fileSizeBytes: 1048576,
         uploadedBy: 'Dr. Costa',
-        uploadedAt: '2026-05-01T14:00:00Z',
+        createdAt: '2026-05-01T14:00:00Z',
       }),
     ]);
 
@@ -115,9 +116,9 @@ describe('DocumentsPanel', () => {
       makeDocument({
         id: 'doc-2',
         title: 'X-Ray Report',
-        type: 'Imaging',
+        documentType: 'Imaging',
         fileName: 'xray.pdf',
-        fileSize: 512000,
+        fileSizeBytes: 512000,
       }),
     ]);
 
@@ -194,7 +195,7 @@ describe('DocumentsPanel', () => {
     await user.click(deleteBtn);
 
     await waitFor(() => {
-      expect(mockDeleteDocument).toHaveBeenCalledWith('profile-1', 'doc-1');
+      expect(mockDeleteDocument).toHaveBeenCalledWith('doc-1');
     });
   });
 

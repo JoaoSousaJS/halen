@@ -8,24 +8,22 @@ import {
   downloadDocument,
   deleteDocument,
 } from '../../../shared/api/medical-records';
-import type { DocumentDto, DocumentType } from '../../../shared/api/medical-records';
+import type { DocumentDto, MedicalDocumentType } from '../../../shared/api/medical-records';
 import { Button, Field, Input, Select, Dialog, DialogActions, Chip } from '../../../shared/components';
 
 interface DocumentsPanelProps {
   patientProfileId: string;
 }
 
-const DOCUMENT_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
+const DOCUMENT_TYPE_OPTIONS: { value: MedicalDocumentType; label: string }[] = [
   { value: 'LabResult', label: 'Lab Result' },
   { value: 'Imaging', label: 'Imaging' },
   { value: 'Referral', label: 'Referral' },
-  { value: 'Discharge', label: 'Discharge Summary' },
-  { value: 'Insurance', label: 'Insurance' },
-  { value: 'Consent', label: 'Consent Form' },
+  { value: 'DischargeSummary', label: 'Discharge Summary' },
   { value: 'Other', label: 'Other' },
 ];
 
-const TYPE_CHIP_VARIANT: Partial<Record<DocumentType, 'good' | 'warn' | 'danger'>> = {
+const TYPE_CHIP_VARIANT: Partial<Record<MedicalDocumentType, 'good' | 'warn' | 'danger'>> = {
   LabResult: 'good',
   Imaging: 'warn',
 };
@@ -44,7 +42,7 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
   const [typeFilter, setTypeFilter] = useState('');
 
   const [file, setFile] = useState<File | null>(null);
-  const [docType, setDocType] = useState<DocumentType | ''>('');
+  const [docType, setDocType] = useState<MedicalDocumentType | ''>('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
@@ -54,7 +52,8 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
   });
 
   const upload = useMutation({
-    mutationFn: (formData: FormData) => uploadDocument(patientProfileId, formData),
+    mutationFn: ({ file, metadata }: { file: File; metadata: { documentType: MedicalDocumentType; title: string; description?: string } }) =>
+      uploadDocument(patientProfileId, file, metadata),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patient-documents', patientProfileId] });
       resetForm();
@@ -62,7 +61,7 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
   });
 
   const remove = useMutation({
-    mutationFn: (documentId: string) => deleteDocument(patientProfileId, documentId),
+    mutationFn: (documentId: string) => deleteDocument(documentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patient-documents', patientProfileId] });
     },
@@ -83,19 +82,18 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
     e.preventDefault();
     if (!file || !docType) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', docType);
-    formData.append('title', title);
-    if (description) {
-      formData.append('description', description);
-    }
-
-    upload.mutate(formData);
+    upload.mutate({
+      file,
+      metadata: {
+        documentType: docType,
+        title,
+        description: description || undefined,
+      },
+    });
   }
 
   function handleDownload(documentId: string) {
-    downloadDocument(patientProfileId, documentId);
+    downloadDocument(documentId);
   }
 
   if (documents.isLoading) {
@@ -108,7 +106,7 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
 
   const allItems = documents.data ?? [];
   const filteredItems = typeFilter
-    ? allItems.filter((doc: DocumentDto) => doc.type === typeFilter)
+    ? allItems.filter((doc: DocumentDto) => doc.documentType === typeFilter)
     : allItems;
 
   return (
@@ -141,15 +139,15 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
               <div className="record-card-header">
                 <strong>{doc.title}</strong>
                 <Chip
-                  status={DOCUMENT_TYPE_OPTIONS.find((o) => o.value === doc.type)?.label ?? doc.type}
-                  variant={TYPE_CHIP_VARIANT[doc.type]}
+                  status={DOCUMENT_TYPE_OPTIONS.find((o) => o.value === doc.documentType)?.label ?? doc.documentType}
+                  variant={TYPE_CHIP_VARIANT[doc.documentType]}
                 />
               </div>
               <div className="record-card-body">
-                <span>{doc.fileName} ({formatFileSize(doc.fileSize)})</span>
+                <span>{doc.fileName} ({formatFileSize(doc.fileSizeBytes)})</span>
                 <span className="text-dim">Uploaded by: {doc.uploadedBy}</span>
                 <span className="text-dim">
-                  Date: {new Date(doc.uploadedAt).toLocaleDateString()}
+                  Date: {new Date(doc.createdAt).toLocaleDateString()}
                 </span>
               </div>
               <div className="record-card-actions">
@@ -196,7 +194,7 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
               <Select
                 required
                 value={docType}
-                onChange={(e) => setDocType(e.target.value as DocumentType)}
+                onChange={(e) => setDocType(e.target.value as MedicalDocumentType)}
                 options={DOCUMENT_TYPE_OPTIONS}
                 placeholder="Select type"
               />

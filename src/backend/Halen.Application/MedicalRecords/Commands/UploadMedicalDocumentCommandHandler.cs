@@ -44,9 +44,11 @@ public class UploadMedicalDocumentCommandHandler(
                 Error: "File size exceeds the 10 MB limit.",
                 Kind: ErrorKind.Validation);
 
+        var safeFileName = Path.GetFileName(request.FileName);
+
         var filePath = await fileStorage.SaveAsync(
             $"medical-documents/{request.PatientProfileId}",
-            request.FileName,
+            safeFileName,
             request.FileContent,
             ct);
 
@@ -57,7 +59,7 @@ public class UploadMedicalDocumentCommandHandler(
             DocumentType = request.DocumentType,
             Title = request.Title,
             Description = request.Description,
-            FileName = request.FileName,
+            FileName = safeFileName,
             FilePath = filePath,
             ContentType = request.ContentType,
             FileSizeBytes = request.FileSizeBytes,
