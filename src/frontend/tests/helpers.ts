@@ -89,7 +89,10 @@ export interface MockBaseOptions {
  */
 export async function mockBaseRoutes(page: Page, options: MockBaseOptions = {}): Promise<void> {
   const {
-    features = [{ featureKey: 'prescriptions', isEnabled: true }],
+    features = [
+      { featureKey: 'prescriptions', isEnabled: true },
+      { featureKey: 'messaging', isEnabled: true },
+    ],
     appointments = [],
     prescriptions = [],
     doctors = [],
@@ -158,6 +161,60 @@ export async function mockDoctorRoutes(
 ): Promise<void> {
   await page.route('**/api/v1/doctor/kyc/status', (route) =>
     route.fulfill({ status: 200, json: kycStatus }),
+  );
+}
+
+/**
+ * Adds messaging-specific mocks on top of base routes:
+ * - /api/v1/messaging/threads (GET)
+ * - /api/v1/messaging/threads/:id/messages (GET/POST)
+ * - /api/v1/messaging/threads/:id/read (POST)
+ * - /api/v1/messaging/threads/:id/close (POST)
+ * - /api/v1/messaging/search (GET)
+ *
+ * Call mockBaseRoutes first, then this.
+ */
+export async function mockMessagingRoutes(
+  page: Page,
+  threads: unknown[] = [],
+  messages: unknown[] = [],
+): Promise<void> {
+  await page.route(/\/api\/v1\/messaging\/threads(\?|$)/, (route) => {
+    if (route.request().method() === 'GET') {
+      return route.fulfill({
+        status: 200,
+        json: { threads, totalCount: threads.length },
+      });
+    }
+    return route.fallback();
+  });
+
+  await page.route(/\/api\/v1\/messaging\/threads\/[^/]+\/messages/, (route) => {
+    if (route.request().method() === 'GET') {
+      return route.fulfill({
+        status: 200,
+        json: { messages, totalCount: messages.length },
+      });
+    }
+    if (route.request().method() === 'POST') {
+      return route.fulfill({
+        status: 201,
+        json: { messageId: 'msg-new-' + Date.now() },
+      });
+    }
+    return route.fallback();
+  });
+
+  await page.route(/\/api\/v1\/messaging\/threads\/[^/]+\/read/, (route) =>
+    route.fulfill({ status: 200, json: {} }),
+  );
+
+  await page.route(/\/api\/v1\/messaging\/threads\/[^/]+\/close/, (route) =>
+    route.fulfill({ status: 200, json: {} }),
+  );
+
+  await page.route(/\/api\/v1\/messaging\/search/, (route) =>
+    route.fulfill({ status: 200, json: { hits: [], totalCount: 0 } }),
   );
 }
 

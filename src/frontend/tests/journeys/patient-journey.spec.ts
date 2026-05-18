@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { PATIENT_TOKEN, loginAs, mockBaseRoutes } from '../helpers';
+import { PATIENT_TOKEN, loginAs, mockBaseRoutes, mockMessagingRoutes } from '../helpers';
 
 /**
  * Patient Journey E2E Test
@@ -68,6 +68,36 @@ const mockSearchDoctors = [
   },
 ];
 
+const mockThreads = [
+  {
+    threadId: 't-1',
+    otherParticipantName: 'Dr. House',
+    otherParticipantSpecialty: 'Diagnostics',
+    subject: 'Annual checkup',
+    lastMessagePreview: 'How are you feeling today?',
+    lastMessageAt: new Date().toISOString(),
+    unreadCount: 1,
+    status: 'Active',
+    appointmentStatus: 'Scheduled',
+    appointmentId: 'appt-1',
+  },
+];
+
+const mockChatMessages = [
+  {
+    id: 'm-1',
+    senderName: 'Dr. House',
+    senderRole: 'Doctor',
+    senderUserId: '2',
+    content: 'How are you feeling today?',
+    messageType: 'Text',
+    isRead: false,
+    readAt: null,
+    createdAt: new Date().toISOString(),
+    attachments: [],
+  },
+];
+
 const emptySnapshot = {
   allergies: [],
   activeConditions: [],
@@ -90,6 +120,7 @@ test.describe('Patient Journey — Dashboard to Medical Records', () => {
       features: [
         { featureKey: 'prescriptions', isEnabled: true },
         { featureKey: 'medical_records', isEnabled: true },
+        { featureKey: 'messaging', isEnabled: true },
       ],
       appointments: mockAppointments,
       prescriptions: mockPrescriptions,
@@ -284,5 +315,52 @@ test.describe('Patient Journey — Dashboard to Medical Records', () => {
     await expect(page.getByText('Asthma')).toBeVisible();
     await expect(page.getByText('Peanuts')).toBeVisible();
     await expect(page.getByText('2 of 6')).toBeVisible();
+
+    // ── Step 7: Navigate to Messages and Send a Reply ─────────────────────
+
+    let messageSent = false;
+
+    await mockMessagingRoutes(page, mockThreads, mockChatMessages);
+
+    await page.route(/\/api\/v1\/messaging\/threads\/[^/]+\/messages/, (route) => {
+      if (route.request().method() === 'POST') {
+        messageSent = true;
+        return route.fulfill({ status: 201, json: { messageId: 'msg-new' } });
+      }
+      if (route.request().method() === 'GET') {
+        const msgs = [...mockChatMessages];
+        if (messageSent) {
+          msgs.push({
+            id: 'msg-new',
+            senderName: 'Maya Chen',
+            senderRole: 'Patient',
+            senderUserId: '1',
+            content: 'Feeling much better after the medication',
+            messageType: 'Text',
+            isRead: false,
+            readAt: null,
+            createdAt: new Date().toISOString(),
+            attachments: [],
+          });
+        }
+        return route.fulfill({ status: 200, json: { messages: msgs, totalCount: msgs.length } });
+      }
+      return route.fallback();
+    });
+
+    await page.goto('/messages');
+
+    await expect(page.getByText('Dr. House')).toBeVisible();
+    await expect(page.getByText('How are you feeling today?')).toBeVisible();
+
+    await page.getByText('Dr. House').click();
+
+    await expect(page.getByText('How are you feeling today?')).toBeVisible();
+
+    const messageInput = page.getByPlaceholder(/type a message/i);
+    await messageInput.fill('Feeling much better after the medication');
+    await page.getByRole('button', { name: /send/i }).click();
+
+    await expect(messageInput).toHaveValue('');
   });
 });
