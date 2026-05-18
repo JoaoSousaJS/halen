@@ -136,18 +136,20 @@ public class GetAvailableSlotsQueryHandlerTests
     [TestMethod]
     public async Task Handle_DateIsToday_FiltersPastSlots()
     {
-        // Use today's date with a window entirely in the past (00:00-00:40)
-        // Since the test runs after midnight, all generated slots (00:00 and 00:20)
-        // are in the past and should be completely excluded from the result.
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        // Place the window 2 hours before now so most/all slots are past.
+        // For the midnight hour, fall back to 00:00 — the assertion below
+        // handles both cases by checking no past slot leaks through.
+        var safeHour = Math.Max(DateTime.UtcNow.Hour - 2, 0);
 
         _db.DoctorAvailabilities.Add(new DoctorAvailability
         {
             DoctorProfileId = _doctorProfileId,
             ClinicId = TestTenantContext.DefaultClinicId,
             DayOfWeek = today.DayOfWeek,
-            StartTime = new TimeOnly(0, 0),
-            EndTime = new TimeOnly(0, 40),
+            StartTime = new TimeOnly(safeHour, 0),
+            EndTime = new TimeOnly(safeHour, 40),
             SlotDurationMinutes = 20,
             IsActive = true,
         });
@@ -157,9 +159,10 @@ public class GetAvailableSlotsQueryHandlerTests
 
         var result = await _handler.Handle(query, CancellationToken.None);
 
-        // The window 00:00-00:40 produces slots at 00:00 and 00:20, both in the past.
-        // Past slots are removed entirely (not marked unavailable), so the list should be empty.
-        result.Slots.Should().BeEmpty();
+        var now = TimeOnly.FromDateTime(DateTime.UtcNow);
+        result.Slots.Should().NotContain(
+            s => TimeOnly.Parse(s.StartLocal) < now,
+            "past slots should be excluded from today's availability");
     }
 
     [TestMethod]
