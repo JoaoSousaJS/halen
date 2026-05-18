@@ -592,14 +592,14 @@ test.describe('Medical Records', () => {
     await expect(snapshotCards.getByText('Allergies').first()).toBeVisible();
     await expect(snapshotCards.getByText('Penicillin')).toBeVisible();
 
-    await expect(page.getByText('Current Medications')).toBeVisible();
-    await expect(page.getByText('Lisinopril')).toBeVisible();
+    await expect(snapshotCards.getByText('Current Medications')).toBeVisible();
+    await expect(snapshotCards.getByText('Lisinopril')).toBeVisible();
 
-    await expect(page.getByText('Family History')).toBeVisible();
-    await expect(page.getByText('Type 2 Diabetes')).toBeVisible();
+    await expect(snapshotCards.getByText('Family History')).toBeVisible();
+    await expect(snapshotCards.getByText('Type 2 Diabetes')).toBeVisible();
 
-    await expect(page.getByText('Latest Vitals')).toBeVisible();
-    await expect(page.getByText('120/80')).toBeVisible();
+    await expect(snapshotCards.getByText('Latest Vitals')).toBeVisible();
+    await expect(snapshotCards.getByText('120/80')).toBeVisible();
   });
 
   test('displays snapshot empty state cards', async ({ page }) => {
@@ -650,7 +650,7 @@ test.describe('Medical Records', () => {
     // Upload dialog form should appear
     await expect(page.getByRole('heading', { name: 'Upload Document' })).toBeVisible();
     await expect(page.getByLabel('Choose file')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Upload' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Upload', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
   });
 
