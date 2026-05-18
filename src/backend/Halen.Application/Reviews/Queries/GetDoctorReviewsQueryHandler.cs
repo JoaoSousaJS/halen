@@ -26,6 +26,8 @@ public class GetDoctorReviewsQueryHandler(
             .Select(star => ratingGroups.FirstOrDefault(r => r.Stars == star) ?? new RatingBreakdownDto(star, 0))
             .ToList();
 
+        // At scale, replace with PostgreSQL unnest():
+        //   SELECT unnest("Tags") AS tag, COUNT(*) FROM "Reviews" WHERE ... GROUP BY tag LIMIT 8
         var allTags = await baseQuery
             .Select(r => r.Tags)
             .ToListAsync(ct);

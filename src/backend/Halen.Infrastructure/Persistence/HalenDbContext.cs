@@ -22,6 +22,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<ConsultationRoom> ConsultationRooms => Set<ConsultationRoom>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<ReviewHelpfulVote> ReviewHelpfulVotes => Set<ReviewHelpfulVote>();
     /// <summary>Intentionally unfiltered — Clinic is the tenant root, not scoped to another tenant.</summary>
     public DbSet<Clinic> Clinics => Set<Clinic>();
     /// <summary>Intentionally unfiltered — managed cross-tenant by PlatformAdmin; handlers scope by ClinicId explicitly.</summary>
@@ -52,6 +53,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         builder.Entity<Payment>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<ConsultationRoom>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<Review>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<ReviewHelpfulVote>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
 
         // ── Clinic ───────────────────────────────────────────────────────────
         builder.Entity<Clinic>(e =>
@@ -224,7 +226,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.HasOne(r => r.PatientProfile).WithMany().HasForeignKey(r => r.PatientProfileId);
             e.HasOne(r => r.DoctorProfile).WithMany(d => d.Reviews).HasForeignKey(r => r.DoctorProfileId);
             e.HasIndex(r => r.AppointmentId).IsUnique();
-            e.HasIndex(r => new { r.ClinicId, r.DoctorProfileId, r.ModerationStatus });
+            e.HasIndex(r => new { r.ClinicId, r.DoctorProfileId, r.ModerationStatus, r.CreatedAt });
             e.Property(r => r.Title).HasMaxLength(120).IsRequired();
             e.Property(r => r.Body).HasMaxLength(600);
             e.Property(r => r.Tags).HasColumnType("text[]");
@@ -232,6 +234,13 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(r => r.DoctorResponse).HasMaxLength(600);
             e.Property(r => r.PostedAs).HasMaxLength(50).IsRequired();
             e.ToTable(t => t.HasCheckConstraint("CK_Review_Rating", "\"Rating\" >= 1 AND \"Rating\" <= 5"));
+        });
+
+        // ── ReviewHelpfulVote ────────────────────────────────────────────────
+        builder.Entity<ReviewHelpfulVote>(e =>
+        {
+            e.HasOne(v => v.Review).WithMany().HasForeignKey(v => v.ReviewId);
+            e.HasIndex(v => new { v.ReviewId, v.UserId }).IsUnique();
         });
 
         // ── Enum conversions (stored as strings) ─────────────────────────────

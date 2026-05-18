@@ -1,5 +1,6 @@
 import type { DoctorSearchDto } from '../../shared/api/doctors';
 import { Button, Chip } from '../../shared/components';
+import { renderStars } from '../../shared/utils/renderStars';
 
 interface DoctorCardProps {
   doctor: DoctorSearchDto;
@@ -16,7 +17,7 @@ export default function DoctorCard({ doctor, onSelect }: DoctorCardProps) {
 
       {doctor.averageRating != null && (
         <div className="doctor-card-rating" aria-label={`Rating: ${doctor.averageRating.toFixed(1)} out of 5, ${doctor.reviewCount} reviews`}>
-          <span className="doctor-card-stars">{'★'.repeat(Math.round(doctor.averageRating))}{'☆'.repeat(5 - Math.round(doctor.averageRating))}</span>
+          <span className="doctor-card-stars">{renderStars(doctor.averageRating)}</span>
           <span className="doctor-card-rating-text">{doctor.averageRating.toFixed(1)}</span>
           <span className="doctor-card-review-count">({doctor.reviewCount} reviews)</span>
           {doctor.averageRating >= 4.7 && doctor.reviewCount >= 50 && (

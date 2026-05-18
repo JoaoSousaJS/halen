@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiError } from '../../shared/api/errors';
 import { getMyReviews, respondToReview } from '../../shared/api/reviews';
 import { Button, Chip } from '../../shared/components';
+import { renderStars } from '../../shared/utils/renderStars';
 
 type ReviewFilter = 'all' | 'awaiting-reply' | 'low-star';
 
@@ -11,10 +12,6 @@ const FILTER_LABELS: { value: ReviewFilter; label: string }[] = [
   { value: 'awaiting-reply', label: 'Awaiting reply' },
   { value: 'low-star', label: 'Low star' },
 ];
-
-function renderStars(rating: number): string {
-  return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-}
 
 export default function DoctorMyReviews() {
   const queryClient = useQueryClient();

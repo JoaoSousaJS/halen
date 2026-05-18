@@ -4,6 +4,7 @@ import { getApiError } from '../../shared/api/errors';
 import { getModerationQueue, moderateReview } from '../../shared/api/reviews';
 import type { ModerationReviewDto } from '../../shared/api/reviews';
 import { Button, Chip } from '../../shared/components';
+import { renderStars } from '../../shared/utils/renderStars';
 
 type ModerationFilter = 'pending' | 'all';
 
@@ -11,10 +12,6 @@ const FILTER_LABELS: { value: ModerationFilter; label: string }[] = [
   { value: 'pending', label: 'Pending' },
   { value: 'all', label: 'All' },
 ];
-
-function renderStars(rating: number): string {
-  return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-}
 
 export default function ReviewModeration() {
   const queryClient = useQueryClient();

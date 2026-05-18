@@ -57,6 +57,8 @@ public class SubmitReviewCommandHandler(
             Tags = request.Tags,
             IsVerified = true,
             HelpfulCount = 0,
+            // Auto-approved: reviews go live immediately (post-publish moderation model).
+            // Admins can retroactively hide/remove via the moderation queue.
             ModerationStatus = ReviewModerationStatus.Approved,
             PostedAs = postedAs,
         };
@@ -64,7 +66,9 @@ public class SubmitReviewCommandHandler(
         db.Reviews.Add(review);
 
         var stats = await db.Reviews
-            .Where(r => r.DoctorProfileId == appointment.DoctorId && r.ModerationStatus == ReviewModerationStatus.Approved)
+            .Where(r => r.DoctorProfileId == appointment.DoctorId
+                && r.ModerationStatus == ReviewModerationStatus.Approved
+                && r.Id != review.Id)
             .GroupBy(_ => 1)
             .Select(g => new { Count = g.Count(), Sum = g.Sum(r => r.Rating) })
             .FirstOrDefaultAsync(ct);

@@ -61,7 +61,7 @@ public class ReviewsController(IMediator mediator) : HalenControllerBase
     [HttpPost("{reviewId:guid}/helpful")]
     public async Task<IActionResult> VoteHelpful(Guid reviewId, CancellationToken ct)
     {
-        var command = new VoteHelpfulCommand(reviewId);
+        var command = new VoteHelpfulCommand(reviewId, GetUserId());
         var result = await mediator.Send(command, ct);
         if (!result.Success)
             return MapError(result.Error, result.Kind);

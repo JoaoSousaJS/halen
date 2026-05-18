@@ -90,6 +90,7 @@ export default function PatientDashboard() {
 
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [reviewingAppointmentId, setReviewingAppointmentId] = useState<string | null>(null);
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
 
   const cancel = useMutation({
     mutationFn: cancelAppointment,
@@ -253,7 +254,7 @@ export default function PatientDashboard() {
                   {a.notes ? <p className="text-dim">Notes: {a.notes}</p> : null}
                   <PaymentChip status={a.paymentStatus} amount={a.paymentAmount} />
                 </div>
-                {a.status === 'Completed' && reviewingAppointmentId !== a.id ? (
+                {a.status === 'Completed' && reviewingAppointmentId !== a.id && !reviewedIds.has(a.id) ? (
                   <FeatureGate feature="doctor_reviews">
                     <Button
                       size="sm"
@@ -271,7 +272,10 @@ export default function PatientDashboard() {
                     patientFirstName={user?.given_name ?? ''}
                     patientLastInitial={user?.family_name?.charAt(0) ?? ''}
                     onClose={() => setReviewingAppointmentId(null)}
-                    onSuccess={() => setReviewingAppointmentId(null)}
+                    onSuccess={() => {
+                      setReviewedIds((prev) => new Set(prev).add(a.id));
+                      setReviewingAppointmentId(null);
+                    }}
                   />
                 ) : null}
 

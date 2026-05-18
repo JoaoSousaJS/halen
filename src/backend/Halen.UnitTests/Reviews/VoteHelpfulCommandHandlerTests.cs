@@ -25,6 +25,7 @@ public class VoteHelpfulCommandHandlerTests
     private Guid _patientProfileId;
     private Guid _appointmentId;
     private Guid _reviewId;
+    private Guid _voterUserId;
 
     [TestInitialize]
     public async Task Initialize()
@@ -37,6 +38,7 @@ public class VoteHelpfulCommandHandlerTests
         _patientProfileId = Guid.NewGuid();
         _appointmentId = Guid.NewGuid();
         _reviewId = Guid.NewGuid();
+        _voterUserId = Guid.NewGuid();
 
         _db.Users.AddRange(
             new User
@@ -92,7 +94,7 @@ public class VoteHelpfulCommandHandlerTests
 
         await _db.SaveChangesAsync();
 
-        _handler = new VoteHelpfulCommandHandler(_db);
+        _handler = new VoteHelpfulCommandHandler(_db, Mock.Of<ILogger<VoteHelpfulCommandHandler>>());
     }
 
     [TestCleanup]
@@ -103,7 +105,7 @@ public class VoteHelpfulCommandHandlerTests
     [TestMethod]
     public async Task Handle_ValidVote_IncrementsCount()
     {
-        var command = new VoteHelpfulCommand(_reviewId);
+        var command = new VoteHelpfulCommand(_reviewId, _voterUserId);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -119,7 +121,7 @@ public class VoteHelpfulCommandHandlerTests
     [TestMethod]
     public async Task Handle_ReviewNotFound_ReturnsNotFound()
     {
-        var command = new VoteHelpfulCommand(Guid.NewGuid());
+        var command = new VoteHelpfulCommand(Guid.NewGuid(), _voterUserId);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -135,11 +137,25 @@ public class VoteHelpfulCommandHandlerTests
         review!.ModerationStatus = ReviewModerationStatus.Hidden;
         await _db.SaveChangesAsync();
 
-        var command = new VoteHelpfulCommand(_reviewId);
+        var command = new VoteHelpfulCommand(_reviewId, _voterUserId);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
         result.Success.Should().BeFalse();
         result.Kind.Should().Be(ErrorKind.NotFound);
+    }
+
+    [TestMethod]
+    public async Task Handle_DuplicateVote_ReturnsValidationError()
+    {
+        var command = new VoteHelpfulCommand(_reviewId, _voterUserId);
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        var secondResult = await _handler.Handle(command, CancellationToken.None);
+
+        secondResult.Success.Should().BeFalse();
+        secondResult.Kind.Should().Be(ErrorKind.Validation);
+        secondResult.Error.Should().Contain("already voted");
     }
 }

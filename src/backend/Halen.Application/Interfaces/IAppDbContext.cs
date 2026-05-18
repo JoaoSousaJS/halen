@@ -19,6 +19,7 @@ public interface IAppDbContext
     DbSet<Payment> Payments { get; }
     DbSet<ConsultationRoom> ConsultationRooms { get; }
     DbSet<Review> Reviews { get; }
+    DbSet<ReviewHelpfulVote> ReviewHelpfulVotes { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

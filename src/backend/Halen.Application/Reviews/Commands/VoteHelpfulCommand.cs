@@ -4,7 +4,8 @@ using MediatR;
 namespace Halen.Application.Reviews.Commands;
 
 public record VoteHelpfulCommand(
-    Guid ReviewId
+    Guid ReviewId,
+    Guid UserId
 ) : IRequest<VoteHelpfulResult>;
 
 public record VoteHelpfulResult(

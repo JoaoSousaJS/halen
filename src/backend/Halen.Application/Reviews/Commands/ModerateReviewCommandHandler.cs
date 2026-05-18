@@ -3,11 +3,13 @@ using Halen.Application.Interfaces;
 using Halen.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Halen.Application.Reviews.Commands;
 
 public class ModerateReviewCommandHandler(
-    IAppDbContext db
+    IAppDbContext db,
+    ILogger<ModerateReviewCommandHandler> logger
 ) : IRequestHandler<ModerateReviewCommand, ModerateReviewResult>
 {
     public async Task<ModerateReviewResult> Handle(ModerateReviewCommand request, CancellationToken ct)
@@ -55,6 +57,10 @@ public class ModerateReviewCommandHandler(
         }
 
         await db.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Admin {AdminUserId} moderated review {ReviewId}: {PreviousStatus} -> {Decision}",
+            request.AdminUserId, request.ReviewId, previousStatus, request.Decision);
 
         return new ModerateReviewResult(true);
     }

@@ -93,7 +93,7 @@ public class RespondToReviewCommandHandlerTests
         _db.Reviews.Add(review);
         await _db.SaveChangesAsync();
 
-        _handler = new RespondToReviewCommandHandler(_db);
+        _handler = new RespondToReviewCommandHandler(_db, Mock.Of<ILogger<RespondToReviewCommandHandler>>());
     }
 
     [TestCleanup]

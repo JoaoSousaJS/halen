@@ -103,7 +103,7 @@ public class ModerateReviewCommandHandlerTests
 
         await _db.SaveChangesAsync();
 
-        _handler = new ModerateReviewCommandHandler(_db);
+        _handler = new ModerateReviewCommandHandler(_db, Mock.Of<ILogger<ModerateReviewCommandHandler>>());
     }
 
     [TestCleanup]

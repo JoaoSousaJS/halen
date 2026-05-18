@@ -2,11 +2,13 @@ using Halen.Application.Common;
 using Halen.Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Halen.Application.Reviews.Commands;
 
 public class RespondToReviewCommandHandler(
-    IAppDbContext db
+    IAppDbContext db,
+    ILogger<RespondToReviewCommandHandler> logger
 ) : IRequestHandler<RespondToReviewCommand, RespondToReviewResult>
 {
     public async Task<RespondToReviewResult> Handle(RespondToReviewCommand request, CancellationToken ct)
@@ -33,6 +35,10 @@ public class RespondToReviewCommandHandler(
         review.DoctorRespondedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);
+
+        logger.LogInformation(
+            "Doctor {DoctorUserId} responded to review {ReviewId}",
+            request.DoctorUserId, request.ReviewId);
 
         return new RespondToReviewResult(true);
     }

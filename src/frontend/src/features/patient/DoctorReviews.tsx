@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { getDoctorReviews, voteHelpful } from '../../shared/api/reviews';
 import type { ReviewDto } from '../../shared/api/reviews';
 import { Button, Chip, Select } from '../../shared/components';
+import { renderStars } from '../../shared/utils/renderStars';
 
 interface DoctorReviewsProps {
   doctorProfileId: string;
@@ -16,10 +17,6 @@ const SORT_OPTIONS = [
 ];
 
 const PAGE_SIZE = 10;
-
-function renderStars(rating: number): string {
-  return '★'.repeat(rating) + '☆'.repeat(5 - rating);
-}
 
 export default function DoctorReviews({ doctorProfileId }: DoctorReviewsProps) {
   const [page, setPage] = useState(1);
