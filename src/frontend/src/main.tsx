@@ -12,6 +12,7 @@ import './index.css';
 const ProfilePage = lazy(() => import('./features/profile/ProfilePage'));
 const ConsultationPage = lazy(() => import('./features/video-consultation/ConsultationPage'));
 const MedicalRecordsPage = lazy(() => import('./features/patient/medical-records/MedicalRecordsPage'));
+const MessagingPage = lazy(() => import('./features/messaging/MessagingPage'));
 
 function PrivateRoute({ children }: { children: ReactNode }) {
   const { token } = useAuth();
@@ -57,6 +58,16 @@ function Router() {
           <PrivateRoute>
             <Suspense fallback={<div className="text-dim">Loading…</div>}>
               <MedicalRecordsPage />
+            </Suspense>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/messages"
+        element={
+          <PrivateRoute>
+            <Suspense fallback={<div className="text-dim">Loading…</div>}>
+              <MessagingPage />
             </Suspense>
           </PrivateRoute>
         }
