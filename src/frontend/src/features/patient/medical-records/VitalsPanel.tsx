@@ -169,8 +169,8 @@ export default function VitalsPanel({ patientProfileId }: VitalsPanelProps) {
   }
 
   return (
-    <section aria-label="Vitals">
-      <div>
+    <section className="panel" aria-label="Vitals">
+      <div className="panel-header">
         <h2>Vitals</h2>
         <Button ariaLabel="Add vital" onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Cancel' : 'Add Vital'}
@@ -179,37 +179,39 @@ export default function VitalsPanel({ patientProfileId }: VitalsPanelProps) {
 
       {/* Latest vitals summary */}
       {vitalsSummary.length > 0 && (
-        <div aria-label="Latest vitals">
+        <div className="vitals-current" aria-label="Latest vitals">
           {vitalsSummary.map((v) => (
-            <div key={v.type}>
-              <span className="text-dim">{v.type}</span>
-              <span>{v.display}</span>
-              <span className="text-dim">{v.unit}</span>
+            <div className="vital-current" key={v.type}>
+              <span className="vital-current-label text-dim">{v.type}</span>
+              <span className="vital-current-value">{v.display}</span>
+              <span className="vital-current-unit text-dim">{v.unit}</span>
             </div>
           ))}
         </div>
       )}
 
       {/* Type selector */}
-      <Field label="Vital type">
-        <Select
-          options={VITAL_TYPES.map((t) => ({ value: t.value, label: t.label }))}
-          value={selectedType}
-          aria-label="Vital type"
-          onChange={(e) => setSelectedType(e.target.value as VitalType)}
-        />
-      </Field>
+      <div className="vitals-type-selector">
+        <Field label="Vital type">
+          <Select
+            options={VITAL_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+            value={selectedType}
+            aria-label="Vital type"
+            onChange={(e) => setSelectedType(e.target.value as VitalType)}
+          />
+        </Field>
+      </div>
 
       {/* Chart */}
       {chartData.length > 0 && (
-        <div aria-label="Vitals chart">
+        <div className="vitals-chart" aria-label="Vitals chart">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={11} fontFamily="var(--font-mono)" />
+              <YAxis stroke="var(--text-muted)" fontSize={11} fontFamily="var(--font-mono)" />
               <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="var(--accent)" />
+              <Line type="monotone" dataKey="value" stroke="var(--accent)" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -223,12 +225,12 @@ export default function VitalsPanel({ patientProfileId }: VitalsPanelProps) {
       )}
 
       {historyData.length === 0 && !history.isLoading && (
-        <p className="text-dim">No history for this vital type yet.</p>
+        <p className="panel-empty text-dim">No history for this vital type yet.</p>
       )}
 
       {/* Add vital form */}
       {showForm && (
-        <form onSubmit={handleSubmit} aria-label="Add vital form">
+        <form className="panel-form" onSubmit={handleSubmit} aria-label="Add vital form">
           <Field label="Type">
             <Select
               options={VITAL_TYPES.map((t) => ({

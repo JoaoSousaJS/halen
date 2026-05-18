@@ -13,18 +13,20 @@ function OnboardingProgress({ progress }: { progress: number }) {
   const percent = Math.round((progress / ONBOARDING_TOTAL) * 100);
 
   return (
-    <div aria-label="Onboarding progress">
-      <p>
-        Profile completion: {progress} of {ONBOARDING_TOTAL}
-      </p>
+    <div className="onboarding-progress" aria-label="Onboarding progress">
+      <div className="onboarding-progress-header">
+        <span className="text-dim">Profile completion</span>
+        <strong className="onboarding-progress-count">{progress} of {ONBOARDING_TOTAL}</strong>
+      </div>
       <div
+        className="onboarding-progress-track"
         role="progressbar"
         aria-valuenow={progress}
         aria-valuemin={0}
         aria-valuemax={ONBOARDING_TOTAL}
         aria-label={`${progress} of ${ONBOARDING_TOTAL} sections complete`}
       >
-        <div style={{ width: `${percent}%` }} />
+        <div className="onboarding-progress-fill" style={{ width: `${percent}%` }} />
       </div>
     </div>
   );
@@ -42,15 +44,15 @@ function SnapshotCard({
   count: number;
 }) {
   return (
-    <article aria-label={title}>
-      <header>
+    <article className="snapshot-card" aria-label={title}>
+      <header className="snapshot-card-header">
         <h3>{title}</h3>
-        <span className="text-dim">{count}</span>
+        <span className="snapshot-card-count">{count}</span>
       </header>
       {count === 0 ? (
-        <p className="text-dim">Get started by adding your first {emptyMessage}.</p>
+        <p className="snapshot-empty text-dim">Get started by adding your first {emptyMessage}.</p>
       ) : (
-        children
+        <div className="snapshot-card-items">{children}</div>
       )}
     </article>
   );
@@ -63,10 +65,10 @@ function formatVital(vitals: LatestVitalsDto, key: keyof LatestVitalsDto, label:
     ? `${reading.value}/${reading.secondaryValue}`
     : String(reading.value);
   return (
-    <li key={key}>
-      <span>{label}</span>
-      <span>{display}</span>
-      <span className="text-dim">{reading.unit}</span>
+    <li className="snapshot-vital-item" key={key}>
+      <span className="snapshot-vital-label">{label}</span>
+      <span className="snapshot-vital-value">{display}</span>
+      <span className="snapshot-vital-unit text-dim">{reading.unit}</span>
     </li>
   );
 }
@@ -95,10 +97,10 @@ export default function PatientSnapshot({
     : 0;
 
   return (
-    <section aria-label="Patient snapshot">
+    <section className="snapshot" aria-label="Patient snapshot">
       <OnboardingProgress progress={data.onboardingProgress} />
 
-      <div aria-label="Snapshot cards">
+      <div className="snapshot-grid" aria-label="Snapshot cards">
         <SnapshotCard
           title="Active Conditions"
           emptyMessage="condition"
@@ -165,7 +167,7 @@ export default function PatientSnapshot({
           count={vitalsCount}
         >
           {data.latestVitals && (
-            <ul>
+            <ul className="snapshot-vitals">
               {formatVital(data.latestVitals, 'bloodPressure', 'Blood Pressure')}
               {formatVital(data.latestVitals, 'heartRate', 'Heart Rate')}
               {formatVital(data.latestVitals, 'weight', 'Weight')}

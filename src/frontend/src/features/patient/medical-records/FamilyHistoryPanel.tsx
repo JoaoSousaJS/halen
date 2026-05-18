@@ -76,14 +76,14 @@ export default function FamilyHistoryPanel({ patientProfileId }: FamilyHistoryPa
   const items = familyHistory.data ?? [];
 
   return (
-    <section aria-label="Family History">
+    <section className="panel" aria-label="Family History">
       <div className="panel-header">
         <h3>Family History</h3>
         <Button size="sm" onClick={() => setShowForm(true)}>Add Entry</Button>
       </div>
 
       {items.length === 0 ? (
-        <p className="text-dim">No family history recorded.</p>
+        <p className="panel-empty text-dim">No family history recorded.</p>
       ) : (
         <ul className="record-list" role="list">
           {items.map((entry: FamilyHistoryDto) => (

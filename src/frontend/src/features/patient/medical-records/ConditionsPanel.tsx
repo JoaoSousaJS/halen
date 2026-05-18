@@ -35,21 +35,21 @@ const STATUS_VARIANT: Record<string, 'good' | 'warn' | 'danger'> = {
 
 function ConditionCard({ condition }: { condition: ConditionDto }) {
   return (
-    <article aria-label={condition.icdDescription}>
-      <div>
-        <code>{condition.icdCode}</code>
+    <article className="panel-item" aria-label={condition.icdDescription}>
+      <div className="panel-item-header">
+        <code className="panel-item-code">{condition.icdCode}</code>
         <h3>{condition.icdDescription}</h3>
       </div>
-      <div>
+      <div className="panel-item-badges">
         <Chip status={condition.severity} variant={SEVERITY_VARIANT[condition.severity]} />
         <Chip status={condition.status} variant={STATUS_VARIANT[condition.status]} />
       </div>
       {condition.dateOfOnset && (
-        <p className="text-dim">
+        <p className="panel-item-meta text-dim">
           Onset: {new Date(condition.dateOfOnset).toLocaleDateString()}
         </p>
       )}
-      {condition.clinicalNotes && <p>{condition.clinicalNotes}</p>}
+      {condition.clinicalNotes && <p className="panel-item-notes">{condition.clinicalNotes}</p>}
     </article>
   );
 }
@@ -122,8 +122,8 @@ export default function ConditionsPanel({
   const data = conditions.data ?? [];
 
   return (
-    <section aria-label="Conditions">
-      <div>
+    <section className="panel" aria-label="Conditions">
+      <div className="panel-header">
         <h2>Conditions</h2>
         <Button
           ariaLabel="Add condition"
@@ -134,7 +134,7 @@ export default function ConditionsPanel({
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} aria-label="Add condition form">
+        <form className="panel-form" onSubmit={handleSubmit} aria-label="Add condition form">
           <Field label="ICD Code">
             <input
               id="icd-code"
@@ -235,9 +235,9 @@ export default function ConditionsPanel({
       )}
 
       {data.length === 0 && !showForm ? (
-        <p className="text-dim">No conditions recorded yet.</p>
+        <p className="panel-empty text-dim">No conditions recorded yet.</p>
       ) : (
-        <div role="list" aria-label="Conditions list">
+        <div className="panel-list" role="list" aria-label="Conditions list">
           {data.map((condition) => (
             <div key={condition.id} role="listitem">
               <ConditionCard condition={condition} />

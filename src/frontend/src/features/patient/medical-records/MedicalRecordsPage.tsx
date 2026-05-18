@@ -36,10 +36,12 @@ interface MedicalRecordsPageProps {
 
 function PatientHeader({ header }: { header: PatientHeaderDto }) {
   return (
-    <section aria-label="Patient header">
-      <h1>{header.patientName}</h1>
-      {header.city && <p>{header.city}</p>}
-      <div aria-label="Allergies and conditions">
+    <section className="patient-header" aria-label="Patient header">
+      <div className="patient-header-info">
+        <h1>{header.patientName}</h1>
+        {header.city && <p className="patient-header-city">{header.city}</p>}
+      </div>
+      <div className="patient-header-chips" aria-label="Allergies and conditions">
         {header.allergyChips.map((a) => (
           <Chip key={a} status={a} variant="danger" />
         ))}
@@ -99,39 +101,43 @@ export default function MedicalRecordsPage({
         subtitle="medical records"
         userName={`${user?.given_name} ${user?.family_name}`}
       >
-        {header.isLoading ? (
-          <p role="status">Loading patient records...</p>
-        ) : header.isError ? (
-          <p className="auth-error">Failed to load patient data.</p>
-        ) : header.data ? (
-          <>
-            <PatientHeader header={header.data} />
+        <div className="medical-records-page">
+          {header.isLoading ? (
+            <p role="status">Loading patient records...</p>
+          ) : header.isError ? (
+            <p className="auth-error">Failed to load patient data.</p>
+          ) : header.data ? (
+            <>
+              <PatientHeader header={header.data} />
 
-            <nav aria-label="Medical records tabs">
-              <div role="tablist" aria-label="Medical record sections">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab}
-                    role="tab"
-                    aria-selected={activeTab === tab}
-                    aria-controls={`tabpanel-${tab}`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab}
-                  </button>
-                ))}
+              <nav className="records-tabs" aria-label="Medical records tabs">
+                <div role="tablist" aria-label="Medical record sections">
+                  {TABS.map((tab) => (
+                    <button
+                      key={tab}
+                      role="tab"
+                      className={`records-tab${activeTab === tab ? ' records-tab-active' : ''}`}
+                      aria-selected={activeTab === tab}
+                      aria-controls={`tabpanel-${tab}`}
+                      onClick={() => setActiveTab(tab)}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </nav>
+
+              <div
+                className="records-panel"
+                id={`tabpanel-${activeTab}`}
+                role="tabpanel"
+                aria-label={activeTab}
+              >
+                <TabPanel tab={activeTab} patientProfileId={patientProfileId} />
               </div>
-            </nav>
-
-            <div
-              id={`tabpanel-${activeTab}`}
-              role="tabpanel"
-              aria-label={activeTab}
-            >
-              <TabPanel tab={activeTab} patientProfileId={patientProfileId} />
-            </div>
-          </>
-        ) : null}
+            </>
+          ) : null}
+        </div>
       </DashboardShell>
     </FeatureGate>
   );

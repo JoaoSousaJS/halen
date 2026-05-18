@@ -112,7 +112,7 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
     : allItems;
 
   return (
-    <section aria-label="Documents">
+    <section className="panel" aria-label="Documents">
       <div className="panel-header">
         <h3>Documents</h3>
         <Button size="sm" onClick={() => setShowUploadForm(true)}>Upload Document</Button>
@@ -131,7 +131,7 @@ export default function DocumentsPanel({ patientProfileId }: DocumentsPanelProps
       </div>
 
       {filteredItems.length === 0 ? (
-        <p className="text-dim">
+        <p className="panel-empty text-dim">
           {allItems.length === 0 ? 'No documents uploaded.' : 'No documents match the selected filter.'}
         </p>
       ) : (

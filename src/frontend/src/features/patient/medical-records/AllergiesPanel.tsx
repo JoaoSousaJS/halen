@@ -23,12 +23,12 @@ const SEVERITY_VARIANT: Record<string, 'good' | 'warn' | 'danger'> = {
 
 function AllergyCard({ allergy }: { allergy: AllergyDto }) {
   return (
-    <article aria-label={allergy.allergenName}>
-      <div>
+    <article className="panel-item" aria-label={allergy.allergenName}>
+      <div className="panel-item-header">
         <h3>{allergy.allergenName}</h3>
-        {allergy.reaction && <p>{allergy.reaction}</p>}
+        {allergy.reaction && <p className="panel-item-reaction">{allergy.reaction}</p>}
       </div>
-      <div>
+      <div className="panel-item-badges">
         <Chip
           status={allergy.severity}
           variant={SEVERITY_VARIANT[allergy.severity]}
@@ -39,7 +39,7 @@ function AllergyCard({ allergy }: { allergy: AllergyDto }) {
         />
       </div>
       {allergy.dateIdentified && (
-        <p className="text-dim">
+        <p className="panel-item-meta text-dim">
           Identified: {new Date(allergy.dateIdentified).toLocaleDateString()}
         </p>
       )}
@@ -109,8 +109,8 @@ export default function AllergiesPanel({
   const data = allergies.data ?? [];
 
   return (
-    <section aria-label="Allergies">
-      <div>
+    <section className="panel" aria-label="Allergies">
+      <div className="panel-header">
         <h2>Allergies</h2>
         <Button
           ariaLabel="Add allergy"
@@ -121,7 +121,7 @@ export default function AllergiesPanel({
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} aria-label="Add allergy form">
+        <form className="panel-form" onSubmit={handleSubmit} aria-label="Add allergy form">
           <Field label="Allergen Name">
             <input
               id="allergen-name"
@@ -193,9 +193,9 @@ export default function AllergiesPanel({
       )}
 
       {data.length === 0 && !showForm ? (
-        <p className="text-dim">No allergies recorded yet.</p>
+        <p className="panel-empty text-dim">No allergies recorded yet.</p>
       ) : (
-        <div role="list" aria-label="Allergies list">
+        <div className="panel-list" role="list" aria-label="Allergies list">
           {data.map((allergy) => (
             <div key={allergy.id} role="listitem">
               <AllergyCard allergy={allergy} />

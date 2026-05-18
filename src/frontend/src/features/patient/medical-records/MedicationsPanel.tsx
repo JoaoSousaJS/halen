@@ -72,14 +72,14 @@ export default function MedicationsPanel({ patientProfileId }: MedicationsPanelP
   const items = medications.data ?? [];
 
   return (
-    <section aria-label="Medications">
+    <section className="panel" aria-label="Medications">
       <div className="panel-header">
         <h3>Medications</h3>
         <Button size="sm" onClick={() => setShowForm(true)}>Add Medication</Button>
       </div>
 
       {items.length === 0 ? (
-        <p className="text-dim">No medications recorded.</p>
+        <p className="panel-empty text-dim">No medications recorded.</p>
       ) : (
         <ul className="record-list" role="list">
           {items.map((med: MedicationDto) => (

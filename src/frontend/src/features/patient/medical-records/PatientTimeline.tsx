@@ -34,15 +34,20 @@ function TimelineEntry({ entry }: { entry: TimelineEntryDto }) {
   const formattedDate = new Date(entry.occurredAt).toLocaleDateString();
 
   return (
-    <article aria-label={entry.title}>
-      <div>
-        <Chip status={entry.type} variant={TYPE_VARIANT[entry.type]} />
-        <time dateTime={entry.occurredAt}>{formattedDate}</time>
+    <article className="timeline-entry" aria-label={entry.title}>
+      <div className="timeline-entry-rail">
+        <div className={`timeline-type-badge timeline-type-${entry.type.toLowerCase()}`}>
+          <Chip status={entry.type} variant={TYPE_VARIANT[entry.type]} />
+        </div>
+        <div className="timeline-rail-line" />
       </div>
-      <div>
-        <h3>{entry.title}</h3>
-        {entry.subtitle && <p>{entry.subtitle}</p>}
-        {entry.addedBy && <p className="text-dim">{entry.addedBy}</p>}
+      <div className="timeline-card">
+        <div className="timeline-card-header">
+          <h3>{entry.title}</h3>
+          <time className="timeline-date" dateTime={entry.occurredAt}>{formattedDate}</time>
+        </div>
+        {entry.subtitle && <p className="timeline-card-subtitle">{entry.subtitle}</p>}
+        {entry.addedBy && <p className="text-dim timeline-card-added-by">{entry.addedBy}</p>}
       </div>
     </article>
   );
@@ -96,11 +101,11 @@ export default function PatientTimeline({
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <section aria-label="Patient timeline">
-      <fieldset role="group" aria-label="Filter by type">
+    <section className="timeline" aria-label="Patient timeline">
+      <fieldset className="timeline-filters" role="group" aria-label="Filter by type">
         <legend>Filter by type</legend>
         {TIMELINE_ENTRY_TYPES.map((type) => (
-          <label key={type}>
+          <label key={type} className={`timeline-filter-item${typeFilters.has(type) ? ' timeline-filter-active' : ''}`}>
             <input
               type="checkbox"
               checked={typeFilters.has(type)}
@@ -112,9 +117,9 @@ export default function PatientTimeline({
       </fieldset>
 
       {entries.length === 0 ? (
-        <p className="text-dim">No medical events recorded yet.</p>
+        <p className="timeline-empty text-dim">No medical events recorded yet.</p>
       ) : (
-        <div role="list" aria-label="Timeline entries">
+        <div className="timeline-list" role="list" aria-label="Timeline entries">
           {entries.map((entry) => (
             <div key={entry.id} role="listitem">
               <TimelineEntry entry={entry} />
@@ -124,7 +129,7 @@ export default function PatientTimeline({
       )}
 
       {totalPages > 1 && (
-        <nav aria-label="Pagination">
+        <nav className="timeline-pagination" aria-label="Pagination">
           <Button
             size="sm"
             disabled={page <= 1}
@@ -133,7 +138,7 @@ export default function PatientTimeline({
           >
             Previous
           </Button>
-          <span>
+          <span className="timeline-pagination-text">
             Page {page} of {totalPages}
           </span>
           <Button
