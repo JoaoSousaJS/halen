@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiError } from '../../shared/api/errors';
 import { getMyReviews, respondToReview } from '../../shared/api/reviews';
-import type { DoctorReviewItemDto } from '../../shared/api/reviews';
 import { Button, Chip } from '../../shared/components';
 
 type ReviewFilter = 'all' | 'awaiting-reply' | 'low-star';
@@ -171,6 +170,8 @@ export default function DoctorMyReviews() {
               <div className="doctor-my-reviews-reply-composer">
                 <textarea
                   className="doctor-my-reviews-reply-textarea"
+                  name="doctor-reply"
+                  aria-label="Reply to review"
                   rows={4}
                   maxLength={600}
                   value={replyText}

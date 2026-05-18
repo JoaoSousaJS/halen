@@ -1265,9 +1265,6 @@ body:has(.dialog-overlay) { overflow: hidden; }
 
 /* ── Shared: star rendering ──────────────────────── */
 
-.stars-amber { color: var(--warn); letter-spacing: 1px; }
-.stars-dim   { color: var(--text-muted); letter-spacing: 1px; }
-
 /* ── DoctorCard: inline rating row ───────────────── */
 
 .doctor-card-rating {
@@ -1402,7 +1399,7 @@ body:has(.dialog-overlay) { overflow: hidden; }
   line-height: var(--lh-body);
 }
 
-.review-form-body:focus {
+.review-form-body:focus-visible {
   outline: none;
   border-color: var(--border-bright);
   box-shadow: var(--ring-focus);
@@ -1504,6 +1501,10 @@ body:has(.dialog-overlay) { overflow: hidden; }
   background: var(--accent);
   border-radius: var(--r-pill);
   transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doctor-reviews-breakdown-fill { transition: none; }
 }
 
 .doctor-reviews-breakdown-count {
@@ -1819,7 +1820,7 @@ body:has(.dialog-overlay) { overflow: hidden; }
   transition: border-color var(--t-base), box-shadow var(--t-base);
 }
 
-.doctor-my-reviews-reply-textarea:focus {
+.doctor-my-reviews-reply-textarea:focus-visible {
   outline: none;
   border-color: var(--border-bright);
   box-shadow: var(--ring-focus);

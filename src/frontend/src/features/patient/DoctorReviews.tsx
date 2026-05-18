@@ -41,7 +41,7 @@ export default function DoctorReviews({ doctorProfileId }: DoctorReviewsProps) {
   });
 
   if (isLoading && !data) {
-    return <p role="status">Loading reviews...</p>;
+    return <p role="status">Loading reviews…</p>;
   }
 
   if (isError) {

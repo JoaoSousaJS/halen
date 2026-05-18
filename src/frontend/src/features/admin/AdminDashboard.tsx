@@ -5,8 +5,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import CreateDoctorForm from './CreateDoctorForm';
 import AdminUsersPage from './AdminUsersPage';
 import CreateUserDialog from './CreateUserDialog';
+import ReviewModeration from './ReviewModeration';
 
-type AdminTab = 'create-doctor' | 'users';
+type AdminTab = 'create-doctor' | 'users' | 'reviews';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -29,6 +30,12 @@ export default function AdminDashboard() {
         Create doctor
       </button>
       <button
+        className={`admin-nav-btn${tab === 'reviews' ? ' active' : ''}`}
+        onClick={() => setTab('reviews')}
+      >
+        Reviews
+      </button>
+      <button
         className="admin-nav-btn"
         onClick={() => setShowCreateUser(true)}
       >
@@ -46,6 +53,7 @@ export default function AdminDashboard() {
     >
       {tab === 'users' && <AdminUsersPage />}
       {tab === 'create-doctor' && <CreateDoctorForm />}
+      {tab === 'reviews' && <ReviewModeration />}
 
       {showCreateUser && (
         <CreateUserDialog

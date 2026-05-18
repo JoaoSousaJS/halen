@@ -22,6 +22,7 @@ import KycSetup from './KycSetup';
 import AvailabilityEditor from './AvailabilityEditor';
 import { FeatureGate } from '../../shared/components/FeatureGate';
 import { Button, Field } from '../../shared/components';
+import DoctorMyReviews from './DoctorMyReviews';
 
 export default function DoctorDashboard() {
   const { user } = useAuth();
@@ -344,6 +345,10 @@ export default function DoctorDashboard() {
               <p className="auth-error">{getApiError(cancelRx.error)}</p>
             ) : null}
           </section>
+        </FeatureGate>
+
+        <FeatureGate feature="doctor_reviews">
+          <DoctorMyReviews />
         </FeatureGate>
         </>
         )}

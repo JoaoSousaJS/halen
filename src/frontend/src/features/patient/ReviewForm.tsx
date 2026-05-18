@@ -114,7 +114,9 @@ export default function ReviewForm({
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value.slice(0, TITLE_MAX))}
-          placeholder="Summarize your experience"
+          name="review-title"
+          autoComplete="off"
+          placeholder="Summarize your experience…"
           maxLength={TITLE_MAX}
           required
           aria-describedby="review-form-title-counter"
@@ -151,7 +153,8 @@ export default function ReviewForm({
           className="review-form-body"
           value={body}
           onChange={(e) => setBody(e.target.value.slice(0, BODY_MAX))}
-          placeholder="Tell others about your experience"
+          name="review-body"
+          placeholder="Tell others about your experience…"
           maxLength={BODY_MAX}
           rows={4}
           aria-describedby="review-form-body-counter"
@@ -176,7 +179,7 @@ export default function ReviewForm({
           Skip for now
         </Button>
         <Button type="submit" variant="primary" disabled={!canSubmit}>
-          {mutation.isPending ? 'Posting...' : 'Post review'}
+          {mutation.isPending ? 'Posting…' : 'Post review'}
         </Button>
       </div>
     </form>

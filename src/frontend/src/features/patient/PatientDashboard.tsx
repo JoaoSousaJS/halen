@@ -18,6 +18,7 @@ import { ToastContainer } from '../../shared/components/ToastContainer';
 import { FeatureGate } from '../../shared/components/FeatureGate';
 import { Button, Field, Chip } from '../../shared/components';
 import DoctorSearch from './DoctorSearch';
+import ReviewForm from './ReviewForm';
 import type { DoctorSearchDto } from '../../shared/api/doctors';
 
 const PAYMENT_CHIP_CONFIG: Record<PaymentStatusType, { label: (amount: number | null) => string; variant?: 'good' | 'warn' | 'danger' }> = {
@@ -88,6 +89,7 @@ export default function PatientDashboard() {
   });
 
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [reviewingAppointmentId, setReviewingAppointmentId] = useState<string | null>(null);
 
   const cancel = useMutation({
     mutationFn: cancelAppointment,
@@ -251,6 +253,28 @@ export default function PatientDashboard() {
                   {a.notes ? <p className="text-dim">Notes: {a.notes}</p> : null}
                   <PaymentChip status={a.paymentStatus} amount={a.paymentAmount} />
                 </div>
+                {a.status === 'Completed' && reviewingAppointmentId !== a.id ? (
+                  <FeatureGate feature="doctor_reviews">
+                    <Button
+                      size="sm"
+                      ariaLabel={`Leave a review for ${a.doctorName}`}
+                      onClick={() => setReviewingAppointmentId(a.id)}
+                    >
+                      Leave a review
+                    </Button>
+                  </FeatureGate>
+                ) : null}
+
+                {reviewingAppointmentId === a.id ? (
+                  <ReviewForm
+                    appointmentId={a.id}
+                    patientFirstName={user?.given_name ?? ''}
+                    patientLastInitial={user?.family_name?.charAt(0) ?? ''}
+                    onClose={() => setReviewingAppointmentId(null)}
+                    onSuccess={() => setReviewingAppointmentId(null)}
+                  />
+                ) : null}
+
                 {a.status === 'Scheduled' ? (
                   <Button
                     variant="danger"

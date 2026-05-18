@@ -46,7 +46,7 @@ describe('ReviewForm', () => {
     expect(starButtons).toHaveLength(5);
 
     // Title input
-    expect(screen.getByPlaceholderText('Summarize your experience')).toBeDefined();
+    expect(screen.getByPlaceholderText('Summarize your experience…')).toBeDefined();
 
     // At least one tag chip (the component renders ALLOWED_TAGS as checkboxes)
     const tagCheckboxes = screen.getAllByRole('checkbox');
@@ -68,7 +68,7 @@ describe('ReviewForm', () => {
     await user.click(screen.getByRole('button', { name: '4 stars' }));
 
     // Type a title (3+ chars)
-    const titleInput = screen.getByPlaceholderText('Summarize your experience');
+    const titleInput = screen.getByPlaceholderText('Summarize your experience…');
     await user.type(titleInput, 'Great visit');
 
     const submitButton = screen.getByRole('button', { name: 'Post review' });
@@ -83,11 +83,11 @@ describe('ReviewForm', () => {
     // Fill the form
     await user.click(screen.getByRole('button', { name: '5 stars' }));
     await user.type(
-      screen.getByPlaceholderText('Summarize your experience'),
+      screen.getByPlaceholderText('Summarize your experience…'),
       'Wonderful doctor',
     );
     await user.type(
-      screen.getByPlaceholderText('Tell others about your experience'),
+      screen.getByPlaceholderText('Tell others about your experience…'),
       'Very thorough and kind',
     );
 
@@ -115,7 +115,7 @@ describe('ReviewForm', () => {
     expect(screen.getByText('0/600')).toBeDefined();
 
     // Type in body textarea
-    const body = screen.getByPlaceholderText('Tell others about your experience');
+    const body = screen.getByPlaceholderText('Tell others about your experience…');
     await user.type(body, 'Hello');
 
     expect(screen.getByText('5/600')).toBeDefined();

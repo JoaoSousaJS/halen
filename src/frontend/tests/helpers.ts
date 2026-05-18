@@ -73,6 +73,10 @@ export interface MockBaseOptions {
   searchDoctors?: unknown[];
   /** Specialties returned by GET /doctors/specialties. Defaults to []. */
   specialties?: string[];
+  /** Doctor reviews returned by GET /doctor/reviews. Defaults to undefined (not mocked). */
+  myReviews?: unknown;
+  /** Moderation queue returned by GET /admin/reviews/moderation. Defaults to undefined (not mocked). */
+  moderationQueue?: unknown;
 }
 
 /**
@@ -91,6 +95,8 @@ export async function mockBaseRoutes(page: Page, options: MockBaseOptions = {}):
     doctors = [],
     searchDoctors = [],
     specialties = [],
+    myReviews,
+    moderationQueue,
   } = options;
 
   await page.route('**/hubs/**', (route) => route.abort());
@@ -116,6 +122,18 @@ export async function mockBaseRoutes(page: Page, options: MockBaseOptions = {}):
     }
     return route.continue();
   });
+  if (myReviews !== undefined) {
+    await page.route('**/api/v1/doctor/reviews**', (route) =>
+      route.fulfill({ status: 200, json: myReviews }),
+    );
+  }
+
+  if (moderationQueue !== undefined) {
+    await page.route('**/api/v1/admin/reviews/moderation**', (route) =>
+      route.fulfill({ status: 200, json: moderationQueue }),
+    );
+  }
+
   await page.route('**/api/v1/prescriptions', (route) => {
     // Skip if this is a sub-path like /prescriptions/rx-1/cancel
     if (/\/prescriptions\/[^?]/.test(route.request().url())) {
