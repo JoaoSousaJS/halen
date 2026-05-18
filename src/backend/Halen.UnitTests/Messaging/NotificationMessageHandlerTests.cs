@@ -1,3 +1,4 @@
+using Halen.Infrastructure.Persistence;
 using System.Text.Json;
 using FluentAssertions;
 using Halen.Application.Events;

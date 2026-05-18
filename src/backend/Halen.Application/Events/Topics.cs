@@ -15,4 +15,7 @@ public static class Topics
     public const string ReviewSubmitted = "review.submitted";
     public const string ReviewLowStar = "review.low_star";
     public const string MedicalRecordUpdated = "medical_record.updated";
+    public const string MessageSent = "message.sent";
+    public const string MessagesRead = "messages.read";
+    public const string ThreadClosed = "thread.closed";
 }

@@ -2,6 +2,7 @@ using System.Data;
 using Halen.Application.Common;
 using Halen.Application.Events;
 using Halen.Application.Interfaces;
+using Halen.Application.Messaging.Commands;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
 using MediatR;
@@ -14,6 +15,7 @@ public class BookAppointmentCommandHandler(
     IAppDbContext db,
     ITenantContext tenantContext,
     IEventBus eventBus,
+    IMediator mediator,
     ILogger<BookAppointmentCommandHandler> logger,
     IPaymentService paymentService
 ) : IRequestHandler<BookAppointmentCommand, BookAppointmentResult>
@@ -141,6 +143,15 @@ public class BookAppointmentCommandHandler(
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Failed to publish booked event for appointment {AppointmentId}", appointment.Id);
+            }
+
+            try
+            {
+                await mediator.Send(new CreateThreadForAppointmentCommand(appointment.Id), ct);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to create messaging thread for appointment {AppointmentId}", appointment.Id);
             }
 
             return new BookAppointmentResult(true, appointment.Id, null, payment.Status.ToString());

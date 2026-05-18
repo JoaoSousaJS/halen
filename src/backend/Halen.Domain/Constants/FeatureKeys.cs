@@ -7,6 +7,7 @@ public static class FeatureKeys
     public const string VideoCalls = "video_calls";
     public const string DoctorReviews = "doctor_reviews";
     public const string MedicalRecords = "medical_records";
+    public const string Messaging = "messaging";
 
-    public static readonly string[] All = [Prescriptions, Kyc, VideoCalls, DoctorReviews, MedicalRecords];
+    public static readonly string[] All = [Prescriptions, Kyc, VideoCalls, DoctorReviews, MedicalRecords, Messaging];
 }

@@ -211,6 +211,7 @@ app.UseMiddleware<FeatureFlagMiddleware>();
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 app.MapHub<ConsultationHub>("/hubs/consultation");
+app.MapHub<ChatHub>("/hubs/chat");
 
 using (var scope = app.Services.CreateScope())
 {

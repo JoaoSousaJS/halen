@@ -1,4 +1,5 @@
 using FluentAssertions;
+using MediatR;
 using Halen.Application.Appointments.Commands;
 using Halen.Application.Events;
 using Halen.Application.Interfaces;
@@ -73,6 +74,7 @@ public class BookAppointmentAvailabilityTests
             _db,
             new TestTenantContext(),
             _eventBus.Object,
+            Mock.Of<IMediator>(),
             Mock.Of<ILogger<BookAppointmentCommandHandler>>(),
             paymentService.Object);
     }

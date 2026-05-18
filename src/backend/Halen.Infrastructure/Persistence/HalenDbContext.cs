@@ -31,6 +31,9 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
     public DbSet<MedicalDocument> MedicalDocuments => Set<MedicalDocument>();
     public DbSet<RecordAccess> RecordAccesses => Set<RecordAccess>();
     public DbSet<RecordAccessLog> RecordAccessLogs => Set<RecordAccessLog>();
+    public DbSet<ConversationThread> ConversationThreads => Set<ConversationThread>();
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+    public DbSet<MessageAttachment> MessageAttachments => Set<MessageAttachment>();
     /// <summary>Intentionally unfiltered — Clinic is the tenant root, not scoped to another tenant.</summary>
     public DbSet<Clinic> Clinics => Set<Clinic>();
     /// <summary>Intentionally unfiltered — managed cross-tenant by PlatformAdmin; handlers scope by ClinicId explicitly.</summary>
@@ -70,6 +73,9 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         builder.Entity<MedicalDocument>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<RecordAccess>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<RecordAccessLog>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<ConversationThread>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<ChatMessage>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<MessageAttachment>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
 
         // ── Clinic ───────────────────────────────────────────────────────────
         builder.Entity<Clinic>(e =>
@@ -365,6 +371,45 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(r => r.Action).HasMaxLength(100);
             e.Property(r => r.ResourceType).HasMaxLength(100);
             e.Property(r => r.IpAddress).HasMaxLength(45);
+        });
+
+        // ── ConversationThread ──────────────────────────────────────────────
+        builder.Entity<ConversationThread>(e =>
+        {
+            e.HasOne(t => t.Clinic).WithMany().HasForeignKey(t => t.ClinicId);
+            e.HasOne(t => t.Appointment).WithOne(a => a.ConversationThread)
+                .HasForeignKey<ConversationThread>(t => t.AppointmentId);
+            e.HasOne(t => t.PatientUser).WithMany().HasForeignKey(t => t.PatientUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(t => t.DoctorUser).WithMany().HasForeignKey(t => t.DoctorUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(t => t.AppointmentId).IsUnique();
+            e.HasIndex(t => new { t.PatientUserId, t.LastMessageAt });
+            e.HasIndex(t => new { t.DoctorUserId, t.LastMessageAt });
+            e.Property(t => t.Subject).HasMaxLength(200);
+            e.Property(t => t.LastMessagePreview).HasMaxLength(200);
+            e.Property(t => t.Status).HasConversion<string>();
+            e.Property<uint>("xmin").IsRowVersion();
+        });
+
+        // ── ChatMessage ─────────────────────────────────────────────────────
+        builder.Entity<ChatMessage>(e =>
+        {
+            e.HasOne(m => m.Clinic).WithMany().HasForeignKey(m => m.ClinicId);
+            e.HasOne(m => m.Thread).WithMany(t => t.Messages).HasForeignKey(m => m.ThreadId);
+            e.HasOne(m => m.SenderUser).WithMany().HasForeignKey(m => m.SenderUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(m => new { m.ThreadId, m.CreatedAt });
+            e.Property(m => m.Content).HasMaxLength(4000);
+            e.Property(m => m.MessageType).HasConversion<string>();
+        });
+
+        // ── MessageAttachment ───────────────────────────────────────────────
+        builder.Entity<MessageAttachment>(e =>
+        {
+            e.HasOne(a => a.Clinic).WithMany().HasForeignKey(a => a.ClinicId);
+            e.HasOne(a => a.Message).WithMany(m => m.Attachments).HasForeignKey(a => a.MessageId);
+            e.Property(a => a.FileName).HasMaxLength(255);
+            e.Property(a => a.ContentType).HasMaxLength(100);
+            e.Property(a => a.StoragePath).HasMaxLength(500);
+            e.Property(a => a.AttachmentType).HasConversion<string>();
         });
 
         // ── Enum conversions (stored as strings) ─────────────────────────────

@@ -22,4 +22,5 @@ public class Appointment : BaseEntity, ITenantScoped
     public string? Notes { get; set; }
     public Payment? Payment { get; set; }
     public ConsultationRoom? ConsultationRoom { get; set; }
+    public ConversationThread? ConversationThread { get; set; }
 }

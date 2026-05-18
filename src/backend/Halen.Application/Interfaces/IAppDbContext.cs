@@ -28,6 +28,9 @@ public interface IAppDbContext
     DbSet<MedicalDocument> MedicalDocuments { get; }
     DbSet<RecordAccess> RecordAccesses { get; }
     DbSet<RecordAccessLog> RecordAccessLogs { get; }
+    DbSet<ConversationThread> ConversationThreads { get; }
+    DbSet<ChatMessage> ChatMessages { get; }
+    DbSet<MessageAttachment> MessageAttachments { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }
