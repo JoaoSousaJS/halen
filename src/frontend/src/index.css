@@ -1927,3 +1927,438 @@ body:has(.dialog-overlay) { overflow: hidden; }
   gap: 8px;
   padding-top: 4px;
 }
+
+/* -- Analytics layout ---------------------------------------- */
+.analytics-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.analytics-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.analytics-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.analytics-breadcrumb a {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.analytics-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.analytics-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* -- KPI cards ----------------------------------------------- */
+.analytics-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.analytics-kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analytics-kpi-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.analytics-kpi-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.analytics-kpi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.analytics-kpi-delta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.analytics-kpi-delta.positive {
+  color: var(--accent);
+}
+
+.analytics-kpi-delta.negative {
+  color: var(--danger);
+}
+
+.analytics-kpi-spark {
+  width: 80px;
+  height: 24px;
+}
+
+/* -- Chart cards --------------------------------------------- */
+.analytics-chart-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.analytics-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.analytics-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.analytics-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  margin: 0;
+}
+
+.analytics-card-action {
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.analytics-card-action:hover {
+  text-decoration: underline;
+}
+
+/* -- Active users -------------------------------------------- */
+.analytics-active-users {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.analytics-active-users-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* -- Funnel -------------------------------------------------- */
+.analytics-funnel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analytics-funnel-bar {
+  height: 32px;
+  background: var(--accent-dim, rgba(196, 255, 61, 0.1));
+  border-radius: var(--r-sm);
+  position: relative;
+}
+
+.analytics-funnel-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--r-sm);
+  transition: width 0.3s;
+  opacity: 0.3;
+}
+
+.analytics-funnel-label {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.analytics-funnel-conversion {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  padding-right: 4px;
+}
+
+/* -- Heatmap ------------------------------------------------- */
+.analytics-heatmap {
+  display: grid;
+  grid-template-columns: auto repeat(24, 1fr);
+  gap: 2px;
+}
+
+.analytics-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.analytics-heatmap-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* -- Cohort matrix ------------------------------------------- */
+.analytics-cohort {
+  display: grid;
+  gap: 2px;
+}
+
+.analytics-cohort-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+}
+
+.analytics-cohort-cell {
+  aspect-ratio: 1;
+  border-radius: 3px;
+  font-size: 11px;
+  display: grid;
+  place-items: center;
+  color: var(--fg);
+}
+
+.analytics-cohort-header {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* -- Leaderboard --------------------------------------------- */
+.analytics-leaderboard {
+  width: 100%;
+}
+
+.analytics-leaderboard-header,
+.analytics-leaderboard-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 120px 80px 60px 80px 100px 60px;
+  gap: 12px;
+  padding: 12px 0;
+  align-items: center;
+}
+
+.analytics-leaderboard-header {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+}
+
+.analytics-leaderboard-row {
+  border-bottom: 1px solid var(--border);
+}
+
+.analytics-leaderboard-rank {
+  font-weight: 600;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.analytics-leaderboard-name {
+  font-weight: 500;
+}
+
+.analytics-leaderboard-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-dim, rgba(196, 255, 61, 0.1));
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* -- Filter pills -------------------------------------------- */
+.analytics-filter-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.analytics-filter-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.analytics-filter-pill.active {
+  background: var(--accent-dim, rgba(196, 255, 61, 0.1));
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* -- Needs attention card ------------------------------------ */
+.analytics-alert {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  border-left: 4px solid var(--border);
+}
+
+.analytics-alert.danger {
+  border-left-color: var(--danger);
+}
+
+.analytics-alert.warn {
+  border-left-color: #ffb43c;
+}
+
+.analytics-alert-name {
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+
+.analytics-alert-message {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* -- Geography ----------------------------------------------- */
+.analytics-map {
+  max-width: 100%;
+  aspect-ratio: 4/3;
+}
+
+.analytics-map-bubble {
+  fill: var(--accent);
+  opacity: 0.7;
+}
+
+.analytics-region-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analytics-region-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.analytics-region-top {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-dim, rgba(196, 255, 61, 0.1));
+  color: var(--accent);
+}
+
+/* -- Revenue clinic table ------------------------------------ */
+.analytics-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.analytics-table th {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.analytics-table td {
+  font-size: 13px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg);
+}
+
+/* -- Top-rated cards ----------------------------------------- */
+.analytics-top-rated-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.analytics-top-rated-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* -- Responsive (mobile) ------------------------------------ */
+@media (max-width: 640px) {
+  .analytics-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analytics-chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-leaderboard-header,
+  .analytics-leaderboard-row {
+    grid-template-columns: 40px 1fr 80px 60px;
+  }
+
+  .analytics-heatmap {
+    font-size: 9px;
+    overflow-x: auto;
+  }
+}

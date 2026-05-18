@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { useAuth } from '../../shared/components/AuthProvider';
 import { DashboardShell } from '../../shared/components/DashboardShell';
 import ClinicsPage from './ClinicsPage';
 import ClinicDetailPage from './ClinicDetailPage';
+import type { AnalyticsView } from './analytics/AnalyticsPage';
 
-type View = { page: 'list' } | { page: 'detail'; clinicId: string };
+const AnalyticsPage = lazy(() => import('./analytics/AnalyticsPage'));
+
+type View =
+  | { page: 'list' }
+  | { page: 'detail'; clinicId: string }
+  | { page: 'analytics'; sub: AnalyticsView };
 
 export default function PlatformAdminDashboard() {
   const { user } = useAuth();
@@ -13,10 +19,16 @@ export default function PlatformAdminDashboard() {
   const nav = (
     <nav className="admin-nav">
       <button
-        className={`admin-nav-btn${view.page === 'list' ? ' active' : ''}`}
+        className={`admin-nav-btn${view.page === 'list' || view.page === 'detail' ? ' active' : ''}`}
         onClick={() => setView({ page: 'list' })}
       >
         Clinics
+      </button>
+      <button
+        className={`admin-nav-btn${view.page === 'analytics' ? ' active' : ''}`}
+        onClick={() => setView({ page: 'analytics', sub: 'overview' })}
+      >
+        Analytics
       </button>
     </nav>
   );
@@ -36,6 +48,14 @@ export default function PlatformAdminDashboard() {
           clinicId={view.clinicId}
           onBack={() => setView({ page: 'list' })}
         />
+      )}
+      {view.page === 'analytics' && (
+        <Suspense fallback={<div className="analytics-loading">Loading analytics...</div>}>
+          <AnalyticsPage
+            activeView={view.sub}
+            onNavigate={(sub) => setView({ page: 'analytics', sub })}
+          />
+        </Suspense>
       )}
     </DashboardShell>
   );
