@@ -12,7 +12,7 @@ public class PrescriptionsControllerTests : IntegrationTestBase
         var bookResponse = await patientClient.PostAsJsonAsync("/api/v1/appointments", new
         {
             DoctorId = doctorProfileId,
-            ScheduledAt = DateTime.UtcNow.AddDays(30),
+            ScheduledAt = DateTime.UtcNow.Date.AddDays(30).AddHours(10),
             Reason = "Profile lookup",
         });
         bookResponse.EnsureSuccessStatusCode();

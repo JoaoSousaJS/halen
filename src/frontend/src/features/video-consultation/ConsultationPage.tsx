@@ -49,8 +49,14 @@ export default function ConsultationPage() {
 
   if (!room) {
     return (
-      <div className="vc-post-call">
-        <p className="vc-post-call__detail">Connecting…</p>
+      <div className="vc-connecting">
+        <div className="vc-connecting__mark" />
+        <div className="vc-connecting__text">
+          Connecting<em>…</em>
+        </div>
+        <div className="vc-connecting__sub">
+          Joining secure room · negotiating audio + video.
+        </div>
       </div>
     );
   }
@@ -86,36 +92,65 @@ export default function ConsultationPage() {
   }
 
   const otherName = role === 'Patient' ? room.doctorName : room.patientName;
+  const sidebarW = state.localControls.sidebarOpen && role === 'Doctor' ? 400 : 0;
 
   return (
-    <div className="vc-active" style={{ background: 'var(--vc-surface-1, #0b0e0c)', minHeight: '100vh', position: 'relative' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, padding: 16, height: 'calc(100vh - 80px)' }}>
-        <VideoTile name={otherName} size="lg" />
-        <div style={{ position: 'fixed', bottom: 100, right: 16 }}>
+    <div className="vc-stage">
+      {/* Video area */}
+      <div style={{ position: 'absolute', left: 0, top: 0, right: sidebarW, bottom: 0 }}>
+        {/* Full-bleed remote video */}
+        <div className="vc-stage__video">
+          <VideoTile name={otherName} size="lg" />
+        </div>
+
+        {/* Vignette for chrome readability */}
+        <div className="vc-stage__vignette" />
+
+        {/* Top info */}
+        <div style={{
+          position: 'absolute', top: 14, left: 14, right: 14,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          zIndex: 5,
+        }}>
+          <div className="vc-info-pill vc-info-pill--glow">
+            <div style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: 'var(--accent)',
+              boxShadow: '0 0 6px rgba(196,255,61,0.7)',
+            }} />
+            With <strong style={{ fontWeight: 600, marginLeft: 2 }}>{otherName}</strong>
+          </div>
+        </div>
+
+        {/* Self PIP */}
+        <div className="vc-stage__pip">
           <VideoTile name={fullName} size="pip" isMuted={!state.localControls.mic} />
         </div>
+
+        {/* Chat drawer */}
+        {state.localControls.chatOpen && (
+          <ChatDrawer
+            messages={state.chatMessages}
+            currentUserName={fullName}
+            onSend={sendChat}
+            onClose={toggleChat}
+          />
+        )}
+
+        {/* Control bar */}
+        <ControlPill
+          role={role}
+          controls={state.localControls}
+          elapsedSeconds={state.elapsedSeconds}
+          onToggleMic={toggleMic}
+          onToggleCam={toggleCam}
+          onToggleChat={toggleChat}
+          onToggleSidebar={toggleSidebar}
+          onEndCall={endConsultation}
+        />
       </div>
 
-      <ControlPill
-        role={role}
-        controls={state.localControls}
-        elapsedSeconds={state.elapsedSeconds}
-        onToggleMic={toggleMic}
-        onToggleCam={toggleCam}
-        onToggleChat={toggleChat}
-        onToggleSidebar={toggleSidebar}
-        onEndCall={endConsultation}
-      />
-
-      {state.localControls.chatOpen && (
-        <ChatDrawer
-          messages={state.chatMessages}
-          currentUserName={fullName}
-          onSend={sendChat}
-          onClose={toggleChat}
-        />
-      )}
-
+      {/* Clinical sidebar */}
       {state.localControls.sidebarOpen && role === 'Doctor' && (
         <ClinicalSidebar
           notes={state.notes}

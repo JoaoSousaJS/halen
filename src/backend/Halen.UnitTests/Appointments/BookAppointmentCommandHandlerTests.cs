@@ -116,7 +116,7 @@ public class BookAppointmentCommandHandlerTests
         var command = new BookAppointmentCommand(
             _patientUserId,
             _doctorProfileId,
-            DateTime.UtcNow.AddDays(1),
+            DateTime.UtcNow.Date.AddDays(1).AddHours(10),
             "Headache");
 
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -137,7 +137,7 @@ public class BookAppointmentCommandHandlerTests
         var command = new BookAppointmentCommand(
             _patientUserId,
             Guid.NewGuid(),
-            DateTime.UtcNow.AddDays(1),
+            DateTime.UtcNow.Date.AddDays(1).AddHours(10),
             "Headache");
 
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -157,7 +157,7 @@ public class BookAppointmentCommandHandlerTests
         var command = new BookAppointmentCommand(
             _patientUserId,
             _doctorProfileId,
-            DateTime.UtcNow.AddDays(1),
+            DateTime.UtcNow.Date.AddDays(1).AddHours(10),
             "First visit");
 
         await _handler.Handle(command, CancellationToken.None);
@@ -173,7 +173,7 @@ public class BookAppointmentCommandHandlerTests
         var patientProfile = new PatientProfile { Id = Guid.NewGuid(), UserId = _patientUserId };
         _db.PatientProfiles.Add(patientProfile);
 
-        var scheduledAt = DateTime.UtcNow.AddDays(1);
+        var scheduledAt = DateTime.UtcNow.Date.AddDays(1).AddHours(10);
         _db.Appointments.Add(new Appointment
         {
             PatientId = patientProfile.Id,
@@ -209,7 +209,7 @@ public class BookAppointmentCommandHandlerTests
         var patientProfile = new PatientProfile { Id = Guid.NewGuid(), UserId = _patientUserId };
         _db.PatientProfiles.Add(patientProfile);
 
-        var scheduledAt = DateTime.UtcNow.AddDays(1);
+        var scheduledAt = DateTime.UtcNow.Date.AddDays(1).AddHours(10);
         _db.Appointments.Add(new Appointment
         {
             PatientId = patientProfile.Id,
@@ -248,7 +248,7 @@ public class BookAppointmentCommandHandlerTests
         var command = new BookAppointmentCommand(
             _patientUserId,
             _doctorProfileId,
-            DateTime.UtcNow.AddDays(5),
+            DateTime.UtcNow.Date.AddDays(5).AddHours(10),
             "Test");
 
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -262,7 +262,7 @@ public class BookAppointmentCommandHandlerTests
     [TestMethod]
     public async Task Handle_ValidBooking_CreatesPaymentWithAuthorizedStatus()
     {
-        var scheduledAt = DateTime.UtcNow.AddDays(1);
+        var scheduledAt = DateTime.UtcNow.Date.AddDays(1).AddHours(10);
         var command = new BookAppointmentCommand(
             _patientUserId,
             _doctorProfileId,
@@ -288,7 +288,7 @@ public class BookAppointmentCommandHandlerTests
     [TestMethod]
     public async Task Handle_ValidBooking_CallsCreateIntentWithCorrectIdempotencyKey()
     {
-        var scheduledAt = DateTime.UtcNow.AddDays(1);
+        var scheduledAt = DateTime.UtcNow.Date.AddDays(1).AddHours(10);
         var command = new BookAppointmentCommand(
             _patientUserId,
             _doctorProfileId,
@@ -313,7 +313,7 @@ public class BookAppointmentCommandHandlerTests
         var command = new BookAppointmentCommand(
             _patientUserId,
             _doctorProfileId,
-            DateTime.UtcNow.AddDays(1),
+            DateTime.UtcNow.Date.AddDays(1).AddHours(10),
             "Checkup");
 
         var result = await _handler.Handle(command, CancellationToken.None);
@@ -337,7 +337,7 @@ public class BookAppointmentCommandHandlerTests
         var command = new BookAppointmentCommand(
             _patientUserId,
             _doctorProfileId,
-            DateTime.UtcNow.AddDays(1),
+            DateTime.UtcNow.Date.AddDays(1).AddHours(10),
             "Checkup");
 
         var result = await _handler.Handle(command, CancellationToken.None);

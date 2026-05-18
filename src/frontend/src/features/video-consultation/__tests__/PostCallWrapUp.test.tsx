@@ -17,14 +17,18 @@ describe('PostCallWrapUp', () => {
   it('renders patient summary for patient role', () => {
     render(<PostCallWrapUp {...defaultProps} role="Patient" />);
 
-    expect(screen.getByText(/consult complete/i)).toBeDefined();
+    const heading = screen.getByRole('heading');
+    expect(heading.textContent).toMatch(/consult/i);
+    expect(heading.textContent).toMatch(/complete/i);
     expect(screen.getByText(/Dr House/)).toBeDefined();
   });
 
   it('renders doctor finalize for doctor role', () => {
     render(<PostCallWrapUp {...defaultProps} role="Doctor" />);
 
-    expect(screen.getByText(/save your consult/i)).toBeDefined();
+    const heading = screen.getByRole('heading', { level: 2 });
+    expect(heading.textContent).toMatch(/save your/i);
+    expect(heading.textContent).toMatch(/consult/i);
   });
 
   it('patient view shows doctor name and duration', () => {

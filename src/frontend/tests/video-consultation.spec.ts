@@ -38,10 +38,9 @@ test.describe('Video Consultation — Patient Lobby', () => {
   test('shows lobby with appointment details', async ({ page }) => {
     await page.goto(`/consultation/${APPOINTMENT_ID}`);
 
-    await expect(page.getByRole('heading', { name: /appointment brief/i })).toBeVisible();
-    await expect(page.getByText('Doctor: Gregory House')).toBeVisible();
-    await expect(page.getByText('Patient: Maya Chen')).toBeVisible();
-    await expect(page.getByText('Reason: Recurring headache')).toBeVisible();
+    await expect(page.getByText('Your appointment')).toBeVisible();
+    await expect(page.getByText('Gregory House')).toBeVisible();
+    await expect(page.getByText(/recurring headache/i)).toBeVisible();
   });
 
   test('shows "Join consult" button for patient', async ({ page }) => {
@@ -129,7 +128,7 @@ test.describe('Video Consultation — Post-Call', () => {
 
     await expect(page.getByText(/save your consult/i)).toBeVisible();
     await expect(page.getByRole('textbox')).toBeVisible();
-    await expect(page.getByRole('button', { name: /save/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /save & complete/i })).toBeVisible();
   });
 });
 

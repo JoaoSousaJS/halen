@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
+import { fn } from 'storybook/test';
 import { MemoryRouter } from 'react-router-dom';
 import { PostCallWrapUp } from './PostCallWrapUp';
 

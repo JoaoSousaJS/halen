@@ -326,7 +326,7 @@ public class KycControllerTests : IntegrationTestBase
         var bookResponse = await patient.PostAsJsonAsync("/api/v1/appointments", new
         {
             DoctorId = doctorId,
-            ScheduledAt = DateTime.UtcNow.AddDays(5),
+            ScheduledAt = DateTime.UtcNow.Date.AddDays(5).AddHours(10),
             Reason = "Post-KYC booking",
         });
         bookResponse.StatusCode.Should().Be(HttpStatusCode.Created);

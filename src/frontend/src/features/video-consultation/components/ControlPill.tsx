@@ -36,7 +36,8 @@ export function ControlPill({
         data-active={controls.mic}
         onClick={onToggleMic}
       >
-        <MicGlyph size={18} />
+        <MicGlyph size={18} off={!controls.mic} />
+        <span className="vc-control-pill__btn-label">Mute</span>
       </button>
 
       <button
@@ -46,10 +47,12 @@ export function ControlPill({
         onClick={onToggleCam}
       >
         <CamGlyph size={18} />
+        <span className="vc-control-pill__btn-label">Camera</span>
       </button>
 
       <button className="vc-control-pill__btn" aria-label="Share">
         <ShareGlyph size={18} />
+        <span className="vc-control-pill__btn-label">Share</span>
       </button>
 
       <button
@@ -59,25 +62,28 @@ export function ControlPill({
         onClick={onToggleChat}
       >
         <ChatGlyph size={18} />
+        <span className="vc-control-pill__btn-label">Chat</span>
       </button>
 
       {isDoctor && (
         <>
           <button
-            className="vc-control-pill__btn"
+            className={`vc-control-pill__btn${!controls.sidebarOpen ? ' vc-control-pill__btn--dim' : ''}`}
             aria-label="Sidebar"
             data-active={controls.sidebarOpen}
             onClick={onToggleSidebar}
           >
             <PanelGlyph size={18} />
+            <span className="vc-control-pill__btn-label">Panel</span>
           </button>
 
           <button
             className="vc-control-pill__btn vc-control-pill__btn--end"
-            aria-label="End call"
+            aria-label="End"
             onClick={onEndCall}
           >
             <EndCallGlyph size={18} />
+            <span className="vc-control-pill__btn-label">End</span>
           </button>
         </>
       )}

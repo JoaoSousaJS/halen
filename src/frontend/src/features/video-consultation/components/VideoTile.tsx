@@ -2,31 +2,33 @@ import { MicOffGlyph } from '../glyphs';
 import { getInitials } from '../utils';
 import '../video-consultation.css';
 
-function hashName(name: string): number {
-  let hash = 0;
+function hashHue(name: string): number {
+  let h = 0;
   for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    h = (h * 31 + name.charCodeAt(i)) >>> 0;
   }
-  return Math.abs(hash);
+  return h % 360;
 }
 
 export function VideoTile({
   name,
   size,
   isMuted,
+  isSpeaking,
 }: {
   name: string;
   size: 'lg' | 'sm' | 'pip';
   isMuted?: boolean;
+  isSpeaking?: boolean;
 }) {
-  const hue = hashName(name) % 360;
+  const hue = hashHue(name);
   const initials = getInitials(name);
 
   return (
     <div
-      className={`vc-tile vc-tile-${size}`}
+      className={`vc-tile vc-tile-${size}${isSpeaking ? ' vc-tile--speaking' : ''}`}
       style={{
-        background: `linear-gradient(135deg, oklch(0.28 0.07 ${hue}), oklch(0.18 0.05 ${hue + 30}))`,
+        background: `linear-gradient(180deg, oklch(0.28 0.07 ${hue}), oklch(0.18 0.05 ${hue}))`,
       }}
     >
       <span className="vc-tile__initials" style={{ mixBlendMode: 'screen', opacity: 0.92 }}>

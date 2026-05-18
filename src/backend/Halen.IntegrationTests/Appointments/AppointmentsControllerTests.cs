@@ -22,7 +22,7 @@ public class AppointmentsControllerTests : IntegrationTestBase
         var response = await patient.PostAsJsonAsync("/api/v1/appointments", new
         {
             DoctorId = doctorId,
-            ScheduledAt = scheduledAt ?? DateTime.UtcNow.AddDays(1),
+            ScheduledAt = scheduledAt ?? DateTime.UtcNow.Date.AddDays(1).AddHours(10),
             Reason = "Test appointment",
         });
         response.EnsureSuccessStatusCode();
@@ -41,7 +41,7 @@ public class AppointmentsControllerTests : IntegrationTestBase
         var response = await patient.PostAsJsonAsync("/api/v1/appointments", new
         {
             DoctorId = doctorId,
-            ScheduledAt = DateTime.UtcNow.AddDays(2),
+            ScheduledAt = DateTime.UtcNow.Date.AddDays(2).AddHours(10),
             Reason = "Checkup",
         });
 
@@ -59,7 +59,7 @@ public class AppointmentsControllerTests : IntegrationTestBase
         var response = await anon.PostAsJsonAsync("/api/v1/appointments", new
         {
             DoctorId = Guid.NewGuid(),
-            ScheduledAt = DateTime.UtcNow.AddDays(1),
+            ScheduledAt = DateTime.UtcNow.Date.AddDays(1).AddHours(10),
             Reason = "Checkup",
         });
 
@@ -72,7 +72,7 @@ public class AppointmentsControllerTests : IntegrationTestBase
         var (patient1, _) = await PatientClientWithEmailAsync();
         var (patient2, _) = await PatientClientWithEmailAsync();
         var doctorId = await CreateDoctorAsync();
-        var time = DateTime.UtcNow.AddDays(3);
+        var time = DateTime.UtcNow.Date.AddDays(3).AddHours(10);
 
         await BookAppointmentAsync(patient1, doctorId, time);
 
@@ -262,9 +262,9 @@ public class AppointmentsControllerTests : IntegrationTestBase
         var (patient, _) = await PatientClientWithEmailAsync();
 
         // Book with doctor 1
-        var apptId1 = await BookAppointmentAsync(patient, doctor1Id, DateTime.UtcNow.AddDays(10));
+        var apptId1 = await BookAppointmentAsync(patient, doctor1Id, DateTime.UtcNow.Date.AddDays(10).AddHours(10));
         // Book with doctor 2
-        var apptId2 = await BookAppointmentAsync(patient, doctor2Id, DateTime.UtcNow.AddDays(11));
+        var apptId2 = await BookAppointmentAsync(patient, doctor2Id, DateTime.UtcNow.Date.AddDays(11).AddHours(10));
 
         // Doctor 1 should only see their own appointment
         var response1 = await doctor1.GetAsync("/api/v1/appointments");
@@ -288,9 +288,9 @@ public class AppointmentsControllerTests : IntegrationTestBase
         var doctorId = await CreateDoctorAsync();
 
         // Book 3 appointments at different times
-        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.AddDays(20));
-        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.AddDays(21));
-        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.AddDays(22));
+        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.Date.AddDays(20).AddHours(10));
+        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.Date.AddDays(21).AddHours(10));
+        await BookAppointmentAsync(patient, doctorId, DateTime.UtcNow.Date.AddDays(22).AddHours(10));
 
         // Request page 1 with pageSize 2
         var response = await patient.GetAsync("/api/v1/appointments?page=1&pageSize=2");

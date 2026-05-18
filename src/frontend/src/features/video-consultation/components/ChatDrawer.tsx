@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import '../video-consultation.css';
 
 export interface ChatMessage {
@@ -36,42 +36,47 @@ export function ChatDrawer({
 
   return (
     <div className="vc-chat-drawer">
-      {/* Header */}
       <div className="vc-chat-drawer__header">
-        <span>Chat</span>
+        <div>
+          <div className="vc-chat-drawer__header-title">Chat</div>
+          <div className="vc-chat-drawer__header-sub">End-to-end encrypted</div>
+        </div>
         <button onClick={onClose} aria-label="Close chat">
-          ✕
+          ×
         </button>
       </div>
 
-      {/* Messages */}
       <div className="vc-chat-drawer__messages">
         {messages.map((msg, idx) => {
           const isSent = msg.from === currentUserName;
+          const showSender =
+            !isSent && (idx === 0 || messages[idx - 1].from !== msg.from);
           return (
-            <div
-              key={idx}
-              className={isSent ? 'vc-chat-msg-sent' : 'vc-chat-msg-received'}
-            >
-              <div className="vc-chat-msg__from">{msg.from}</div>
-              <div>{msg.text}</div>
+            <div key={idx}>
+              {showSender && (
+                <div className="vc-chat-msg__from">{msg.from}</div>
+              )}
+              <div className={isSent ? 'vc-chat-msg-sent' : 'vc-chat-msg-received'}>
+                {msg.text}
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Input */}
       <div className="vc-chat-drawer__input">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-        />
-        <button onClick={handleSend} aria-label="Send">
-          Send
-        </button>
+        <div className="vc-chat-drawer__input-row">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message…"
+          />
+          <button onClick={handleSend} aria-label="Send">
+            Send
+          </button>
+        </div>
       </div>
     </div>
   );
