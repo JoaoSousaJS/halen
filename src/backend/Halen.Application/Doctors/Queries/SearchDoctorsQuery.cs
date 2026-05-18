@@ -22,6 +22,8 @@ public record DoctorSearchDto(
     decimal ConsultationFee,
     int YearsOfExperience,
     string[] Languages,
-    NextSlotDto? NextAvailableSlot);
+    NextSlotDto? NextAvailableSlot,
+    decimal? AverageRating,
+    int ReviewCount);
 
 public record NextSlotDto(DateTimeOffset StartUtc, string DayOfWeek);

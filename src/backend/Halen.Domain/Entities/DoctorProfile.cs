@@ -25,4 +25,8 @@ public class DoctorProfile : BaseEntity, ITenantScoped
     public ICollection<Prescription> Prescriptions { get; set; } = [];
     public ICollection<KycDocument> KycDocuments { get; set; } = [];
     public ICollection<KycReview> KycReviews { get; set; } = [];
+    public ICollection<Review> Reviews { get; set; } = [];
+
+    public decimal? AverageRating { get; set; }
+    public int ReviewCount { get; set; }
 }

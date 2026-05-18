@@ -12,4 +12,6 @@ public static class Topics
     public const string PaymentCaptured = "payment.captured";
     public const string PaymentRefunded = "payment.refunded";
     public const string ConsultationEnded = "consultation.ended";
+    public const string ReviewSubmitted = "review.submitted";
+    public const string ReviewLowStar = "review.low_star";
 }

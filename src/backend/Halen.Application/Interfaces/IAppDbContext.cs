@@ -18,6 +18,7 @@ public interface IAppDbContext
     DbSet<DoctorAvailability> DoctorAvailabilities { get; }
     DbSet<Payment> Payments { get; }
     DbSet<ConsultationRoom> ConsultationRooms { get; }
+    DbSet<Review> Reviews { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

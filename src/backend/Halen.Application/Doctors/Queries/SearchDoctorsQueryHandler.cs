@@ -63,6 +63,7 @@ public class SearchDoctorsQueryHandler(
             "fee_asc" => query.OrderBy(d => d.ConsultationFee),
             "fee_desc" => query.OrderByDescending(d => d.ConsultationFee),
             "experience" => query.OrderByDescending(d => d.YearsOfExperience),
+            "rating" => query.OrderByDescending(d => d.AverageRating ?? 0),
             "name" => query.OrderBy(d => d.User.LastName).ThenBy(d => d.User.FirstName),
             _ => query.OrderBy(d => d.User.LastName).ThenBy(d => d.User.FirstName),
         };
@@ -79,6 +80,8 @@ public class SearchDoctorsQueryHandler(
                 d.ConsultationFee,
                 d.YearsOfExperience,
                 d.Languages,
+                d.AverageRating,
+                d.ReviewCount,
                 Availabilities = d.Availabilities
                     .Where(a => a.IsActive)
                     .Select(a => new { a.DayOfWeek, a.StartTime, a.EndTime, a.SlotDurationMinutes })
@@ -139,7 +142,9 @@ public class SearchDoctorsQueryHandler(
                 d.ConsultationFee,
                 d.YearsOfExperience,
                 d.Languages,
-                nextSlot);
+                nextSlot,
+                d.AverageRating,
+                d.ReviewCount);
         }).ToList();
 
         return new SearchDoctorsResult(results, totalCount);

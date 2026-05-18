@@ -1258,3 +1258,671 @@ body:has(.dialog-overlay) { overflow: hidden; }
   background: var(--warn-tint);
   color: var(--warn);
 }
+
+/* ═══════════════════════════════════════════════════
+   REVIEWS
+   ═══════════════════════════════════════════════════ */
+
+/* ── Shared: star rendering ──────────────────────── */
+
+.stars-amber { color: var(--warn); letter-spacing: 1px; }
+.stars-dim   { color: var(--text-muted); letter-spacing: 1px; }
+
+/* ── DoctorCard: inline rating row ───────────────── */
+
+.doctor-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: var(--size-body-xs);
+}
+
+.doctor-card-stars {
+  color: var(--warn);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.doctor-card-rating-text {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--text);
+  font-weight: var(--weight-regular);
+}
+
+.doctor-card-review-count {
+  color: var(--text-dim);
+  font-size: var(--size-body-xs);
+}
+
+/* ── ReviewForm ──────────────────────────────────── */
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.review-form-legend {
+  font-size: var(--size-body-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.review-form-stars {
+  border: none;
+  padding: 0;
+}
+
+.review-form-star-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.review-form-star {
+  background: none;
+  border: none;
+  font-size: 28px;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color var(--t-fast), transform var(--t-fast);
+  line-height: 1;
+}
+
+.review-form-star:hover {
+  color: var(--warn);
+  transform: scale(1.15);
+}
+
+.review-form-star-filled {
+  color: var(--warn);
+}
+
+.review-form-star:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+  border-radius: var(--r-sm);
+}
+
+.review-form-rating-text {
+  font-size: var(--size-body-sm);
+  color: var(--warn);
+  margin-top: 6px;
+  font-weight: var(--weight-medium);
+}
+
+.review-form-tags {
+  border: none;
+  padding: 0;
+}
+
+.review-form-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.review-form-tag {
+  background: none;
+  border: 1px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--r-pill);
+  transition: border-color var(--t-base), opacity var(--t-base);
+}
+
+.review-form-tag:hover:not(:disabled) {
+  border-color: var(--border-bright);
+}
+
+.review-form-tag-selected {
+  border-color: var(--accent);
+}
+
+.review-form-tag:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.review-form-body {
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: var(--size-body);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  resize: vertical;
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+  line-height: var(--lh-body);
+}
+
+.review-form-body:focus {
+  outline: none;
+  border-color: var(--border-bright);
+  box-shadow: var(--ring-focus);
+}
+
+.review-form-counter {
+  display: block;
+  text-align: right;
+  font-size: var(--size-body-xs);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.review-form-privacy {
+  font-size: var(--size-body-xs);
+  color: var(--text-dim);
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.review-form-error {
+  color: var(--danger);
+  font-size: var(--size-body-sm);
+}
+
+.review-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+/* ── DoctorReviews: aggregate + list ─────────────── */
+
+.doctor-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.doctor-reviews-aggregate {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.doctor-reviews-score {
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: var(--tracking-display);
+}
+
+.doctor-reviews-score-stars {
+  color: var(--warn);
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.doctor-reviews-count {
+  color: var(--text-dim);
+  font-size: var(--size-body-sm);
+  margin-left: auto;
+}
+
+/* Rating breakdown bars */
+
+.doctor-reviews-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.doctor-reviews-breakdown-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.doctor-reviews-breakdown-label {
+  font-size: var(--size-body-xs);
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.doctor-reviews-breakdown-bar {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+
+.doctor-reviews-breakdown-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--r-pill);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.doctor-reviews-breakdown-count {
+  font-size: var(--size-body-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* Tag cloud */
+
+.doctor-reviews-tags {
+  padding: 16px 0 0;
+}
+
+.doctor-reviews-tags-heading {
+  font-size: var(--size-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: var(--weight-medium);
+  margin-bottom: 8px;
+}
+
+.doctor-reviews-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Sort selector */
+
+.doctor-reviews-sort {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.doctor-reviews-sort select {
+  max-width: 180px;
+}
+
+/* Review list */
+
+.doctor-reviews-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doctor-reviews-item {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.doctor-reviews-item:last-child {
+  border-bottom: none;
+}
+
+.doctor-reviews-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.doctor-reviews-item-author {
+  font-size: var(--size-body-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text);
+}
+
+.doctor-reviews-item-stars {
+  color: var(--warn);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.doctor-reviews-item-date {
+  color: var(--text-muted);
+  font-size: var(--size-body-xs);
+  margin-left: auto;
+}
+
+.doctor-reviews-item-title {
+  font-size: var(--size-body);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+}
+
+.doctor-reviews-item-body {
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+  line-height: var(--lh-body);
+}
+
+.doctor-reviews-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Doctor response (nested blockquote feel) */
+
+.doctor-reviews-response {
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doctor-reviews-response-label {
+  font-size: var(--size-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  font-weight: var(--weight-medium);
+}
+
+.doctor-reviews-response-text {
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+  line-height: var(--lh-body);
+}
+
+.doctor-reviews-response-date {
+  font-size: var(--size-body-xs);
+  color: var(--text-muted);
+}
+
+/* Pagination (shared pattern) */
+
+.doctor-reviews-pagination,
+.doctor-my-reviews-pagination,
+.review-moderation-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 0;
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+}
+
+/* Error + empty states */
+
+.doctor-reviews-error {
+  color: var(--danger);
+  font-size: var(--size-body-sm);
+}
+
+.doctor-reviews-empty {
+  color: var(--text-dim);
+  font-size: var(--size-body-sm);
+  padding: 24px 0;
+  text-align: center;
+}
+
+/* ── DoctorMyReviews (doctor dashboard) ──────────── */
+
+.doctor-my-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.doctor-my-reviews-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.doctor-my-reviews-summary-score {
+  font-family: var(--font-display);
+  font-size: var(--size-display-lg);
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: var(--tracking-display);
+}
+
+.doctor-my-reviews-summary-count {
+  color: var(--text-dim);
+  font-size: var(--size-body-sm);
+}
+
+.doctor-my-reviews-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.doctor-my-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.doctor-my-reviews-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color var(--t-base);
+}
+
+.doctor-my-reviews-card:hover {
+  border-color: var(--border-bright);
+}
+
+.doctor-my-reviews-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.doctor-my-reviews-card-stars {
+  color: var(--warn);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.doctor-my-reviews-card-title {
+  font-size: var(--size-body);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+}
+
+.doctor-my-reviews-card-body {
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+  line-height: var(--lh-body);
+}
+
+.doctor-my-reviews-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--size-body-xs);
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.doctor-my-reviews-card-author {
+  font-weight: var(--weight-medium);
+  color: var(--text-dim);
+}
+
+.doctor-my-reviews-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* Existing doctor response */
+
+.doctor-my-reviews-card-response {
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--size-body-sm);
+}
+
+.doctor-my-reviews-card-response strong {
+  font-size: var(--size-eyebrow);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  font-weight: var(--weight-medium);
+}
+
+.doctor-my-reviews-card-response p {
+  color: var(--text-dim);
+  line-height: var(--lh-body);
+}
+
+/* Reply composer */
+
+.doctor-my-reviews-reply-composer {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.doctor-my-reviews-reply-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: var(--size-body-sm);
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  resize: vertical;
+  line-height: var(--lh-body);
+  transition: border-color var(--t-base), box-shadow var(--t-base);
+}
+
+.doctor-my-reviews-reply-textarea:focus {
+  outline: none;
+  border-color: var(--border-bright);
+  box-shadow: var(--ring-focus);
+}
+
+.doctor-my-reviews-reply-counter {
+  font-size: var(--size-body-xs);
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.doctor-my-reviews-reply-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ── ReviewModeration (admin) ────────────────────── */
+
+.review-moderation {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.review-moderation-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.review-moderation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-moderation-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color var(--t-base);
+}
+
+.review-moderation-card:hover {
+  border-color: var(--border-bright);
+}
+
+.review-moderation-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.review-moderation-card-stars {
+  color: var(--warn);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.review-moderation-card-title {
+  font-size: var(--size-body);
+  font-weight: var(--weight-bold);
+  color: var(--text);
+}
+
+.review-moderation-card-body {
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+  line-height: var(--lh-body);
+}
+
+.review-moderation-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--size-body-xs);
+  color: var(--text-dim);
+  flex-wrap: wrap;
+}
+
+.review-moderation-card-meta strong {
+  color: var(--text);
+  font-weight: var(--weight-medium);
+}
+
+.review-moderation-card-date {
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.review-moderation-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.review-moderation-card-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 4px;
+}

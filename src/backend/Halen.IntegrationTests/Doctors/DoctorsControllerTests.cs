@@ -151,7 +151,9 @@ public class DoctorsControllerTests : IntegrationTestBase
         decimal ConsultationFee,
         int YearsOfExperience,
         string[] Languages,
-        NextSlotDto? NextAvailableSlot);
+        NextSlotDto? NextAvailableSlot,
+        decimal? AverageRating,
+        int ReviewCount);
 
     private sealed record NextSlotDto(DateTime StartUtc, string DayOfWeek);
 

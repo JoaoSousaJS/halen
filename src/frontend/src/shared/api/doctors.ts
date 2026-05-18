@@ -6,7 +6,7 @@ export interface SearchDoctorsParams {
   minFee?: number;
   maxFee?: number;
   availableOn?: string;
-  sortBy?: 'name' | 'fee_asc' | 'fee_desc' | 'experience';
+  sortBy?: 'name' | 'fee_asc' | 'fee_desc' | 'experience' | 'rating';
   page?: number;
   pageSize?: number;
 }
@@ -19,6 +19,8 @@ export interface DoctorSearchDto {
   yearsOfExperience: number;
   languages: string[];
   nextAvailableSlot: { startUtc: string; dayOfWeek: string } | null;
+  averageRating: number | null;
+  reviewCount: number;
 }
 
 export interface SearchDoctorsResponse {

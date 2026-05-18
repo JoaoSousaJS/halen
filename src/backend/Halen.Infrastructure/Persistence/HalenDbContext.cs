@@ -21,6 +21,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
     public DbSet<DoctorAvailability> DoctorAvailabilities => Set<DoctorAvailability>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<ConsultationRoom> ConsultationRooms => Set<ConsultationRoom>();
+    public DbSet<Review> Reviews => Set<Review>();
     /// <summary>Intentionally unfiltered — Clinic is the tenant root, not scoped to another tenant.</summary>
     public DbSet<Clinic> Clinics => Set<Clinic>();
     /// <summary>Intentionally unfiltered — managed cross-tenant by PlatformAdmin; handlers scope by ClinicId explicitly.</summary>
@@ -50,6 +51,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         builder.Entity<AuditLog>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<Payment>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<ConsultationRoom>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<Review>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
 
         // ── Clinic ───────────────────────────────────────────────────────────
         builder.Entity<Clinic>(e =>
@@ -141,6 +143,8 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
                 .HasMethod("gin")
                 .HasOperators("gin_trgm_ops");
             e.HasIndex(d => d.ConsultationFee);
+            e.Property(d => d.AverageRating).HasPrecision(3, 2);
+            e.Property(d => d.ReviewCount).HasDefaultValue(0);
         });
 
         // ── DoctorAvailability ────────────────────────────────────────────────
@@ -210,6 +214,24 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.Property(r => r.Notes).HasMaxLength(5000);
             e.Property(r => r.Status).HasConversion<string>();
             e.Property<uint>("xmin").IsRowVersion();
+        });
+
+        // ── Review ────────────────────────────────────────────────────────────
+        builder.Entity<Review>(e =>
+        {
+            e.HasOne(r => r.Clinic).WithMany().HasForeignKey(r => r.ClinicId);
+            e.HasOne(r => r.Appointment).WithMany().HasForeignKey(r => r.AppointmentId);
+            e.HasOne(r => r.PatientProfile).WithMany().HasForeignKey(r => r.PatientProfileId);
+            e.HasOne(r => r.DoctorProfile).WithMany(d => d.Reviews).HasForeignKey(r => r.DoctorProfileId);
+            e.HasIndex(r => r.AppointmentId).IsUnique();
+            e.HasIndex(r => new { r.ClinicId, r.DoctorProfileId, r.ModerationStatus });
+            e.Property(r => r.Title).HasMaxLength(120).IsRequired();
+            e.Property(r => r.Body).HasMaxLength(600);
+            e.Property(r => r.Tags).HasColumnType("text[]");
+            e.Property(r => r.ModerationStatus).HasConversion<string>().HasDefaultValue(ReviewModerationStatus.Approved);
+            e.Property(r => r.DoctorResponse).HasMaxLength(600);
+            e.Property(r => r.PostedAs).HasMaxLength(50).IsRequired();
+            e.ToTable(t => t.HasCheckConstraint("CK_Review_Rating", "\"Rating\" >= 1 AND \"Rating\" <= 5"));
         });
 
         // ── Enum conversions (stored as strings) ─────────────────────────────
