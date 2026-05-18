@@ -477,9 +477,9 @@ public class MedicalRecordsControllerTests : IntegrationTestBase
 
         var snapshot = await response.Content.ReadFromJsonAsync<SnapshotDto>();
         snapshot.Should().NotBeNull();
-        snapshot!.Conditions.Should().NotBeEmpty();
+        snapshot!.ActiveConditions.Should().NotBeEmpty();
         snapshot.Allergies.Should().NotBeEmpty();
-        snapshot.Medications.Should().NotBeEmpty();
+        snapshot.ActiveMedications.Should().NotBeEmpty();
     }
 
     [TestMethod]
@@ -526,7 +526,7 @@ public class MedicalRecordsControllerTests : IntegrationTestBase
 
         var header = await response.Content.ReadFromJsonAsync<PatientHeaderDto>();
         header.Should().NotBeNull();
-        header!.FullName.Should().NotBeNullOrEmpty();
+        header!.PatientName.Should().NotBeNullOrEmpty();
     }
 
     // ── Auth / Access ───────────────────────────────────────────────────────
@@ -590,12 +590,16 @@ public class MedicalRecordsControllerTests : IntegrationTestBase
     private sealed record DocumentDto(
         Guid Id, string Title, string DocumentType, string? Description, long FileSize);
 
+    private sealed record LatestVitalsDto(
+        object? BloodPressure, object? HeartRate, object? Weight, object? SpO2);
+
     private sealed record SnapshotDto(
-        ConditionDto[] Conditions,
         AllergyDto[] Allergies,
-        MedicationDto[] Medications,
+        ConditionDto[] ActiveConditions,
+        MedicationDto[] ActiveMedications,
         FamilyHistoryDto[] FamilyHistory,
-        VitalReadingDto[] RecentVitals);
+        LatestVitalsDto? LatestVitals,
+        int OnboardingProgress);
 
     private sealed record TimelineEntryDto(
         string EntryType, DateTime OccurredAt, string Description);
@@ -603,5 +607,9 @@ public class MedicalRecordsControllerTests : IntegrationTestBase
     private sealed record TimelineResponse(TimelineEntryDto[] Entries, int TotalCount);
 
     private sealed record PatientHeaderDto(
-        string FullName, DateOnly? DateOfBirth, string? Gender, string? BloodType);
+        Guid PatientProfileId,
+        string PatientName,
+        string? City,
+        string[] AllergyChips,
+        string[] ConditionChips);
 }
