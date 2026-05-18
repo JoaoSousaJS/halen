@@ -23,6 +23,14 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
     public DbSet<ConsultationRoom> ConsultationRooms => Set<ConsultationRoom>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<ReviewHelpfulVote> ReviewHelpfulVotes => Set<ReviewHelpfulVote>();
+    public DbSet<PatientCondition> PatientConditions => Set<PatientCondition>();
+    public DbSet<PatientAllergy> PatientAllergies => Set<PatientAllergy>();
+    public DbSet<PatientVital> PatientVitals => Set<PatientVital>();
+    public DbSet<PatientMedication> PatientMedications => Set<PatientMedication>();
+    public DbSet<PatientFamilyHistory> PatientFamilyHistories => Set<PatientFamilyHistory>();
+    public DbSet<MedicalDocument> MedicalDocuments => Set<MedicalDocument>();
+    public DbSet<RecordAccess> RecordAccesses => Set<RecordAccess>();
+    public DbSet<RecordAccessLog> RecordAccessLogs => Set<RecordAccessLog>();
     /// <summary>Intentionally unfiltered — Clinic is the tenant root, not scoped to another tenant.</summary>
     public DbSet<Clinic> Clinics => Set<Clinic>();
     /// <summary>Intentionally unfiltered — managed cross-tenant by PlatformAdmin; handlers scope by ClinicId explicitly.</summary>
@@ -54,6 +62,14 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         builder.Entity<ConsultationRoom>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<Review>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
         builder.Entity<ReviewHelpfulVote>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<PatientCondition>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<PatientAllergy>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<PatientVital>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<PatientMedication>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<PatientFamilyHistory>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<MedicalDocument>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<RecordAccess>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
+        builder.Entity<RecordAccessLog>().HasQueryFilter(e => IsPlatformAdmin || e.ClinicId == TenantClinicId);
 
         // ── Clinic ───────────────────────────────────────────────────────────
         builder.Entity<Clinic>(e =>
@@ -241,6 +257,114 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
         {
             e.HasOne(v => v.Review).WithMany().HasForeignKey(v => v.ReviewId);
             e.HasIndex(v => new { v.ReviewId, v.UserId }).IsUnique();
+        });
+
+        // ── PatientCondition ─────────────────────────────────────────────────
+        builder.Entity<PatientCondition>(e =>
+        {
+            e.HasOne(c => c.Clinic).WithMany().HasForeignKey(c => c.ClinicId);
+            e.HasOne(c => c.PatientProfile).WithMany().HasForeignKey(c => c.PatientProfileId);
+            e.HasOne(c => c.AddedByUser).WithMany().HasForeignKey(c => c.AddedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(c => c.LinkedAppointment).WithMany().HasForeignKey(c => c.LinkedAppointmentId);
+            e.HasIndex(c => new { c.ClinicId, c.PatientProfileId });
+            e.Property(c => c.IcdCode).HasMaxLength(20);
+            e.Property(c => c.IcdDescription).HasMaxLength(500);
+            e.Property(c => c.ClinicalNotes).HasMaxLength(2000);
+            e.Property(c => c.Severity).HasConversion<string>();
+            e.Property(c => c.Status).HasConversion<string>();
+        });
+
+        // ── PatientAllergy ──────────────────────────────────────────────────
+        builder.Entity<PatientAllergy>(e =>
+        {
+            e.HasOne(a => a.Clinic).WithMany().HasForeignKey(a => a.ClinicId);
+            e.HasOne(a => a.PatientProfile).WithMany().HasForeignKey(a => a.PatientProfileId);
+            e.HasOne(a => a.AddedByUser).WithMany().HasForeignKey(a => a.AddedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(a => new { a.ClinicId, a.PatientProfileId });
+            e.Property(a => a.AllergenName).HasMaxLength(200);
+            e.Property(a => a.Reaction).HasMaxLength(500);
+            e.Property(a => a.Severity).HasConversion<string>();
+        });
+
+        // ── PatientVital ────────────────────────────────────────────────────
+        builder.Entity<PatientVital>(e =>
+        {
+            e.HasOne(v => v.Clinic).WithMany().HasForeignKey(v => v.ClinicId);
+            e.HasOne(v => v.PatientProfile).WithMany().HasForeignKey(v => v.PatientProfileId);
+            e.HasOne(v => v.AddedByUser).WithMany().HasForeignKey(v => v.AddedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(v => new { v.ClinicId, v.PatientProfileId, v.VitalType, v.MeasuredAt });
+            e.Property(v => v.Value).HasPrecision(10, 2);
+            e.Property(v => v.SecondaryValue).HasPrecision(10, 2);
+            e.Property(v => v.Unit).HasMaxLength(20);
+            e.Property(v => v.Notes).HasMaxLength(500);
+            e.Property(v => v.VitalType).HasConversion<string>();
+            e.Property(v => v.Source).HasConversion<string>();
+        });
+
+        // ── PatientMedication ───────────────────────────────────────────────
+        builder.Entity<PatientMedication>(e =>
+        {
+            e.HasOne(m => m.Clinic).WithMany().HasForeignKey(m => m.ClinicId);
+            e.HasOne(m => m.PatientProfile).WithMany().HasForeignKey(m => m.PatientProfileId);
+            e.HasOne(m => m.AddedByUser).WithMany().HasForeignKey(m => m.AddedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(m => m.LinkedPrescription).WithMany().HasForeignKey(m => m.LinkedPrescriptionId);
+            e.HasIndex(m => new { m.ClinicId, m.PatientProfileId });
+            e.Property(m => m.MedicationName).HasMaxLength(200);
+            e.Property(m => m.Dosage).HasMaxLength(100);
+            e.Property(m => m.Frequency).HasMaxLength(100);
+            e.Property(m => m.PrescribedByName).HasMaxLength(200);
+        });
+
+        // ── PatientFamilyHistory ────────────────────────────────────────────
+        builder.Entity<PatientFamilyHistory>(e =>
+        {
+            e.HasOne(f => f.Clinic).WithMany().HasForeignKey(f => f.ClinicId);
+            e.HasOne(f => f.PatientProfile).WithMany().HasForeignKey(f => f.PatientProfileId);
+            e.HasOne(f => f.AddedByUser).WithMany().HasForeignKey(f => f.AddedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(f => new { f.ClinicId, f.PatientProfileId });
+            e.Property(f => f.Relationship).HasMaxLength(100);
+            e.Property(f => f.ConditionName).HasMaxLength(200);
+            e.Property(f => f.Notes).HasMaxLength(1000);
+        });
+
+        // ── MedicalDocument ─────────────────────────────────────────────────
+        builder.Entity<MedicalDocument>(e =>
+        {
+            e.HasOne(d => d.Clinic).WithMany().HasForeignKey(d => d.ClinicId);
+            e.HasOne(d => d.PatientProfile).WithMany().HasForeignKey(d => d.PatientProfileId);
+            e.HasOne(d => d.UploadedByUser).WithMany().HasForeignKey(d => d.UploadedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(d => d.LinkedAppointment).WithMany().HasForeignKey(d => d.LinkedAppointmentId);
+            e.HasIndex(d => new { d.ClinicId, d.PatientProfileId });
+            e.Property(d => d.DocumentType).HasConversion<string>();
+            e.Property(d => d.Title).HasMaxLength(200);
+            e.Property(d => d.Description).HasMaxLength(500);
+            e.Property(d => d.FileName).HasMaxLength(256);
+            e.Property(d => d.FilePath).HasMaxLength(1024);
+            e.Property(d => d.ContentType).HasMaxLength(100);
+        });
+
+        // ── RecordAccess ────────────────────────────────────────────────────
+        builder.Entity<RecordAccess>(e =>
+        {
+            e.HasOne(r => r.Clinic).WithMany().HasForeignKey(r => r.ClinicId);
+            e.HasOne(r => r.PatientProfile).WithMany().HasForeignKey(r => r.PatientProfileId);
+            e.HasOne(r => r.GrantedToUser).WithMany().HasForeignKey(r => r.GrantedToUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(r => r.GrantedByUser).WithMany().HasForeignKey(r => r.GrantedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(r => new { r.ClinicId, r.PatientProfileId, r.GrantedToUserId }).IsUnique();
+            e.Property(r => r.AccessLevel).HasConversion<string>();
+            e.Property(r => r.Reason).HasMaxLength(500);
+        });
+
+        // ── RecordAccessLog ─────────────────────────────────────────────────
+        builder.Entity<RecordAccessLog>(e =>
+        {
+            e.HasOne(r => r.Clinic).WithMany().HasForeignKey(r => r.ClinicId);
+            e.HasOne(r => r.PatientProfile).WithMany().HasForeignKey(r => r.PatientProfileId);
+            e.HasOne(r => r.AccessedByUser).WithMany().HasForeignKey(r => r.AccessedByUserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(r => new { r.ClinicId, r.PatientProfileId, r.AccessedAt });
+            e.Property(r => r.Action).HasMaxLength(100);
+            e.Property(r => r.ResourceType).HasMaxLength(100);
+            e.Property(r => r.IpAddress).HasMaxLength(45);
         });
 
         // ── Enum conversions (stored as strings) ─────────────────────────────

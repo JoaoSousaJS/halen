@@ -14,4 +14,5 @@ public static class Topics
     public const string ConsultationEnded = "consultation.ended";
     public const string ReviewSubmitted = "review.submitted";
     public const string ReviewLowStar = "review.low_star";
+    public const string MedicalRecordUpdated = "medical_record.updated";
 }

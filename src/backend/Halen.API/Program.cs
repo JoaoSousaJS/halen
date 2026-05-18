@@ -4,6 +4,7 @@ using Confluent.Kafka;
 using FluentValidation;
 using Halen.Application.Auth.Commands;
 using Halen.Application.Interfaces;
+using Halen.Application.MedicalRecords;
 using Halen.Application.Pipeline;
 using Halen.Domain.Entities;
 using Halen.Domain.Enums;
@@ -106,6 +107,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, MockEmailService>();
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
+builder.Services.AddScoped<IRecordAccessChecker, RecordAccessChecker>();
 
 // Kafka producer registered as singleton — one connection, reused across requests
 var kafkaConfig = new ProducerConfig

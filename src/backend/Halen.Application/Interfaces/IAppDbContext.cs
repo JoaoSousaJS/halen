@@ -20,6 +20,14 @@ public interface IAppDbContext
     DbSet<ConsultationRoom> ConsultationRooms { get; }
     DbSet<Review> Reviews { get; }
     DbSet<ReviewHelpfulVote> ReviewHelpfulVotes { get; }
+    DbSet<PatientCondition> PatientConditions { get; }
+    DbSet<PatientAllergy> PatientAllergies { get; }
+    DbSet<PatientVital> PatientVitals { get; }
+    DbSet<PatientMedication> PatientMedications { get; }
+    DbSet<PatientFamilyHistory> PatientFamilyHistories { get; }
+    DbSet<MedicalDocument> MedicalDocuments { get; }
+    DbSet<RecordAccess> RecordAccesses { get; }
+    DbSet<RecordAccessLog> RecordAccessLogs { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }
