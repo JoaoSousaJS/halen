@@ -2,7 +2,8 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell,
 } from 'recharts';
-import type { AnalyticsOverviewDto, AnalyticsView } from '../../../shared/api/analytics';
+import type { AnalyticsOverviewDto } from '../../../shared/api/analytics';
+import type { AnalyticsView } from './AnalyticsPage';
 import KpiCard from './components/KpiCard';
 import AnalyticsCard from './components/AnalyticsCard';
 import FunnelChart from './components/FunnelChart';

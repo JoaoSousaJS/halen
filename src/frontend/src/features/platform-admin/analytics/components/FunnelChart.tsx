@@ -23,7 +23,7 @@ export default function FunnelChart({ stages }: FunnelChartProps) {
               {stage.label}: {stage.value}
             </span>
 
-            {index < stages.length - 1 && (
+            {stage.value > 0 && index < stages.length - 1 && (
               <div className="analytics-funnel-conversion">
                 →{' '}
                 {Math.round(

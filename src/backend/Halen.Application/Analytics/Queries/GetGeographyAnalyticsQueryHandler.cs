@@ -64,8 +64,9 @@ public class GetGeographyAnalyticsQueryHandler(IAppDbContext db)
         var thisWeekMonday = end.AddDays(-daysFromMonday).Date;
         var cohortStart = thisWeekMonday.AddDays(-7 * (weeksBack - 1));
 
+        var lookbackStart = cohortStart.AddDays(-90);
         var appointments = await db.Appointments.AsNoTracking()
-            .Where(a => a.Status != AppointmentStatus.Cancelled)
+            .Where(a => a.Status != AppointmentStatus.Cancelled && a.ScheduledAt >= lookbackStart)
             .Select(a => new { a.PatientId, a.ScheduledAt })
             .ToListAsync(ct);
 

@@ -22,28 +22,20 @@ public class GetDoctorAnalyticsQueryHandler(IAppDbContext db)
     private async Task<RankedDoctorDto[]> BuildRankedAsync(
         DateTime start, DateTime end, CancellationToken ct)
     {
-        // Fetch appointments in period
         var appointments = await db.Appointments.AsNoTracking()
             .Where(a => a.ScheduledAt >= start && a.ScheduledAt < end)
-            .Select(a => new { a.DoctorId, a.Status, a.ScheduledAt })
+            .Select(a => new { a.Id, a.DoctorId, a.Status, a.ScheduledAt })
             .ToListAsync(ct);
 
-        // Fetch payments in period
         var payments = await db.Payments.AsNoTracking()
             .Where(p => p.Status == PaymentStatus.Captured
                         && p.CapturedAt >= start && p.CapturedAt < end)
             .Select(p => new { p.AppointmentId, p.Amount })
             .ToListAsync(ct);
 
-        // Map appointment IDs to payments
-        var appointmentIds = await db.Appointments.AsNoTracking()
-            .Where(a => a.ScheduledAt >= start && a.ScheduledAt < end)
-            .Select(a => new { a.Id, a.DoctorId })
-            .ToListAsync(ct);
-
         var paymentByAppointment = payments.ToDictionary(p => p.AppointmentId, p => p.Amount);
 
-        var revenueByDoctor = appointmentIds
+        var revenueByDoctor = appointments
             .Where(a => paymentByAppointment.ContainsKey(a.Id))
             .GroupBy(a => a.DoctorId)
             .ToDictionary(g => g.Key, g => g.Sum(a => paymentByAppointment[a.Id]));

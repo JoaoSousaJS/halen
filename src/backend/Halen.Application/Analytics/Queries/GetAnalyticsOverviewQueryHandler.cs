@@ -91,17 +91,18 @@ public class GetAnalyticsOverviewQueryHandler(IAppDbContext db)
             .Distinct()
             .CountAsync(ct);
 
+        var activeByDay = await db.Appointments.AsNoTracking()
+            .Where(a => a.ScheduledAt >= start && a.ScheduledAt < end && ActiveStatuses.Contains(a.Status))
+            .Select(a => new { a.PatientId, Day = a.ScheduledAt.Date })
+            .Distinct()
+            .GroupBy(x => x.Day)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+
+        var activeDict = activeByDay.ToDictionary(x => x.Date, x => x.Count);
         var sparkline = new decimal[periodDays];
         for (var i = 0; i < periodDays; i++)
-        {
-            var dayStart = start.AddDays(i);
-            var dayEnd = dayStart.AddDays(1);
-            sparkline[i] = await db.Appointments.AsNoTracking()
-                .Where(a => a.ScheduledAt >= dayStart && a.ScheduledAt < dayEnd && ActiveStatuses.Contains(a.Status))
-                .Select(a => a.PatientId)
-                .Distinct()
-                .CountAsync(ct);
-        }
+            sparkline[i] = activeDict.GetValueOrDefault(start.AddDays(i).Date, 0);
 
         return new KpiDto(current, ComputeDelta(current, previous), sparkline);
     }

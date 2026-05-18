@@ -82,7 +82,7 @@ export default function AnalyticsPage({ activeView, onNavigate }: AnalyticsPageP
       <div className="analytics-header">
         {activeView !== 'overview' && (
           <nav className="analytics-breadcrumb">
-            <a onClick={() => onNavigate('overview')}>Analytics</a>
+            <button className="analytics-breadcrumb-link" onClick={() => onNavigate('overview')}>Analytics</button>
             <span>/</span>
             <span>{VIEW_TITLES[activeView]}</span>
           </nav>
@@ -96,12 +96,18 @@ export default function AnalyticsPage({ activeView, onNavigate }: AnalyticsPageP
       {activeView === 'overview' && overview.isLoading && (
         <div className="analytics-loading">Loading analytics...</div>
       )}
+      {activeView === 'overview' && overview.isError && (
+        <div className="analytics-loading">Failed to load analytics. Please try again.</div>
+      )}
 
       {activeView === 'appointments' && appointments.data && (
         <AnalyticsAppointments data={appointments.data} />
       )}
       {activeView === 'appointments' && appointments.isLoading && (
         <div className="analytics-loading">Loading...</div>
+      )}
+      {activeView === 'appointments' && appointments.isError && (
+        <div className="analytics-loading">Failed to load data. Please try again.</div>
       )}
 
       {activeView === 'revenue' && revenue.data && (
@@ -110,12 +116,18 @@ export default function AnalyticsPage({ activeView, onNavigate }: AnalyticsPageP
       {activeView === 'revenue' && revenue.isLoading && (
         <div className="analytics-loading">Loading...</div>
       )}
+      {activeView === 'revenue' && revenue.isError && (
+        <div className="analytics-loading">Failed to load data. Please try again.</div>
+      )}
 
       {activeView === 'heatmap' && heatmap.data && (
         <AnalyticsHeatmap data={heatmap.data} />
       )}
       {activeView === 'heatmap' && heatmap.isLoading && (
         <div className="analytics-loading">Loading...</div>
+      )}
+      {activeView === 'heatmap' && heatmap.isError && (
+        <div className="analytics-loading">Failed to load data. Please try again.</div>
       )}
 
       {activeView === 'doctors' && doctors.data && (
@@ -124,12 +136,18 @@ export default function AnalyticsPage({ activeView, onNavigate }: AnalyticsPageP
       {activeView === 'doctors' && doctors.isLoading && (
         <div className="analytics-loading">Loading...</div>
       )}
+      {activeView === 'doctors' && doctors.isError && (
+        <div className="analytics-loading">Failed to load data. Please try again.</div>
+      )}
 
       {activeView === 'geography' && geography.data && (
         <AnalyticsGeography data={geography.data} />
       )}
       {activeView === 'geography' && geography.isLoading && (
         <div className="analytics-loading">Loading...</div>
+      )}
+      {activeView === 'geography' && geography.isError && (
+        <div className="analytics-loading">Failed to load data. Please try again.</div>
       )}
     </div>
   );
