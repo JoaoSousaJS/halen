@@ -222,8 +222,9 @@ test.describe('Doctor Journey — View Patient Medical Records', () => {
     await expect(page.getByRole('heading', { name: 'Maya Chen' })).toBeVisible();
     await expect(page.getByText('Austin, TX')).toBeVisible();
     // Allergy and condition chips in the header
-    await expect(page.getByText('Penicillin')).toBeVisible();
-    await expect(page.getByText('Hypertension')).toBeVisible();
+    const header = page.getByLabel('Patient header');
+    await expect(header.getByText('Penicillin')).toBeVisible();
+    await expect(header.getByText('Hypertension')).toBeVisible();
 
     // ── Step 4: Browse Timeline ───────────────────────────────────────────
 
@@ -236,17 +237,17 @@ test.describe('Doctor Journey — View Patient Medical Records', () => {
 
     await page.getByRole('tab', { name: 'Conditions' }).click();
     await expect(page.getByText('I10')).toBeVisible();
-    await expect(page.getByText('Essential Hypertension')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Essential Hypertension' })).toBeVisible();
     await expect(page.getByText('J45')).toBeVisible();
-    await expect(page.getByText('Asthma')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Asthma' })).toBeVisible();
     await expect(page.getByText('Monitor blood pressure regularly.')).toBeVisible();
 
     // ── Step 6: Review Allergies ──────────────────────────────────────────
 
     await page.getByRole('tab', { name: 'Allergies' }).click();
-    await expect(page.getByText('Penicillin')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Penicillin' })).toBeVisible();
     await expect(page.getByText('Hives and swelling')).toBeVisible();
-    await expect(page.getByText('Peanuts')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Peanuts' })).toBeVisible();
     await expect(page.getByText('Throat swelling')).toBeVisible();
 
     // ── Step 7: Check Snapshot Overview ───────────────────────────────────

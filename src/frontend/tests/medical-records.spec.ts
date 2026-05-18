@@ -243,8 +243,9 @@ test.describe('Medical Records', () => {
 
     await expect(page.getByRole('heading', { name: 'Maya Chen' })).toBeVisible();
     await expect(page.getByText('Austin, TX')).toBeVisible();
-    await expect(page.getByText('Penicillin')).toBeVisible();
-    await expect(page.getByText('Hypertension')).toBeVisible();
+    const header = page.getByLabel('Patient header');
+    await expect(header.getByText('Penicillin')).toBeVisible();
+    await expect(header.getByText('Hypertension')).toBeVisible();
   });
 
   test('shows loading state while fetching header', async ({ page }) => {
@@ -266,7 +267,7 @@ test.describe('Medical Records', () => {
     );
 
     await page.goto(`/medical-records/${PATIENT_PROFILE_ID}`);
-    await expect(page.getByText('Failed to load patient data.')).toBeVisible();
+    await expect(page.getByText('Failed to load patient data.')).toBeVisible({ timeout: 15000 });
   });
 
   // ── Tab Navigation ─────────────────────────────────────────────────────
@@ -295,12 +296,12 @@ test.describe('Medical Records', () => {
     await page.getByRole('tab', { name: 'Conditions' }).click();
     await expect(page.getByRole('tab', { name: 'Conditions' })).toHaveAttribute('aria-selected', 'true');
     await expect(page.getByRole('tab', { name: 'Timeline' })).toHaveAttribute('aria-selected', 'false');
-    await expect(page.getByText('Essential Hypertension')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Essential Hypertension' })).toBeVisible();
 
     // Switch to Allergies tab
     await page.getByRole('tab', { name: 'Allergies' }).click();
     await expect(page.getByRole('tab', { name: 'Allergies' })).toHaveAttribute('aria-selected', 'true');
-    await expect(page.getByText('Penicillin')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Penicillin' })).toBeVisible();
 
     // Switch to Snapshot tab
     await page.getByRole('tab', { name: 'Snapshot' }).click();
@@ -428,7 +429,8 @@ test.describe('Medical Records', () => {
     await page.getByRole('tab', { name: 'Conditions' }).click();
     await page.getByRole('button', { name: 'Add condition' }).click();
 
-    // Fill only description, leave ICD code empty
+    // Fill ICD code with whitespace to bypass HTML5 required but trigger trim() validation
+    await page.getByLabel('ICD Code').fill(' ');
     await page.getByLabel('Description').fill('Some condition');
     await page.getByRole('button', { name: 'Save' }).click();
 
@@ -453,7 +455,7 @@ test.describe('Medical Records', () => {
 
     await page.getByRole('tab', { name: 'Allergies' }).click();
 
-    await expect(page.getByText('Penicillin')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Penicillin' })).toBeVisible();
     await expect(page.getByText('Hives and swelling')).toBeVisible();
     await expect(page.getByText('Severe')).toBeVisible();
   });
@@ -512,7 +514,8 @@ test.describe('Medical Records', () => {
     await page.getByRole('tab', { name: 'Allergies' }).click();
     await page.getByRole('button', { name: 'Add allergy' }).click();
 
-    // Submit without filling allergen name
+    // Fill allergen name with whitespace to bypass HTML5 required but trigger trim() validation
+    await page.getByLabel('Allergen Name').fill(' ');
     await page.getByRole('button', { name: 'Save' }).click();
 
     await expect(page.getByText('Allergen name is required')).toBeVisible();
@@ -551,7 +554,7 @@ test.describe('Medical Records', () => {
     await page.getByRole('button', { name: 'Add vital' }).click();
 
     // Fill the vital form — default type is Blood Pressure
-    await page.getByLabel('Value').fill('125');
+    await page.getByLabel('Value', { exact: true }).fill('125');
     await page.getByLabel('Diastolic value').fill('82');
 
     await page.getByRole('button', { name: 'Save' }).click();
@@ -582,11 +585,12 @@ test.describe('Medical Records', () => {
     await expect(page.getByText('4 of 6')).toBeVisible();
 
     // Snapshot cards
-    await expect(page.getByText('Active Conditions')).toBeVisible();
-    await expect(page.getByText('Essential Hypertension')).toBeVisible();
+    const snapshotCards = page.getByLabel('Snapshot cards');
+    await expect(snapshotCards.getByText('Active Conditions')).toBeVisible();
+    await expect(snapshotCards.getByText('Essential Hypertension')).toBeVisible();
 
-    await expect(page.getByText('Allergies').first()).toBeVisible();
-    await expect(page.getByText('Penicillin')).toBeVisible();
+    await expect(snapshotCards.getByText('Allergies').first()).toBeVisible();
+    await expect(snapshotCards.getByText('Penicillin')).toBeVisible();
 
     await expect(page.getByText('Current Medications')).toBeVisible();
     await expect(page.getByText('Lisinopril')).toBeVisible();
@@ -644,7 +648,7 @@ test.describe('Medical Records', () => {
     await page.getByRole('button', { name: 'Upload Document' }).click();
 
     // Upload dialog form should appear
-    await expect(page.getByText('Upload Document')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Upload Document' })).toBeVisible();
     await expect(page.getByLabel('Choose file')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Upload' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();

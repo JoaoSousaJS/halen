@@ -118,7 +118,8 @@ test.describe('Patient — Leave a review', () => {
 
     await page.getByRole('button', { name: 'Post review' }).click();
 
-    await expect(page.getByRole('button', { name: /leave a review/i })).toBeVisible();
+    await expect(page.getByText('How was your visit?')).not.toBeVisible();
+    await expect(page.getByRole('button', { name: /leave a review/i })).not.toBeVisible();
   });
 
   test('can skip the review form', async ({ page }) => {

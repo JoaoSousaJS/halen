@@ -116,7 +116,7 @@ test.describe('Analytics Dashboard', () => {
     await expect(page.locator('.analytics-breadcrumb')).toBeVisible();
     await expect(page.getByText('Analytics').first()).toBeVisible();
 
-    await page.locator('.analytics-breadcrumb a').click();
+    await page.locator('.analytics-breadcrumb-link').click();
     await expect(page.locator('.analytics-kpi-card')).toHaveCount(4);
   });
 
