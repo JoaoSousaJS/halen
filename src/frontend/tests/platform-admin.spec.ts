@@ -61,6 +61,9 @@ test.describe('Platform Admin — Clinics', () => {
         }
         return route.fulfill({ status: 200, json: clinicDetail.featureFlags });
       }
+      if (url.includes('/admins') && method === 'POST') {
+        return route.fulfill({ status: 201, json: { userId: 'u-new-admin' } });
+      }
       if (/\/clinics\/[a-z0-9-]+$/.test(new URL(url).pathname)) {
         if (method === 'PUT') {
           const body = route.request().postDataJSON() as { name: string; isActive: boolean };
@@ -249,5 +252,55 @@ test.describe('Platform Admin — Clinics', () => {
     await page.getByPlaceholder('Search clinics...').fill('Sunrise');
     await expect(page.getByText('Sunrise Health')).toBeVisible();
     await expect(page.getByText('Metro Medical')).not.toBeVisible();
+  });
+
+  test('create clinic admin — opens dialog and submits', async ({ page }) => {
+    await page.goto('/dashboard');
+    await page.getByText('Sunrise Health').click();
+
+    await page.getByRole('button', { name: /create clinic admin/i }).click();
+    await expect(page.getByRole('heading', { name: 'Create Clinic Admin' })).toBeVisible();
+
+    await page.getByPlaceholder('Jane').fill('Alice');
+    await page.getByPlaceholder('Doe').fill('Santos');
+    await page.getByPlaceholder('admin@clinic.com').fill('alice@sunrise.com');
+    await page.getByPlaceholder('Min. 8 characters').fill('Admin1234!');
+
+    await page.getByRole('button', { name: 'Create admin' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Create Clinic Admin' })).not.toBeVisible();
+  });
+
+  test('create clinic admin — shows server error', async ({ page }) => {
+    await page.route('**/api/v1/clinics/c-001/admins', (route) => {
+      if (route.request().method() === 'POST') {
+        return route.fulfill({ status: 400, json: { error: 'Email already exists' } });
+      }
+      return route.fallback();
+    });
+
+    await page.goto('/dashboard');
+    await page.getByText('Sunrise Health').click();
+
+    await page.getByRole('button', { name: /create clinic admin/i }).click();
+
+    await page.getByPlaceholder('Jane').fill('Alice');
+    await page.getByPlaceholder('Doe').fill('Santos');
+    await page.getByPlaceholder('admin@clinic.com').fill('alice@sunrise.com');
+    await page.getByPlaceholder('Min. 8 characters').fill('Admin1234!');
+
+    await page.getByRole('button', { name: 'Create admin' }).click();
+
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create Clinic Admin' })).toBeVisible();
+  });
+
+  test('create clinic admin — button disabled for inactive clinic', async ({ page }) => {
+    clinicDetail = { ...clinicDetail, isActive: false, name: 'Deactivated Clinic' };
+
+    await page.goto('/dashboard');
+    await page.getByText('Sunrise Health').click();
+
+    await expect(page.getByRole('button', { name: /create clinic admin/i })).toBeDisabled();
   });
 });
