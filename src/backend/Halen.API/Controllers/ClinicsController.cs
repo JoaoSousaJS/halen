@@ -59,6 +59,18 @@ public class ClinicsController(IMediator mediator) : HalenControllerBase
         return NoContent();
     }
 
+    [HttpPost("{clinicId:guid}/admins")]
+    public async Task<IActionResult> CreateAdmin(Guid clinicId, CreateClinicAdminRequest request, CancellationToken ct)
+    {
+        var command = new CreateClinicAdminCommand(
+            clinicId, request.Email, request.FirstName, request.LastName, request.TemporaryPassword);
+        var result = await mediator.Send(command, ct);
+        if (!result.Success)
+            return MapError(result.Error, result.Kind);
+
+        return Created($"/api/v1/clinics/{clinicId}/admins/{result.UserId}", new { result.UserId });
+    }
+
     [HttpGet("{clinicId:guid}/features")]
     public async Task<IActionResult> GetFeatureFlags(Guid clinicId, CancellationToken ct)
     {
@@ -74,3 +86,4 @@ public class ClinicsController(IMediator mediator) : HalenControllerBase
 public record CreateClinicRequest(string Name, string Slug);
 public record UpdateClinicRequest(string Name, bool IsActive);
 public record SetFeatureFlagRequest(bool IsEnabled);
+public record CreateClinicAdminRequest(string Email, string FirstName, string LastName, string TemporaryPassword);

@@ -100,4 +100,59 @@ public class ClinicValidatorTests
             "not-an-email", "John", "Doe", "Password1!", UserRole.Patient));
         result.ShouldHaveValidationErrorFor(x => x.Email);
     }
+
+    [TestMethod]
+    public void CreateClinicAdmin_ValidData_Passes()
+    {
+        var validator = new CreateClinicAdminCommandValidator();
+        var result = validator.TestValidate(new CreateClinicAdminCommand(
+            Guid.NewGuid(), "admin@test.com", "Jane", "Doe", "Admin1234!"));
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [TestMethod]
+    public void CreateClinicAdmin_EmptyClinicId_Fails()
+    {
+        var validator = new CreateClinicAdminCommandValidator();
+        var result = validator.TestValidate(new CreateClinicAdminCommand(
+            Guid.Empty, "admin@test.com", "Jane", "Doe", "Admin1234!"));
+        result.ShouldHaveValidationErrorFor(x => x.ClinicId);
+    }
+
+    [TestMethod]
+    public void CreateClinicAdmin_EmptyEmail_Fails()
+    {
+        var validator = new CreateClinicAdminCommandValidator();
+        var result = validator.TestValidate(new CreateClinicAdminCommand(
+            Guid.NewGuid(), "", "Jane", "Doe", "Admin1234!"));
+        result.ShouldHaveValidationErrorFor(x => x.Email);
+    }
+
+    [TestMethod]
+    public void CreateClinicAdmin_InvalidEmail_Fails()
+    {
+        var validator = new CreateClinicAdminCommandValidator();
+        var result = validator.TestValidate(new CreateClinicAdminCommand(
+            Guid.NewGuid(), "not-an-email", "Jane", "Doe", "Admin1234!"));
+        result.ShouldHaveValidationErrorFor(x => x.Email);
+    }
+
+    [TestMethod]
+    public void CreateClinicAdmin_WeakPassword_Fails()
+    {
+        var validator = new CreateClinicAdminCommandValidator();
+        var result = validator.TestValidate(new CreateClinicAdminCommand(
+            Guid.NewGuid(), "admin@test.com", "Jane", "Doe", "weak"));
+        result.ShouldHaveValidationErrorFor(x => x.TemporaryPassword);
+    }
+
+    [TestMethod]
+    public void CreateClinicAdmin_NameTooLong_Fails()
+    {
+        var validator = new CreateClinicAdminCommandValidator();
+        var longName = new string('a', 101);
+        var result = validator.TestValidate(new CreateClinicAdminCommand(
+            Guid.NewGuid(), "admin@test.com", longName, "Doe", "Admin1234!"));
+        result.ShouldHaveValidationErrorFor(x => x.FirstName);
+    }
 }
