@@ -5,4 +5,5 @@ export { Select } from './Select';
 export { Dialog, DialogActions } from './Dialog';
 export { Chip } from './Chip';
 export { SearchFilterBar } from './SearchFilterBar';
+export { ToggleSwitch } from './ToggleSwitch';
 export type { Filter, DropdownFilter, TextFilter, DateFilter, FilterOption } from './SearchFilterBar';
