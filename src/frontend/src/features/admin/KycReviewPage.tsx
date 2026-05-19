@@ -36,15 +36,12 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
   if (!data) return null;
 
   return (
-    <>
-      <Button size="sm" onClick={onBack}>
-        ← Back to users
-      </Button>
+    <section className="kyc-review">
+      <Button size="sm" className="kyc-review-back" onClick={onBack}>&larr; Back</Button>
 
-      <div className="admin-page-head">
+      <div className="kyc-review-header">
         <div>
-          <div className="admin-tag">KYC Review</div>
-          <h1 className="auth-heading">{data.doctorName}</h1>
+          <h2 className="section-heading">{data.doctorName}</h2>
           <p className="text-dim">
             {data.specialty} · License: {data.licenseNumber}
           </p>
@@ -55,113 +52,118 @@ export default function KycReviewPage({ doctorProfileId, onBack }: KycReviewPage
         />
       </div>
 
-      <section>
-        <h2 className="section-heading">Uploaded documents</h2>
-        {data.documents.length === 0 ? (
-          <p className="text-dim">No documents uploaded.</p>
-        ) : (
-          <div className="kyc-docs-grid">
-            {data.documents.map((doc) => (
-              <div key={doc.id} className="kyc-doc-card">
-                <p>{doc.documentType}</p>
-                <p className="text-dim">{doc.fileName}</p>
-                <p className="text-dim">
-                  {new Date(doc.uploadedAt).toLocaleDateString()}
-                </p>
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    const blob = await downloadKycDocument(doc.id);
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = doc.fileName;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  Download
-                </Button>
+      <div className="kyc-review-columns">
+        <div className="kyc-review-section">
+          <h3>Documents</h3>
+          {data.documents.length === 0 ? (
+            <p className="text-dim">No documents uploaded.</p>
+          ) : (
+            <div className="kyc-docs-grid">
+              {data.documents.map((doc) => (
+                <div key={doc.id} className="kyc-doc-card">
+                  <span className="kyc-doc-type">{doc.documentType}</span>
+                  <span className="text-dim">{doc.fileName}</span>
+                  <span className="text-dim">
+                    {new Date(doc.uploadedAt).toLocaleDateString()}
+                  </span>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      const blob = await downloadKycDocument(doc.id);
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = doc.fileName;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {data.reviewHistory.length > 0 && (
+            <>
+              <h3>Review History</h3>
+              <div className="kyc-history">
+                {data.reviewHistory.map((r) => (
+                  <div key={r.id} className="kyc-history-item">
+                    <div className="kyc-history-meta">
+                      <Chip status={r.decision} variant={r.decision === 'Approved' ? 'good' : 'danger'} />
+                      <span className="text-dim">
+                        by {r.reviewerName} on {new Date(r.reviewedAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {r.rejectionReason && (
+                      <p className="kyc-history-reason">{r.rejectionReason}</p>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            </>
+          )}
+        </div>
+
+        {data.status === 'Submitted' && (
+          <div className="kyc-review-section">
+            <h3>Review Actions</h3>
+            <div className="kyc-actions">
+              <Button
+                variant="primary"
+                disabled={review.isPending}
+                onClick={() => review.mutate({ decision: 'Approved' })}
+              >
+                {review.isPending ? 'Processing…' : 'Approve'}
+              </Button>
+              <Button
+                variant="danger"
+                disabled={review.isPending}
+                onClick={() => setShowRejectForm(true)}
+              >
+                Reject
+              </Button>
+            </div>
+
+            {showRejectForm && (
+              <div className="kyc-reject-form">
+                <Field label="Rejection reason">
+                  <textarea
+                    rows={3}
+                    required
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    placeholder="Explain why the documents are being rejected…"
+                  />
+                </Field>
+                <div className="kyc-actions">
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    disabled={review.isPending || !rejectionReason.trim()}
+                    onClick={() => review.mutate({ decision: 'Rejected', rejectionReason })}
+                  >
+                    Confirm rejection
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setShowRejectForm(false); setRejectionReason(''); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {review.isError && (
+              <p className="dialog-error" role="alert">{getApiError(review.error)}</p>
+            )}
           </div>
         )}
-      </section>
-
-      {data.reviewHistory.length > 0 ? (
-        <section>
-          <h2 className="section-heading">Review history</h2>
-          <div>
-            {data.reviewHistory.map((r) => (
-              <div key={r.id} className="kyc-history-item">
-                <Chip status={r.decision} variant={r.decision === 'Approved' ? 'good' : 'danger'} />
-                <span className="text-dim" style={{ marginLeft: 8 }}>
-                  by {r.reviewerName} on {new Date(r.reviewedAt).toLocaleDateString()}
-                </span>
-                {r.rejectionReason ? (
-                  <p style={{ fontSize: 13 }}>{r.rejectionReason}</p>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {data.status === 'Submitted' ? (
-        <section>
-          <h2 className="section-heading">Review actions</h2>
-          <div className="kyc-actions">
-            <Button
-              variant="primary"
-              disabled={review.isPending}
-              onClick={() => review.mutate({ decision: 'Approved' })}
-            >
-              {review.isPending ? 'Processing…' : 'Approve'}
-            </Button>
-            <Button
-              variant="danger"
-              disabled={review.isPending}
-              onClick={() => setShowRejectForm(true)}
-            >
-              Reject
-            </Button>
-          </div>
-
-          {showRejectForm ? (
-            <div className="auth-card" style={{ maxWidth: 560 }}>
-              <Field label="Rejection reason">
-                <textarea
-                  rows={3}
-                  required
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  placeholder="Explain why the documents are being rejected…"
-                />
-              </Field>
-              <div className="kyc-actions">
-                <Button
-                  variant="danger"
-                  size="sm"
-                  disabled={review.isPending || !rejectionReason.trim()}
-                  onClick={() => review.mutate({ decision: 'Rejected', rejectionReason })}
-                >
-                  Confirm rejection
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => { setShowRejectForm(false); setRejectionReason(''); }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : null}
-
-          {review.isError ? (
-            <p className="auth-error">{getApiError(review.error)}</p>
-          ) : null}
-        </section>
-      ) : null}
-    </>
+      </div>
+    </section>
   );
 }

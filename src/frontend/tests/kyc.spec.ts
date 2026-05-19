@@ -209,7 +209,6 @@ test.describe('Admin KYC Review', () => {
     await expect(page.getByText('Dr. Anika Volpe')).toBeVisible();
 
     await page.getByRole('button', { name: 'Review', exact: true }).click();
-    await expect(page.getByText('KYC Review')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Dr. Anika Volpe' })).toBeVisible();
     await expect(page.getByText('Cardiology · License: MED-29481')).toBeVisible();
   });
@@ -222,7 +221,7 @@ test.describe('Admin KYC Review', () => {
     await page.goto('/dashboard');
     await page.getByRole('button', { name: 'Review', exact: true }).click();
 
-    await expect(page.getByText('Uploaded documents')).toBeVisible();
+    await expect(page.getByText('Documents')).toBeVisible();
     await expect(page.getByText('LicensePhoto')).toBeVisible();
     await expect(page.getByText('MedicalCertificate')).toBeVisible();
     await expect(page.getByText('IdentityProof')).toBeVisible();
@@ -282,9 +281,9 @@ test.describe('Admin KYC Review', () => {
 
     await page.goto('/dashboard');
     await page.getByRole('button', { name: 'Review', exact: true }).click();
-    await expect(page.getByText('KYC Review')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Dr. Anika Volpe' })).toBeVisible();
 
-    await page.getByRole('button', { name: '← Back to users' }).click();
+    await page.getByRole('button', { name: '← Back' }).click();
     await expect(page.getByText('Users.')).toBeVisible();
   });
 

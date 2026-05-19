@@ -389,44 +389,111 @@ html, body {
 
 /* ── KYC pages ──────────────────────────────── */
 
-.kyc-section {
+.kyc-review {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.kyc-review-back { align-self: flex-start; }
+
+.kyc-review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.kyc-review-header .section-heading { margin-bottom: 4px; }
+
+.kyc-review-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .kyc-review-columns { grid-template-columns: 1fr; }
+}
+
+.kyc-review-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
+.kyc-review-section h3 {
+  font-size: var(--size-body);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
 .kyc-docs-grid {
   display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .kyc-doc-card {
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 16px;
-  min-width: 180px;
+  border-radius: var(--r-sm);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kyc-doc-type { font-weight: 600; font-size: var(--size-body-sm); }
+
+.kyc-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kyc-history-item {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.kyc-doc-card p:first-child { font-weight: 600; font-size: 13px; }
-
-.kyc-history-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 12px 16px;
+.kyc-history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.kyc-history-item + .kyc-history-item { margin-top: 8px; }
+.kyc-history-reason {
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+}
 
 .kyc-actions {
   display: flex;
   gap: 12px;
   align-items: flex-start;
+}
+
+.kyc-reject-form {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 /* ── Select & textarea ───────────────────────── */

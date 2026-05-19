@@ -186,7 +186,7 @@ describe('KycReviewPage', () => {
 
     await screen.findByText('Dr. House');
     await act(async () => {
-      fireEvent.click(screen.getByText('← Back to users'));
+      fireEvent.click(screen.getByText('← Back'));
     });
 
     expect(onBack).toHaveBeenCalled();
@@ -211,7 +211,7 @@ describe('KycReviewPage', () => {
     });
     renderPage();
 
-    await screen.findByText('Review history');
+    await screen.findByText('Review History');
     expect(screen.getByText('Blurry photo')).toBeDefined();
     expect(screen.getByText(/by Admin User/)).toBeDefined();
   });
