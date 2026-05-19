@@ -84,4 +84,33 @@ describe('AdminUsersPage', () => {
     renderPage();
     expect(await screen.findByText('Failed to load users. Please try again.')).toBeDefined();
   });
+
+  it('clicking a user row shows user detail panel', async () => {
+    renderPage();
+    const row = await screen.findByText('Maya Chen');
+    await act(() => fireEvent.click(row.closest('tr')!));
+
+    expect(screen.getByRole('heading', { name: 'Maya Chen' })).toBeDefined();
+    expect(screen.getByText('Patient · Last seen now')).toBeDefined();
+    expect(screen.getByText('← Back')).toBeDefined();
+  });
+
+  it('back button on detail panel returns to user list', async () => {
+    renderPage();
+    const name = await screen.findByText('Maya Chen');
+    await act(() => fireEvent.click(name.closest('tr')!));
+    expect(screen.getByRole('heading', { name: 'Maya Chen' })).toBeDefined();
+
+    await act(() => fireEvent.click(screen.getByText('← Back')));
+    expect(await screen.findByText('Users.')).toBeDefined();
+  });
+
+  it('shows KYC review button for doctor with PendingReview status', async () => {
+    renderPage();
+    const name = await screen.findByText('Dr. House');
+    await act(() => fireEvent.click(name.closest('tr')!));
+
+    expect(screen.getByRole('heading', { name: 'Dr. House' })).toBeDefined();
+    expect(screen.getByText('Review KYC documents')).toBeDefined();
+  });
 });

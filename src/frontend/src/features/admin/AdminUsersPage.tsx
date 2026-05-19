@@ -48,6 +48,7 @@ export default function AdminUsersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [reviewingDoctorId, setReviewingDoctorId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUserDto | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -99,6 +100,19 @@ export default function AdminUsersPage() {
     return <KycReviewPage doctorProfileId={reviewingDoctorId} onBack={() => setReviewingDoctorId(null)} />;
   }
 
+  if (selectedUser) {
+    return (
+      <UserDetailPanel
+        user={selectedUser}
+        onBack={() => setSelectedUser(null)}
+        onReviewKyc={(doctorProfileId) => {
+          setSelectedUser(null);
+          setReviewingDoctorId(doctorProfileId);
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <div className="admin-page-head">
@@ -145,7 +159,6 @@ export default function AdminUsersPage() {
             <thead>
               <tr>
                 <th>User</th>
-                <th>ID</th>
                 <th>Role</th>
                 <th>Plan</th>
                 <th>Status</th>
@@ -155,14 +168,13 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {users.map((u: AdminUserDto) => (
-                <tr key={u.id}>
+                <tr key={u.id} className="admin-table-row" onClick={() => setSelectedUser(u)}>
                   <td>
                     <div className="admin-user-cell">
                       <div className="admin-avatar">{initials(u.name)}</div>
                       <span className="admin-user-name">{u.name}</span>
                     </div>
                   </td>
-                  <td className="admin-mono">{u.id.slice(0, 8)}</td>
                   <td>{u.role}</td>
                   <td className="text-dim">{u.plan ?? '—'}</td>
                   <td>
@@ -174,7 +186,10 @@ export default function AdminUsersPage() {
                       <Button
                         size="sm"
                         variant="primary"
-                        onClick={() => setReviewingDoctorId(u.doctorProfileId!)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReviewingDoctorId(u.doctorProfileId!);
+                        }}
                       >
                         Review
                       </Button>
@@ -211,5 +226,64 @@ export default function AdminUsersPage() {
         </div>
       ) : null}
     </>
+  );
+}
+
+function UserDetailPanel({
+  user,
+  onBack,
+  onReviewKyc,
+}: {
+  user: AdminUserDto;
+  onBack: () => void;
+  onReviewKyc: (doctorProfileId: string) => void;
+}) {
+  return (
+    <section className="user-detail">
+      <Button size="sm" className="kyc-review-back" onClick={onBack}>&larr; Back</Button>
+
+      <div className="user-detail-header">
+        <div className="user-detail-avatar">{initials(user.name)}</div>
+        <div>
+          <h2 className="section-heading">{user.name}</h2>
+          <p className="text-dim">{user.role} · Last seen {timeAgo(user.lastLoginAt)}</p>
+        </div>
+        <Chip
+          status={statusLabel(user.status, user.role)}
+          variant={statusVariant(user.status)}
+        />
+      </div>
+
+      <div className="user-detail-grid">
+        <div className="user-detail-card">
+          <h3>Account</h3>
+          <dl className="user-detail-dl">
+            <dt>Role</dt>
+            <dd>{user.role}</dd>
+            <dt>Status</dt>
+            <dd>{statusLabel(user.status, user.role)}</dd>
+            <dt>Plan</dt>
+            <dd>{user.plan ?? 'None'}</dd>
+            <dt>Last seen</dt>
+            <dd>{timeAgo(user.lastLoginAt)}</dd>
+          </dl>
+        </div>
+
+        {user.role === 'Doctor' && user.status === 'PendingReview' && user.doctorProfileId && (
+          <div className="user-detail-card">
+            <h3>KYC Verification</h3>
+            <p className="text-dim" style={{ marginBottom: 12 }}>
+              This doctor has submitted documents for review.
+            </p>
+            <Button
+              variant="primary"
+              onClick={() => onReviewKyc(user.doctorProfileId!)}
+            >
+              Review KYC documents
+            </Button>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
