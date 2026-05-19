@@ -195,7 +195,7 @@ public class GetAnalyticsOverviewQueryHandlerTests
     [TestMethod]
     public async Task Handle_ActiveUsers_DAU_WAU_MAU()
     {
-        var now = DateTime.UtcNow;
+        var now = new DateTime(2026, 6, 15, 14, 0, 0, DateTimeKind.Utc);
 
         // Today: 1 patient
         SeedAppointment(_patient1, _doctor1, now.AddHours(-2), AppointmentStatus.Scheduled, 80m);
@@ -205,7 +205,7 @@ public class GetAnalyticsOverviewQueryHandlerTests
         SeedAppointment(_patient3, _doctor2, now.AddDays(-15), AppointmentStatus.Completed, 60m);
         await _db.SaveChangesAsync();
 
-        var result = await _handler.Handle(new GetAnalyticsOverviewQuery("30d"), CancellationToken.None);
+        var result = await _handler.Handle(new GetAnalyticsOverviewQuery("30d", now), CancellationToken.None);
 
         result.ActiveUsers.Dau.Should().Be(1);
         result.ActiveUsers.Wau.Should().Be(2);

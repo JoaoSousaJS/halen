@@ -14,7 +14,7 @@ public class GetAnalyticsOverviewQueryHandler(IAppDbContext db)
 
     public async Task<AnalyticsOverviewResult> Handle(GetAnalyticsOverviewQuery request, CancellationToken ct)
     {
-        var (start, end, prevStart, prevEnd) = AnalyticsPeriod.ParsePeriod(request.Period);
+        var (start, end, prevStart, prevEnd) = AnalyticsPeriod.ParsePeriod(request.Period, request.Now);
         var periodDays = (int)Math.Ceiling((end - start).TotalDays);
 
         var appointmentKpi = await BuildAppointmentKpiAsync(start, end, prevStart, prevEnd, periodDays, ct);

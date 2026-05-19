@@ -2,7 +2,7 @@ using MediatR;
 
 namespace Halen.Application.Analytics.Queries;
 
-public record GetAnalyticsOverviewQuery(string Period) : IRequest<AnalyticsOverviewResult>;
+public record GetAnalyticsOverviewQuery(string Period, DateTime? Now = null) : IRequest<AnalyticsOverviewResult>;
 
 public record AnalyticsOverviewResult(
     KpiDto AppointmentKpi,
