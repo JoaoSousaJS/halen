@@ -33,12 +33,10 @@ test.describe('Feature Gates — Doctor Dashboard', () => {
         { featureKey: 'kyc', isEnabled: true },
       ],
     });
-    await page.route(/\/api\/v1\/doctor\//, (route) =>
-      route.fulfill({ status: 200, json: { status: 'Approved', submittedAt: '2026-01-01', lastRejectionReason: null, documents: [] } }),
-    );
+    await mockDoctorRoutes(page);
 
     await page.goto('/dashboard');
-    await expect(page.getByRole('heading', { name: 'Issue a prescription' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Issue prescription' })).toBeVisible();
   });
 
   test('KYC section hidden when kyc feature disabled', async ({ page }) => {
@@ -49,12 +47,9 @@ test.describe('Feature Gates — Doctor Dashboard', () => {
         { featureKey: 'kyc', isEnabled: false },
       ],
     });
-    await page.route(/\/api\/v1\/doctor\//, (route) =>
-      route.fulfill({ status: 200, json: { status: 'Approved', submittedAt: '2026-01-01', lastRejectionReason: null, documents: [] } }),
-    );
+    await mockDoctorRoutes(page);
 
     await page.goto('/dashboard');
-    // Prescriptions still visible (kyc disabled doesn't affect prescriptions)
-    await expect(page.getByRole('heading', { name: 'Issue a prescription' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Issue prescription' })).toBeVisible();
   });
 });

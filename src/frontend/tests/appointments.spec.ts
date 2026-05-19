@@ -328,8 +328,8 @@ test.describe('Doctor Dashboard — Appointments', () => {
     });
 
     await page.goto('/dashboard');
-    await expect(page.getByRole('heading', { name: /your.*schedule/i })).toBeVisible();
-    await expect(page.locator('.appt-card').getByText('Maya Chen')).toBeVisible();
+    await expect(page.getByText("Today's schedule")).toBeVisible();
+    await expect(page.locator('.doc-schedule-card').getByText('Maya Chen')).toBeVisible();
     await expect(page.getByText('Annual checkup')).toBeVisible();
   });
 
@@ -353,6 +353,7 @@ test.describe('Doctor Dashboard — Appointments', () => {
     );
 
     await page.goto('/dashboard');
+    await expect(page.getByText("Today's schedule")).toBeVisible();
     await page.getByRole('button', { name: 'Complete appointment with Maya Chen' }).click();
     await page.getByPlaceholder('Session notes (optional)').fill('Patient is fine');
     await page.getByRole('button', { name: 'Confirm' }).click();

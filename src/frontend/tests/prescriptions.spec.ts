@@ -57,10 +57,11 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
 
     await page.goto('/dashboard');
 
-    await expect(page.getByText('Prescriptions issued')).toBeVisible();
-    await expect(page.getByText('Amoxicillin')).toBeVisible();
-    await expect(page.getByText('500mg')).toBeVisible();
-    await expect(page.getByText('Patient: Maya Chen')).toBeVisible();
+    await expect(page.getByText('Recent prescriptions')).toBeVisible();
+    const rxList = page.locator('.doc-rx-list');
+    await expect(rxList.getByText('Amoxicillin')).toBeVisible();
+    await expect(rxList.getByText('500mg')).toBeVisible();
+    await expect(rxList.getByText('Maya Chen')).toBeVisible();
   });
 
   test('issues a prescription successfully', async ({ page }) => {
@@ -76,7 +77,7 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
 
     await page.goto('/dashboard');
 
-    await expect(page.getByText('Issue a prescription')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Issue prescription' })).toBeVisible();
 
     await page.getByLabel('Patient').selectOption('patient-1');
     await page.getByPlaceholder('e.g. Amoxicillin').fill('Metformin');
@@ -107,6 +108,7 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
     );
 
     await page.goto('/dashboard');
+    await expect(page.getByText('Recent prescriptions')).toBeVisible();
     await page.getByRole('button', { name: 'Cancel prescription for Maya Chen' }).click();
 
     await expect(page.getByText('Cancelled').first()).toBeVisible();
@@ -124,6 +126,7 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
     });
 
     await page.goto('/dashboard');
+    await expect(page.getByRole('heading', { name: 'Issue prescription' })).toBeVisible();
 
     await page.getByLabel('Patient').selectOption('patient-1');
     await page.getByPlaceholder('e.g. Amoxicillin').fill('Metformin');
