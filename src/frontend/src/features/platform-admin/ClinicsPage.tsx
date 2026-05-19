@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listClinics, createClinic } from '../../shared/api/clinics';
@@ -17,12 +17,21 @@ function formatDate(dateStr: string): string {
 export default function ClinicsPage({ onSelectClinic }: ClinicsPageProps) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const clinics = useQuery({
-    queryKey: ['clinics', search, page],
-    queryFn: () => listClinics({ search: search || undefined, page, pageSize: 20 }),
+    queryKey: ['clinics', debouncedSearch, page],
+    queryFn: () => listClinics({ search: debouncedSearch || undefined, page, pageSize: 20 }),
   });
 
   const activeCount = clinics.data?.clinics.filter((c) => c.isActive).length ?? 0;
@@ -48,7 +57,7 @@ export default function ClinicsPage({ onSelectClinic }: ClinicsPageProps) {
           className="admin-search"
           placeholder="Search clinics..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => setSearch(e.target.value)}
         />
         <Button variant="primary" className="clinics-create-btn" onClick={() => setShowCreate(true)}>
           <span className="clinics-create-icon">+</span>
