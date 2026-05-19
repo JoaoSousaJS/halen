@@ -133,6 +133,37 @@ public class GetMyThreadsQueryHandlerTests
     }
 
     [TestMethod]
+    public async Task Handle_FilterNeedsReply_ReturnsActiveThreadsWithDoctorUnread()
+    {
+        var thread = _db.ConversationThreads.First(t => t.Subject.Contains("Cardiology"));
+        thread.DoctorUnreadCount = 2;
+        await _db.SaveChangesAsync();
+
+        var query = new GetMyThreadsQuery(_doctorUserId, UserRole.Doctor, "needs_reply", null, 1, 50);
+
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        result.TotalCount.Should().Be(1);
+        result.Threads[0].Subject.Should().Contain("Cardiology");
+    }
+
+    [TestMethod]
+    public async Task Handle_FilterNeedsReply_ExcludesClosedThreads()
+    {
+        var thread = _db.ConversationThreads.First(t => t.Subject.Contains("Dermatology"));
+        thread.DoctorUnreadCount = 1;
+        await _db.SaveChangesAsync();
+
+        var query = new GetMyThreadsQuery(_doctorUserId, UserRole.Doctor, "needs_reply", null, 1, 50);
+
+        var result = await _handler.Handle(query, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        result.Threads.Should().NotContain(t => t.Subject.Contains("Dermatology"));
+    }
+
+    [TestMethod]
     public async Task Handle_Pagination_RespectsPageSize()
     {
         var query = new GetMyThreadsQuery(_patientUserId, UserRole.Patient, null, null, 1, 1);

@@ -64,7 +64,7 @@ public class CloseThreadCommandHandlerTests
     [TestMethod]
     public async Task Handle_DoctorCloses_SetsStatusAndCreatesSystemEvent()
     {
-        var command = new CloseThreadCommand(_doctorUserId, _threadId, "Resolved");
+        var command = new CloseThreadCommand(_doctorUserId, _threadId);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 

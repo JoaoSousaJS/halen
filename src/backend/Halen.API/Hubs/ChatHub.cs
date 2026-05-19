@@ -39,6 +39,8 @@ public class ChatHub(
     {
         var userId = GetUserId();
 
+        LastTyping.TryRemove((threadId, userId), out _);
+
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<IAppDbContext>();
 

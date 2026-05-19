@@ -13,7 +13,11 @@ public class SearchMessagesQueryHandler(
 {
     public async Task<SearchMessagesResult> Handle(SearchMessagesQuery request, CancellationToken ct)
     {
-        var searchPattern = $"%{request.Query}%";
+        var escaped = request.Query
+            .Replace("\\", "\\\\")
+            .Replace("%", "\\%")
+            .Replace("_", "\\_");
+        var searchPattern = $"%{escaped}%";
 
         var query = db.ChatMessages
             .Include(m => m.Thread)

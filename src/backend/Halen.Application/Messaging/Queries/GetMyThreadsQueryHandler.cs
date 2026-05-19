@@ -15,10 +15,6 @@ public class GetMyThreadsQueryHandler(
     public async Task<GetMyThreadsResult> Handle(GetMyThreadsQuery request, CancellationToken ct)
     {
         var query = db.ConversationThreads
-            .Include(t => t.PatientUser)
-            .Include(t => t.DoctorUser)
-            .ThenInclude(u => u!.DoctorProfile)
-            .Include(t => t.Appointment)
             .Where(t => t.PatientUserId == request.UserId || t.DoctorUserId == request.UserId)
             .AsQueryable();
 
@@ -42,7 +38,11 @@ public class GetMyThreadsQueryHandler(
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var search = $"%{request.Search}%";
+            var escaped = request.Search
+                .Replace("\\", "\\\\")
+                .Replace("%", "\\%")
+                .Replace("_", "\\_");
+            var search = $"%{escaped}%";
             query = query.Where(t =>
                 EF.Functions.ILike(t.Subject, search) ||
                 EF.Functions.ILike(t.LastMessagePreview ?? "", search) ||

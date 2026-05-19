@@ -13,7 +13,7 @@ export function useChat(threadId: string, token: string | null) {
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !threadId) return;
 
     const connection = new HubConnectionBuilder()
       .withUrl('/hubs/chat', { accessTokenFactory: () => token })
@@ -32,7 +32,7 @@ export function useChat(threadId: string, token: string | null) {
     connection.onreconnecting(() => setConnected(false));
     connection.onreconnected(() => {
       setConnected(true);
-      connection.invoke('JoinThread', threadId).catch(() => {});
+      connection.invoke('JoinThread', threadId).catch((e) => console.warn('JoinThread failed on reconnect', e));
     });
 
     connection
@@ -41,11 +41,14 @@ export function useChat(threadId: string, token: string | null) {
         setConnected(true);
         return connection.invoke('JoinThread', threadId);
       })
-      .catch(() => setConnected(false));
+      .catch((e) => {
+        console.warn('Chat connection failed', e);
+        setConnected(false);
+      });
 
     return () => {
       if (connection.state === HubConnectionState.Connected) {
-        connection.invoke('LeaveThread', threadId).catch(() => {});
+        connection.invoke('LeaveThread', threadId).catch((e) => console.warn('LeaveThread failed', e));
       }
       connection.stop();
       connectionRef.current = null;
@@ -56,7 +59,7 @@ export function useChat(threadId: string, token: string | null) {
   const sendTyping = useCallback(() => {
     const conn = connectionRef.current;
     if (conn && conn.state === HubConnectionState.Connected) {
-      conn.invoke('SendTyping', threadId).catch(() => {});
+      conn.invoke('SendTyping', threadId).catch((e) => console.warn('SendTyping failed', e));
     }
   }, [threadId]);
 

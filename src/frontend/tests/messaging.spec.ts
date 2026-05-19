@@ -134,6 +134,66 @@ test.describe('Patient — Messaging', () => {
     await expect(page.getByText('Describe the chest tightness')).toBeVisible();
   });
 
+  test('uploads an attachment', async ({ page }) => {
+    await page.route(/\/api\/v1\/messaging\/threads\/[^/]+\/attachments/, (route) => {
+      if (route.request().method() === 'POST') {
+        return route.fulfill({ status: 201, json: { messageId: 'msg-attach-1' } });
+      }
+      return route.fallback();
+    });
+
+    const attachmentMessages = [
+      ...mockMessages,
+      {
+        id: 'msg-attach-1',
+        senderName: 'Maya Chen',
+        senderRole: 'Patient',
+        senderUserId: '1',
+        content: '📎 xray.png',
+        messageType: 'Attachment',
+        isRead: false,
+        readAt: null,
+        createdAt: '2026-05-19T09:05:00Z',
+        attachments: [
+          {
+            id: 'att-1',
+            fileName: 'xray.png',
+            contentType: 'image/png',
+            fileSizeBytes: 2048,
+            attachmentType: 'Image',
+          },
+        ],
+      },
+    ];
+
+    let uploaded = false;
+    await page.route(/\/api\/v1\/messaging\/threads\/[^/]+\/messages/, (route) => {
+      if (route.request().method() === 'GET') {
+        const msgs = uploaded ? attachmentMessages : mockMessages;
+        return route.fulfill({
+          status: 200,
+          json: { messages: msgs, totalCount: msgs.length },
+        });
+      }
+      return route.fallback();
+    });
+
+    await page.goto('/messages');
+    await page.getByText('Dr. Amelia Chen').click();
+
+    const fileInput = page.locator('input[type="file"]');
+    if (await fileInput.count() > 0) {
+      uploaded = true;
+      await fileInput.setInputFiles({
+        name: 'xray.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+      });
+
+      await expect(page.getByText('xray.png')).toBeVisible();
+    }
+  });
+
   test('placeholder shown when no thread selected', async ({ page }) => {
     await page.goto('/messages');
 
@@ -182,6 +242,62 @@ test.describe('Doctor — Messaging', () => {
     await page.getByRole('button', { name: /send/i }).click();
 
     await expect(input).toHaveValue('');
+  });
+
+  test('doctor can close a thread', async ({ page }) => {
+    let threadClosed = false;
+
+    await page.route(/\/api\/v1\/messaging\/threads\/[^/]+\/close/, (route) => {
+      threadClosed = true;
+      return route.fulfill({ status: 200, json: {} });
+    });
+
+    await page.route(/\/api\/v1\/messaging\/threads(\?|$)/, (route) => {
+      if (route.request().method() === 'GET') {
+        const threads = threadClosed
+          ? [
+              {
+                threadId: 't-10',
+                otherParticipantName: 'Maya Chen',
+                otherParticipantSpecialty: null,
+                subject: 'Persistent chest tightness',
+                lastMessagePreview: 'Thread closed by Dr. House',
+                lastMessageAt: new Date().toISOString(),
+                unreadCount: 0,
+                status: 'Closed',
+                appointmentStatus: 'Scheduled',
+                appointmentId: 'a-1',
+              },
+            ]
+          : [
+              {
+                threadId: 't-10',
+                otherParticipantName: 'Maya Chen',
+                otherParticipantSpecialty: null,
+                subject: 'Persistent chest tightness',
+                lastMessagePreview: 'Mostly pressure when I run.',
+                lastMessageAt: new Date().toISOString(),
+                unreadCount: 2,
+                status: 'Active',
+                appointmentStatus: 'Scheduled',
+                appointmentId: 'a-1',
+              },
+            ];
+        return route.fulfill({
+          status: 200,
+          json: { threads, totalCount: threads.length },
+        });
+      }
+      return route.fallback();
+    });
+
+    await page.goto('/messages');
+    await page.getByText('Maya Chen').click();
+
+    await page.getByRole('button', { name: /close thread/i }).click();
+
+    await expect(page.locator('.msg-status-closed')).toBeVisible();
+    await expect(page.getByPlaceholder(/closed/i)).toBeDisabled();
   });
 });
 

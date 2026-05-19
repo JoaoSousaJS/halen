@@ -7,6 +7,7 @@ import {
   getThreadMessages,
   sendMessage,
   markAsRead,
+  closeThread,
   searchMessages,
 } from '../../shared/api/messaging';
 import type { ThreadSummaryDto } from '../../shared/api/messaging';
@@ -52,6 +53,15 @@ export default function MessagingPage() {
     onError: (err: unknown) => setError(getApiError(err)),
   });
 
+  const closeMutation = useMutation({
+    mutationFn: (threadId: string) => closeThread(threadId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messaging-threads'] });
+      queryClient.invalidateQueries({ queryKey: ['messaging-messages', selectedThreadId] });
+    },
+    onError: (err: unknown) => setError(getApiError(err)),
+  });
+
   const chat = useChat(selectedThreadId ?? '', token);
 
   const selectedThread = threadsQuery.data?.threads.find(
@@ -64,7 +74,9 @@ export default function MessagingPage() {
     try {
       await markAsRead(threadId);
       queryClient.invalidateQueries({ queryKey: ['messaging-threads'] });
-    } catch {}
+    } catch (e) {
+      console.warn('Failed to mark thread as read', e);
+    }
   };
 
   const filterOptions = [
@@ -145,6 +157,16 @@ export default function MessagingPage() {
                 <span className={`msg-status msg-status-${selectedThread.status.toLowerCase()}`}>
                   {selectedThread.status}
                 </span>
+                {user?.role === 'Doctor' && selectedThread.status === 'Active' && (
+                  <button
+                    className="msg-close-btn"
+                    onClick={() => closeMutation.mutate(selectedThreadId!)}
+                    disabled={closeMutation.isPending}
+                    type="button"
+                  >
+                    Close Thread
+                  </button>
+                )}
               </div>
               {error && <div className="msg-error">{error}</div>}
               <MessagePanel

@@ -16,6 +16,9 @@ public class SendAttachmentCommandHandler(
     ILogger<SendAttachmentCommandHandler> logger)
     : IRequestHandler<SendAttachmentCommand, SendAttachmentResult>
 {
+    private const int RateLimitCount = 5;
+    private const int RateLimitWindowSeconds = 60;
+
     public async Task<SendAttachmentResult> Handle(SendAttachmentCommand request, CancellationToken ct)
     {
         var thread = await db.ConversationThreads
@@ -29,6 +32,19 @@ public class SendAttachmentCommandHandler(
 
         if (thread.Status == ThreadStatus.Closed)
             return new SendAttachmentResult(false, Error: "Thread is closed", Kind: ErrorKind.Validation);
+
+        var cutoff = DateTime.UtcNow.AddSeconds(-RateLimitWindowSeconds);
+        var recentCount = await db.ChatMessages
+            .CountAsync(m => m.ThreadId == request.ThreadId
+                          && m.SenderUserId == request.UserId
+                          && m.MessageType == MessageType.Attachment
+                          && m.CreatedAt > cutoff, ct);
+
+        if (recentCount >= RateLimitCount)
+            return new SendAttachmentResult(false, Error: "Attachment rate limit exceeded — please slow down", Kind: ErrorKind.Validation);
+
+        if (!await VerifyMagicBytes(request.ContentType, request.FileStream))
+            return new SendAttachmentResult(false, Error: "File content does not match declared type", Kind: ErrorKind.Validation);
 
         var message = new ChatMessage
         {
@@ -86,6 +102,27 @@ public class SendAttachmentCommandHandler(
             attachment.Id, thread.Id, request.UserId);
 
         return new SendAttachmentResult(true, message.Id);
+    }
+
+    private static async Task<bool> VerifyMagicBytes(string contentType, Stream stream)
+    {
+        if (!stream.CanSeek)
+            return true;
+
+        var header = new byte[4];
+        var read = await stream.ReadAsync(header.AsMemory(0, 4));
+        stream.Position = 0;
+
+        if (read < 4)
+            return true;
+
+        return contentType switch
+        {
+            "image/png" => header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47,
+            "image/jpeg" => header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF,
+            "application/pdf" => header[0] == 0x25 && header[1] == 0x50 && header[2] == 0x44 && header[3] == 0x46,
+            _ => true,
+        };
     }
 
     private static string SanitizeFileName(string fileName)

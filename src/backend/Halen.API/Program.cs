@@ -67,6 +67,7 @@ builder.Services.AddAuthentication(opt =>
         };
         opt.Events = new JwtBearerEvents
         {
+            // SignalR requires JWT via query string for WebSocket transport — ensure access logs exclude /hubs/ query params
             OnMessageReceived = context =>
             {
                 var accessToken = context.Request.Query["access_token"];

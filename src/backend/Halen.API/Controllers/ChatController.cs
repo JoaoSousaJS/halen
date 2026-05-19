@@ -1,7 +1,6 @@
 using Halen.Application.Attributes;
 using Halen.Application.Messaging.Commands;
 using Halen.Application.Messaging.Queries;
-using Halen.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -101,10 +100,9 @@ public class ChatController(IMediator mediator) : HalenControllerBase
     }
 
     [HttpPost("threads/{threadId:guid}/close")]
-    public async Task<IActionResult> CloseThread(
-        Guid threadId, CloseThreadRequest? request, CancellationToken ct)
+    public async Task<IActionResult> CloseThread(Guid threadId, CancellationToken ct)
     {
-        var command = new CloseThreadCommand(GetUserId(), threadId, request?.Reason);
+        var command = new CloseThreadCommand(GetUserId(), threadId);
 
         var result = await mediator.Send(command, ct);
         if (!result.Success)
@@ -139,26 +137,15 @@ public class ChatController(IMediator mediator) : HalenControllerBase
     public async Task<IActionResult> DownloadAttachment(
         Guid threadId, Guid attachmentId, CancellationToken ct)
     {
-        var thread = await mediator.Send(
-            new GetThreadMessagesQuery(GetUserId(), threadId, 1, 1), ct);
-        if (!thread.Success)
-            return MapError(thread.Error, thread.Kind);
+        var query = new DownloadAttachmentQuery(GetUserId(), threadId, attachmentId);
 
-        using var scope = HttpContext.RequestServices.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<Application.Interfaces.IAppDbContext>();
-        var attachment = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions
-            .FirstOrDefaultAsync(db.MessageAttachments, a => a.Id == attachmentId && a.Message!.ThreadId == threadId, ct);
-
-        if (attachment is null)
-            return NotFound(new { error = "Attachment not found" });
-
-        var fileStorage = HttpContext.RequestServices.GetRequiredService<Application.Interfaces.IFileStorage>();
-        var stream = await fileStorage.ReadAsync(attachment.StoragePath, ct);
+        var result = await mediator.Send(query, ct);
+        if (!result.Success)
+            return MapError(result.Error, result.Kind);
 
         Response.Headers["X-Content-Type-Options"] = "nosniff";
-        return File(stream, attachment.ContentType, attachment.FileName);
+        return File(result.FileStream!, result.ContentType!, result.FileName!);
     }
 }
 
 public record SendMessageRequest(string Content);
-public record CloseThreadRequest(string? Reason);

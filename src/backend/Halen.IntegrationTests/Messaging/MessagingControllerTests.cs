@@ -308,6 +308,34 @@ public class MessagingControllerTests : IntegrationTestBase
         downloadResp.Headers.GetValues("X-Content-Type-Options").Should().Contain("nosniff");
     }
 
+    [TestMethod]
+    public async Task DownloadAttachment_NonParticipant_ReturnsForbidden()
+    {
+        var (patientClient, _, threadId) = await SetupThreadAsync();
+
+        using var uploadContent = new MultipartFormDataContent();
+        var fileBytes = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+        var fileContent = new ByteArrayContent(fileBytes);
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/png");
+        uploadContent.Add(fileContent, "file", "private-file.png");
+
+        var uploadResp = await patientClient.PostAsync(
+            $"/api/v1/messaging/threads/{threadId}/attachments", uploadContent);
+        uploadResp.EnsureSuccessStatusCode();
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+        var attachment = await db.MessageAttachments
+            .FirstAsync(a => a.Message!.ThreadId == threadId);
+
+        var (otherPatient, _) = await PatientClientWithEmailAsync();
+
+        var downloadResp = await otherPatient.GetAsync(
+            $"/api/v1/messaging/threads/{threadId}/attachments/{attachment.Id}");
+
+        downloadResp.StatusCode.Should().BeOneOf(HttpStatusCode.Forbidden, HttpStatusCode.NotFound);
+    }
+
     // ── Auth enforcement ───────────────────────────────────────────────────
 
     [TestMethod]
