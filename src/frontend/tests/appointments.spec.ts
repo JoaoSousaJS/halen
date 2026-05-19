@@ -54,7 +54,7 @@ test.describe('Patient Dashboard — Appointments', () => {
   test('shows booking form with doctor search', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page.getByRole('heading', { name: /book an/i })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: /search doctors/i })).toBeVisible();
+    await expect(page.getByPlaceholder('Search doctors...')).toBeVisible();
     await expect(page.getByText('No appointments yet')).toBeVisible();
   });
 
@@ -90,7 +90,8 @@ test.describe('Patient Dashboard — Appointments', () => {
     await expect(page.getByText('Dr. House')).toBeVisible();
     await expect(page.getByText('Dr. Grey')).toBeVisible();
 
-    await page.getByRole('combobox', { name: /filter by specialty/i }).selectOption('Surgery');
+    await page.getByRole('button', { name: /all specialties/i }).click();
+    await page.getByRole('option', { name: 'Surgery' }).click();
 
     await expect(page.getByText('Dr. Grey')).toBeVisible();
     await expect(page.getByText('Dr. House')).not.toBeVisible();
@@ -103,7 +104,7 @@ test.describe('Patient Dashboard — Appointments', () => {
 
     await page.getByRole('button', { name: 'Change' }).click();
 
-    await expect(page.getByRole('textbox', { name: /search doctors/i })).toBeVisible();
+    await expect(page.getByPlaceholder('Search doctors...')).toBeVisible();
     await expect(page.getByText('Dr. House — Diagnostics')).not.toBeVisible();
   });
 

@@ -23,7 +23,7 @@ function DropdownPill({ filter }: { filter: DropdownFilter }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const selectedOption = filter.options.find((o) => o.value === filter.value);
-  const isActive = filter.value !== '';
+  const isActive = filter.value !== '' && selectedOption !== undefined;
 
   const close = useCallback(() => {
     setOpen(false);
