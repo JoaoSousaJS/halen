@@ -22,4 +22,4 @@ public record ClinicDetailsDto(
     DateTime CreatedAt
 );
 
-public record FeatureFlagDto(string Key, bool IsEnabled);
+public record FeatureFlagDto(string FeatureKey, bool IsEnabled);
