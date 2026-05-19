@@ -215,10 +215,19 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
           </div>
 
           <div className="settings-field">
-            <span className="settings-field-label">ADMIN</span>
-            <Button variant="primary" size="sm" onClick={() => setShowCreateAdmin(true)} disabled={!c.isActive}>
-              + Create clinic admin
-            </Button>
+            <span className="settings-field-label">ADMINISTRATION</span>
+            <button
+              type="button"
+              className="settings-action-card"
+              onClick={() => setShowCreateAdmin(true)}
+              disabled={!c.isActive}
+            >
+              <span className="settings-action-icon" aria-hidden="true">+</span>
+              <span className="settings-action-text">
+                <strong>Create clinic admin</strong>
+                <span>Add an administrator who can manage users and settings</span>
+              </span>
+            </button>
           </div>
         </div>
 

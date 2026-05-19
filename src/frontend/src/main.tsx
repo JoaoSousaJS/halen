@@ -19,6 +19,11 @@ function PrivateRoute({ children }: { children: ReactNode }) {
   return token ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
+function GuestRoute({ children }: { children: ReactNode }) {
+  const { token } = useAuth();
+  return token ? <Navigate to="/dashboard" replace /> : <>{children}</>;
+}
+
 function RootRedirect() {
   const { token } = useAuth();
   return <Navigate to={token ? '/dashboard' : '/login'} replace />;
@@ -28,8 +33,8 @@ function Router() {
   return (
     <Routes>
       <Route path="/" element={<RootRedirect />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
+      <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route
         path="/dashboard"
         element={
