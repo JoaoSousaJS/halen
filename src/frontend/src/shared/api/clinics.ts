@@ -93,7 +93,7 @@ export async function setFeatureFlag(
   featureKey: string,
   isEnabled: boolean,
 ): Promise<void> {
-  await client.put(`/api/v1/clinics/${clinicId}/features/${featureKey}`, { isEnabled });
+  await client.put(`/api/v1/clinics/${clinicId}/features/${encodeURIComponent(featureKey)}`, { isEnabled });
 }
 
 export async function getClinicFeatures(clinicId: string): Promise<FeatureFlagDto[]> {
