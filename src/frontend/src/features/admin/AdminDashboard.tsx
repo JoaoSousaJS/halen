@@ -6,8 +6,9 @@ import CreateDoctorForm from './CreateDoctorForm';
 import AdminUsersPage from './AdminUsersPage';
 import CreateUserDialog from './CreateUserDialog';
 import ReviewModeration from './ReviewModeration';
+import AuditLogPage from './AuditLogPage';
 
-type AdminTab = 'create-doctor' | 'users' | 'reviews';
+type AdminTab = 'create-doctor' | 'users' | 'reviews' | 'audit-log';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -36,6 +37,12 @@ export default function AdminDashboard() {
         Reviews
       </button>
       <button
+        className={`admin-nav-btn${tab === 'audit-log' ? ' active' : ''}`}
+        onClick={() => setTab('audit-log')}
+      >
+        Audit log
+      </button>
+      <button
         className="admin-nav-btn"
         onClick={() => setShowCreateUser(true)}
       >
@@ -54,6 +61,7 @@ export default function AdminDashboard() {
       {tab === 'users' && <AdminUsersPage />}
       {tab === 'create-doctor' && <CreateDoctorForm />}
       {tab === 'reviews' && <ReviewModeration />}
+      {tab === 'audit-log' && <AuditLogPage />}
 
       {showCreateUser && (
         <CreateUserDialog
