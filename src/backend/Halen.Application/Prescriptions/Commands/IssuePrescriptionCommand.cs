@@ -1,4 +1,5 @@
 using Halen.Application.Common;
+using Halen.Application.Interfaces;
 using MediatR;
 
 namespace Halen.Application.Prescriptions.Commands;
@@ -11,7 +12,11 @@ public record IssuePrescriptionCommand(
     string Frequency,
     int RefillsRemaining,
     string? PharmacyName
-) : IRequest<IssuePrescriptionResult>;
+) : IRequest<IssuePrescriptionResult>, IAuditableCommand
+{
+    Guid IAuditableCommand.ActorId => DoctorUserId;
+}
+
 
 public record IssuePrescriptionResult(
     bool Success,

@@ -18,6 +18,8 @@ public class LoginCommandHandlerTests
     private Mock<UserManager<User>> _userManagerMock = null!;
     private Mock<SignInManager<User>> _signInManagerMock = null!;
     private Mock<IJwtService> _jwtServiceMock = null!;
+    private Mock<IAppDbContext> _dbMock = null!;
+    private Mock<IAuditContextProvider> _auditContextMock = null!;
     private Mock<ILogger<LoginCommandHandler>> _loggerMock = null!;
     private LoginCommandHandler _handler = null!;
 
@@ -37,12 +39,23 @@ public class LoginCommandHandlerTests
             Mock.Of<IUserConfirmation<User>>());
 
         _jwtServiceMock = new Mock<IJwtService>();
+
+        var testDb = Helpers.TestDbFactory.Create();
+        _dbMock = new Mock<IAppDbContext>();
+        _dbMock.Setup(d => d.AuditLogs).Returns(testDb.AuditLogs);
+        _dbMock.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        _auditContextMock = new Mock<IAuditContextProvider>();
+        _auditContextMock.Setup(a => a.IpAddress).Returns("127.0.0.1");
+
         _loggerMock = new Mock<ILogger<LoginCommandHandler>>();
 
         _handler = new LoginCommandHandler(
             _userManagerMock.Object,
             _signInManagerMock.Object,
             _jwtServiceMock.Object,
+            _dbMock.Object,
+            _auditContextMock.Object,
             _loggerMock.Object);
     }
 
@@ -193,5 +206,59 @@ public class LoginCommandHandlerTests
 
         result.Success.Should().BeTrue();
         result.Token.Should().Be(expectedToken);
+    }
+
+    [TestMethod]
+    public async Task Handle_SuccessfulLogin_CreatesLoginSuccessAuditLog()
+    {
+        var command = new LoginCommand("jane@example.com", "SecurePass1!");
+        var user = new User { Email = command.Email, FirstName = "Jane", LastName = "Doe" };
+
+        _userManagerMock.Setup(m => m.FindByEmailAsync(command.Email)).ReturnsAsync(user);
+        _signInManagerMock.Setup(m => m.CheckPasswordSignInAsync(user, command.Password, true))
+            .ReturnsAsync(SignInResult.Success);
+        _userManagerMock.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Patient" });
+        _jwtServiceMock.Setup(s => s.GenerateToken(user, It.IsAny<IList<string>>())).Returns("token");
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        _dbMock.Verify(d => d.AuditLogs, Times.AtLeastOnce);
+        _dbMock.Verify(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+    }
+
+    [TestMethod]
+    public async Task Handle_FailedLogin_CreatesLoginFailureAuditLog()
+    {
+        var command = new LoginCommand("jane@example.com", "WrongPass!");
+        var user = new User { Email = command.Email };
+
+        _userManagerMock.Setup(m => m.FindByEmailAsync(command.Email)).ReturnsAsync(user);
+        _signInManagerMock.Setup(m => m.CheckPasswordSignInAsync(user, command.Password, true))
+            .ReturnsAsync(SignInResult.Failed);
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        _dbMock.Verify(d => d.AuditLogs, Times.AtLeastOnce);
+        _dbMock.Verify(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+    }
+
+    [TestMethod]
+    public async Task Handle_AuditWriteFails_LoginStillSucceeds()
+    {
+        var command = new LoginCommand("jane@example.com", "SecurePass1!");
+        var user = new User { Email = command.Email };
+
+        _userManagerMock.Setup(m => m.FindByEmailAsync(command.Email)).ReturnsAsync(user);
+        _signInManagerMock.Setup(m => m.CheckPasswordSignInAsync(user, command.Password, true))
+            .ReturnsAsync(SignInResult.Success);
+        _userManagerMock.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string> { "Patient" });
+        _jwtServiceMock.Setup(s => s.GenerateToken(user, It.IsAny<IList<string>>())).Returns("token");
+        _dbMock.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("DB failure"));
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Success.Should().BeTrue();
+        result.Token.Should().Be("token");
     }
 }

@@ -95,6 +95,7 @@ builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly);
     cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuditBehavior<,>));
 });
 builder.Services.AddValidatorsFromAssembly(typeof(RegisterCommand).Assembly);
 
@@ -104,6 +105,7 @@ builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<HalenDbCon
 
 // ── Infrastructure services ───────────────────────────────────────────────────
 builder.Services.AddScoped<ITenantContext, TenantContext>();
+builder.Services.AddScoped<IAuditContextProvider, AuditContextProvider>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IEmailService, MockEmailService>();
 builder.Services.AddScoped<IPaymentService, MockPaymentService>();

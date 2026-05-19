@@ -31,6 +31,7 @@ public interface IAppDbContext
     DbSet<ConversationThread> ConversationThreads { get; }
     DbSet<ChatMessage> ChatMessages { get; }
     DbSet<MessageAttachment> MessageAttachments { get; }
+    DbSet<AuditLog> AuditLogs { get; }
     DatabaseFacade Database { get; }
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 }

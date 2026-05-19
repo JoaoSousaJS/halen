@@ -147,6 +147,7 @@ public class HalenDbContext(DbContextOptions<HalenDbContext> options, ITenantCon
             e.HasOne(a => a.Clinic).WithMany().HasForeignKey(a => a.ClinicId);
             e.HasIndex(a => new { a.ClinicId, a.ActorId });
             e.HasIndex(a => new { a.ClinicId, a.CreatedAt });
+            e.HasIndex(a => new { a.ClinicId, a.TargetId });
             e.Property(a => a.Action).HasMaxLength(100);
         });
 

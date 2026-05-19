@@ -1,4 +1,5 @@
 using Halen.Application.Common;
+using Halen.Application.Interfaces;
 using Halen.Domain.Enums;
 using MediatR;
 
@@ -9,7 +10,12 @@ public record ReviewKycCommand(
     Guid DoctorProfileId,
     KycDecision Decision,
     string? RejectionReason
-) : IRequest<ReviewKycResult>;
+) : IRequest<ReviewKycResult>, IAuditableCommand
+{
+    Guid IAuditableCommand.ActorId => AdminUserId;
+    string? IAuditableCommand.AuditTargetId => DoctorProfileId.ToString();
+}
+
 
 public record ReviewKycResult(
     bool Success,

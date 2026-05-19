@@ -1,4 +1,5 @@
 using Halen.Application.Common;
+using Halen.Application.Interfaces;
 using Halen.Domain.Enums;
 using MediatR;
 
@@ -8,8 +9,9 @@ public record CreateUserInClinicCommand(
     string Email,
     string FirstName,
     string LastName,
-    string TemporaryPassword,
+    [property: AuditRedact] string TemporaryPassword,
     UserRole Role
-) : IRequest<CreateUserInClinicResult>;
+) : IRequest<CreateUserInClinicResult>, IAuditableCommand;
+
 
 public record CreateUserInClinicResult(bool Success, Guid? UserId = null, string? Error = null, ErrorKind? Kind = null);
