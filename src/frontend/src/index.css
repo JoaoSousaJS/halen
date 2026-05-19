@@ -167,6 +167,26 @@ html, body {
   box-shadow: var(--ring-focus);
 }
 
+.input {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color var(--t-base);
+  box-sizing: border-box;
+}
+
+.input::placeholder { color: var(--text-muted); }
+
+.input:focus {
+  border-color: var(--border-bright);
+  box-shadow: var(--ring-focus);
+}
+
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
 /* ── Role picker ──────────────────────────────── */
@@ -1312,7 +1332,7 @@ body:has(.dialog-overlay) { overflow: hidden; }
 
 .settings-field-editing {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
 }
 

@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClinic, updateClinic, setFeatureFlag } from '../../shared/api/clinics';
 import { getApiError } from '../../shared/api/errors';
-import { Button, Input, Chip, ToggleSwitch } from '../../shared/components';
+import { Button, Input, Chip, ToggleSwitch, Dialog, DialogActions } from '../../shared/components';
 
 interface ClinicDetailPageProps {
   clinicId: string;
@@ -34,6 +34,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
   const [settingsError, setSettingsError] = useState('');
   const [flagError, setFlagError] = useState('');
   const [mutatingFlags, setMutatingFlags] = useState<Set<string>>(new Set());
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
   const saveName = useMutation({
     mutationFn: (vars: { name: string; isActive: boolean }) =>
@@ -104,6 +105,19 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
   function handleNameKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') handleSaveName();
     if (e.key === 'Escape') cancelEdit();
+  }
+
+  function handleStatusToggle(newActive: boolean) {
+    if (!newActive && clinic.data?.isActive) {
+      setConfirmDeactivate(true);
+      return;
+    }
+    toggleStatus.mutate(newActive);
+  }
+
+  function confirmDeactivateClinic() {
+    setConfirmDeactivate(false);
+    toggleStatus.mutate(false);
   }
 
   const handleToggleFlag = useCallback(
@@ -191,7 +205,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
             <span className="settings-field-label">STATUS</span>
             <ToggleSwitch
               checked={c.isActive}
-              onChange={(newVal) => toggleStatus.mutate(newVal)}
+              onChange={handleStatusToggle}
               loading={toggleStatus.isPending}
               label={c.isActive ? 'Active' : 'Inactive'}
               ariaLabel="Set clinic active status"
@@ -232,6 +246,19 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
           )}
         </div>
       </div>
+
+      {confirmDeactivate && (
+        <Dialog title="Deactivate this clinic?" onClose={() => setConfirmDeactivate(false)}>
+          <p className="dialog-body">
+            All users in this clinic will be suspended and lose access to the platform.
+            This action cannot be automatically reversed.
+          </p>
+          <DialogActions>
+            <Button variant="ghost" onClick={() => setConfirmDeactivate(false)}>Cancel</Button>
+            <Button variant="danger" onClick={confirmDeactivateClinic}>Deactivate</Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </section>
   );
 }

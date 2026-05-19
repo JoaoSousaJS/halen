@@ -302,7 +302,24 @@ describe('ClinicDetailPage', () => {
       expect(screen.getByText('Inactive', { selector: '.toggle-switch-label' })).toBeInTheDocument();
     });
 
-    it('toggling calls updateClinic with current name and new active state', async () => {
+    it('deactivating shows confirmation dialog instead of toggling immediately', async () => {
+      const user = userEvent.setup();
+      mockGetClinic.mockResolvedValue(makeClinic({ isActive: true }));
+      renderPage();
+
+      await screen.findByRole('heading', { name: 'Sunrise Health' });
+      const switches = screen.getAllByRole('switch');
+      const statusSwitch = switches.find(
+        (s) => s.getAttribute('aria-label')?.toLowerCase().includes('status'),
+      );
+
+      await user.click(statusSwitch!);
+
+      expect(await screen.findByText(/deactivate this clinic/i)).toBeInTheDocument();
+      expect(mockUpdateClinic).not.toHaveBeenCalled();
+    });
+
+    it('confirming the deactivation dialog calls updateClinic with isActive false', async () => {
       const user = userEvent.setup();
       mockGetClinic.mockResolvedValue(makeClinic({ isActive: true }));
       mockUpdateClinic.mockResolvedValue(undefined);
@@ -313,9 +330,10 @@ describe('ClinicDetailPage', () => {
       const statusSwitch = switches.find(
         (s) => s.getAttribute('aria-label')?.toLowerCase().includes('status'),
       );
-      expect(statusSwitch).toBeDefined();
-
       await user.click(statusSwitch!);
+
+      await screen.findByText(/deactivate this clinic/i);
+      await user.click(screen.getByRole('button', { name: /deactivate/i }));
 
       await waitFor(() => {
         expect(mockUpdateClinic).toHaveBeenCalledWith('c-001', {
@@ -325,9 +343,65 @@ describe('ClinicDetailPage', () => {
       });
     });
 
+    it('cancelling the deactivation dialog does not call updateClinic', async () => {
+      const user = userEvent.setup();
+      mockGetClinic.mockResolvedValue(makeClinic({ isActive: true }));
+      renderPage();
+
+      await screen.findByRole('heading', { name: 'Sunrise Health' });
+      const switches = screen.getAllByRole('switch');
+      const statusSwitch = switches.find(
+        (s) => s.getAttribute('aria-label')?.toLowerCase().includes('status'),
+      );
+      await user.click(statusSwitch!);
+
+      await screen.findByText(/deactivate this clinic/i);
+      await user.click(screen.getByRole('button', { name: /cancel/i }));
+
+      expect(mockUpdateClinic).not.toHaveBeenCalled();
+      expect(screen.queryByText(/deactivate this clinic/i)).toBeNull();
+    });
+
+    it('activating an inactive clinic toggles directly without dialog', async () => {
+      const user = userEvent.setup();
+      mockGetClinic.mockResolvedValue(makeClinic({ isActive: false }));
+      mockUpdateClinic.mockResolvedValue(undefined);
+      renderPage();
+
+      await screen.findByRole('heading', { name: 'Sunrise Health' });
+      const switches = screen.getAllByRole('switch');
+      const statusSwitch = switches.find(
+        (s) => s.getAttribute('aria-label')?.toLowerCase().includes('status'),
+      );
+      await user.click(statusSwitch!);
+
+      expect(screen.queryByText(/deactivate this clinic/i)).toBeNull();
+      await waitFor(() => {
+        expect(mockUpdateClinic).toHaveBeenCalledWith('c-001', {
+          name: 'Sunrise Health',
+          isActive: true,
+        });
+      });
+    });
+
+    it('deactivation dialog warns about user suspension', async () => {
+      const user = userEvent.setup();
+      mockGetClinic.mockResolvedValue(makeClinic({ isActive: true }));
+      renderPage();
+
+      await screen.findByRole('heading', { name: 'Sunrise Health' });
+      const switches = screen.getAllByRole('switch');
+      const statusSwitch = switches.find(
+        (s) => s.getAttribute('aria-label')?.toLowerCase().includes('status'),
+      );
+      await user.click(statusSwitch!);
+
+      expect(await screen.findByText(/all users.*will be suspended/i)).toBeInTheDocument();
+    });
+
     it('on error shows settingsError inline', async () => {
       const user = userEvent.setup();
-      mockGetClinic.mockResolvedValue(makeClinic());
+      mockGetClinic.mockResolvedValue(makeClinic({ isActive: false }));
       mockUpdateClinic.mockRejectedValue(new Error('Status toggle failed'));
       renderPage();
 

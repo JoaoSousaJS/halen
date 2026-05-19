@@ -188,7 +188,7 @@ test.describe('Platform Admin — Clinics', () => {
     await expect(page.getByRole('button', { name: /Enter Save Test/ })).toBeVisible();
   });
 
-  test('status toggle changes clinic active state', async ({ page }) => {
+  test('status toggle shows confirmation dialog for deactivation', async ({ page }) => {
     await page.goto('/dashboard');
     await page.getByText('Sunrise Health').click();
 
@@ -196,6 +196,11 @@ test.describe('Platform Admin — Clinics', () => {
     await expect(statusSwitch).toHaveAttribute('aria-checked', 'true');
 
     await statusSwitch.click();
+
+    await expect(page.getByText(/deactivate this clinic/i)).toBeVisible();
+    await expect(page.getByText(/will be suspended/i)).toBeVisible();
+
+    await page.getByRole('button', { name: /deactivate/i }).click();
 
     await expect(statusSwitch).toHaveAttribute('aria-checked', 'false');
   });

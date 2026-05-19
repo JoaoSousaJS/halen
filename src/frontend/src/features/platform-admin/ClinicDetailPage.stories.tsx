@@ -156,6 +156,15 @@ export const LongClinicName: Story = {
   },
 };
 
+export const DeactivationConfirmation: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const statusSwitch = await canvas.findByRole('switch', { name: /active status/i });
+    await userEvent.click(statusSwitch);
+  },
+};
+
 export const UnknownFeatureKey: Story = {
   args: { clinicId: 'c-001', onBack: fn() },
   parameters: {
