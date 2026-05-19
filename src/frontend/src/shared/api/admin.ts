@@ -19,6 +19,7 @@ export async function createDoctor(payload: CreateDoctorPayload): Promise<{ doct
 export interface AdminUserDto {
   id: string;
   name: string;
+  email: string | null;
   role: string;
   status: string;
   plan: string | null;

@@ -12,8 +12,8 @@ import { CLINIC_ADMIN_TOKEN, loginAs, mockBaseRoutes, mockAdminRoutes } from '..
  */
 
 const mockUsers = [
-  { id: 'd-001', name: 'Dr. Anika Volpe', role: 'Doctor', status: 'Active', plan: null, lastLoginAt: '2026-05-19T08:00:00Z', isFlagged: false },
-  { id: 'p-001', name: 'Maya Chen', role: 'Patient', status: 'Active', plan: 'HALEN+', lastLoginAt: '2026-05-19T09:00:00Z', isFlagged: false },
+  { id: 'd-001', name: 'Dr. Anika Volpe', email: 'anika@test.com', role: 'Doctor', status: 'Active', plan: null, lastLoginAt: '2026-05-19T08:00:00Z', isFlagged: false },
+  { id: 'p-001', name: 'Maya Chen', email: 'maya@test.com', role: 'Patient', status: 'Active', plan: 'HALEN+', lastLoginAt: '2026-05-19T09:00:00Z', isFlagged: false },
 ];
 
 const auditLogs = [

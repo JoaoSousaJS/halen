@@ -15,6 +15,7 @@ public record ListUsersResult(IReadOnlyList<AdminUserDto> Users, int TotalCount)
 public record AdminUserDto(
     Guid Id,
     string Name,
+    string? Email,
     string Role,
     string Status,
     string? Plan,

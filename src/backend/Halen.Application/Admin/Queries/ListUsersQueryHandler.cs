@@ -50,6 +50,7 @@ public class ListUsersQueryHandler(IAppDbContext db)
             {
                 u.Id,
                 Name = u.FirstName + " " + u.LastName,
+                u.Email,
                 Role = u.Role.ToString(),
                 u.Status,
                 Plan = u.PatientProfile != null ? u.PatientProfile.SubscriptionPlan : (string?)null,
@@ -63,6 +64,7 @@ public class ListUsersQueryHandler(IAppDbContext db)
         var dtos = users.Select(u => new AdminUserDto(
             u.Id,
             u.Name,
+            u.Email,
             u.Role,
             DeriveDisplayStatus(u.Status, u.LastLoginAt, now),
             u.Plan,

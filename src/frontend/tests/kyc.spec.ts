@@ -59,8 +59,8 @@ const adminKycDetails = {
 };
 
 const mockUsers = [
-  { id: 'd-022', name: 'Dr. Anika Volpe', role: 'Doctor', status: 'PendingReview', plan: null, lastLoginAt: new Date().toISOString(), isFlagged: true, doctorProfileId: 'dp-001' },
-  { id: 'p-044', name: 'Wesley Tanaka', role: 'Patient', status: 'Active', plan: 'HALEN+', lastLoginAt: new Date().toISOString(), isFlagged: false },
+  { id: 'd-022', name: 'Dr. Anika Volpe', email: 'anika@test.com', role: 'Doctor', status: 'PendingReview', plan: null, lastLoginAt: new Date().toISOString(), isFlagged: true, doctorProfileId: 'dp-001' },
+  { id: 'p-044', name: 'Wesley Tanaka', email: 'wesley@test.com', role: 'Patient', status: 'Active', plan: 'HALEN+', lastLoginAt: new Date().toISOString(), isFlagged: false },
 ];
 
 // ── Doctor KYC Flow ─────────────────────────────────────────────────────────

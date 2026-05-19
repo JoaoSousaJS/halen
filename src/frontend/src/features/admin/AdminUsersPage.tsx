@@ -159,6 +159,7 @@ export default function AdminUsersPage() {
             <thead>
               <tr>
                 <th>User</th>
+                <th>Email</th>
                 <th>Role</th>
                 <th>Plan</th>
                 <th>Status</th>
@@ -175,6 +176,7 @@ export default function AdminUsersPage() {
                       <span className="admin-user-name">{u.name}</span>
                     </div>
                   </td>
+                  <td className="text-dim">{u.email ?? '—'}</td>
                   <td>{u.role}</td>
                   <td className="text-dim">{u.plan ?? '—'}</td>
                   <td>
@@ -246,7 +248,7 @@ function UserDetailPanel({
         <div className="user-detail-avatar">{initials(user.name)}</div>
         <div>
           <h2 className="section-heading">{user.name}</h2>
-          <p className="text-dim">{user.role} · Last seen {timeAgo(user.lastLoginAt)}</p>
+          <p className="text-dim">{user.email ?? user.role} · Last seen {timeAgo(user.lastLoginAt)}</p>
         </div>
         <Chip
           status={statusLabel(user.status, user.role)}
@@ -258,6 +260,8 @@ function UserDetailPanel({
         <div className="user-detail-card">
           <h3>Account</h3>
           <dl className="user-detail-dl">
+            <dt>Email</dt>
+            <dd>{user.email ?? '—'}</dd>
             <dt>Role</dt>
             <dd>{user.role}</dd>
             <dt>Status</dt>

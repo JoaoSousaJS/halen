@@ -6,8 +6,8 @@ import AdminUsersPage from './AdminUsersPage';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 const mockUsers = [
-  { id: 'u-1', name: 'Maya Chen', role: 'Patient', status: 'Active', plan: 'HALEN+', lastLoginAt: new Date().toISOString(), isFlagged: false, doctorProfileId: null },
-  { id: 'u-2', name: 'Dr. House', role: 'Doctor', status: 'PendingReview', plan: null, lastLoginAt: null, isFlagged: true, doctorProfileId: 'dp-1' },
+  { id: 'u-1', name: 'Maya Chen', email: 'maya@test.com', role: 'Patient', status: 'Active', plan: 'HALEN+', lastLoginAt: new Date().toISOString(), isFlagged: false, doctorProfileId: null },
+  { id: 'u-2', name: 'Dr. House', email: 'house@test.com', role: 'Doctor', status: 'PendingReview', plan: null, lastLoginAt: null, isFlagged: true, doctorProfileId: 'dp-1' },
 ];
 
 const mockListUsers = vi.fn().mockResolvedValue({ users: mockUsers, totalCount: mockUsers.length });
@@ -91,7 +91,7 @@ describe('AdminUsersPage', () => {
     await act(() => fireEvent.click(row.closest('tr')!));
 
     expect(screen.getByRole('heading', { name: 'Maya Chen' })).toBeDefined();
-    expect(screen.getByText('Patient · Last seen now')).toBeDefined();
+    expect(screen.getByText('maya@test.com · Last seen now')).toBeDefined();
     expect(screen.getByText('← Back')).toBeDefined();
   });
 

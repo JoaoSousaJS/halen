@@ -12,8 +12,8 @@ const clinicAdminToken = fakeJwt({
 });
 
 const mockUsers = [
-  { id: 'u-001', name: 'Dr. House', role: 'Doctor', status: 'Active', plan: null, lastLoginAt: new Date().toISOString(), isFlagged: false },
-  { id: 'u-002', name: 'Jane Patient', role: 'Patient', status: 'Active', plan: null, lastLoginAt: new Date().toISOString(), isFlagged: false },
+  { id: 'u-001', name: 'Dr. House', email: 'house@test.com', role: 'Doctor', status: 'Active', plan: null, lastLoginAt: new Date().toISOString(), isFlagged: false },
+  { id: 'u-002', name: 'Jane Patient', email: 'jane@test.com', role: 'Patient', status: 'Active', plan: null, lastLoginAt: new Date().toISOString(), isFlagged: false },
 ];
 
 test.describe('Clinic Admin — User Management', () => {
