@@ -21,7 +21,9 @@ public class UpdateClinicCommandHandler(IAppDbContext db)
         if (!request.IsActive && clinic.IsActive)
         {
             await db.Users
-                .Where(u => u.ClinicId == clinic.Id && u.Status != AccountStatus.Suspended)
+                .Where(u => u.ClinicId == clinic.Id
+                         && u.Status != AccountStatus.Suspended
+                         && u.Role != UserRole.PlatformAdmin)
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.Status, AccountStatus.Suspended), ct);
         }
 

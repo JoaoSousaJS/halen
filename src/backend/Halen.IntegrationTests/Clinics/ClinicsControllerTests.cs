@@ -1,6 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using FluentAssertions;
+using Halen.Domain.Entities;
+using Halen.Domain.Enums;
+using Halen.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Halen.IntegrationTests.Clinics;
@@ -124,6 +129,44 @@ public class ClinicsControllerTests : IntegrationTestBase
             new { IsEnabled = true });
 
         resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task DeactivateClinic_DoesNotSuspendPlatformAdmin()
+    {
+        var client = await AdminClientAsync();
+        var slug = $"deact-{Guid.NewGuid():N}"[..20];
+
+        var createResp = await client.PostAsJsonAsync("/api/v1/clinics", new { Name = "Deactivate Test", Slug = slug });
+        createResp.EnsureSuccessStatusCode();
+        var created = await createResp.Content.ReadFromJsonAsync<ClinicIdResponse>();
+        var clinicId = Guid.Parse(created!.ClinicId);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+            var admin = await db.Users.FirstAsync(u => u.Email == "admin@test.com");
+            admin.ClinicId = clinicId;
+            await db.SaveChangesAsync();
+        }
+
+        var deactivateResp = await client.PutAsJsonAsync($"/api/v1/clinics/{clinicId}", new
+        {
+            Name = "Deactivate Test",
+            IsActive = false,
+        });
+        deactivateResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+            var admin = await db.Users.FirstAsync(u => u.Email == "admin@test.com");
+            admin.Status.Should().Be(AccountStatus.Active);
+
+            admin.ClinicId = (await db.Clinics.FirstAsync(c => c.Slug == "default")).Id;
+            admin.Status = AccountStatus.Active;
+            await db.SaveChangesAsync();
+        }
     }
 
     private sealed record ClinicIdResponse(string ClinicId);
