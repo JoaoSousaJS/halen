@@ -1299,6 +1299,8 @@ body:has(.dialog-overlay) { overflow: hidden; }
 }
 
 .settings-field-value:hover .settings-field-pencil { opacity: 1; }
+.settings-field-value:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.settings-field-value:focus-visible .settings-field-pencil { opacity: 1; }
 
 .settings-field-pencil {
   color: var(--text-muted);
@@ -1336,9 +1338,11 @@ body:has(.dialog-overlay) { overflow: hidden; }
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
-  transition: border-color var(--t-base);
+  transition: border-color var(--t-base), background var(--t-base);
 }
 
+.flag-card:hover { border-color: var(--border-bright); }
+.flag-card:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 .flag-card--enabled { border-color: var(--accent); }
 
 .flag-card-info {

@@ -148,6 +148,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
                   autoFocus
                   required
                   maxLength={200}
+                  aria-describedby={settingsError ? 'settings-error' : undefined}
                 />
                 <Button variant="primary" size="sm" onClick={handleSaveName} disabled={saveName.isPending}>
                   Save
@@ -157,12 +158,12 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
                 </Button>
               </div>
             ) : (
-              <button className="settings-field-value" onClick={startEditingName}>
+              <button type="button" className="settings-field-value" onClick={startEditingName}>
                 {c.name}
                 <span className="settings-field-pencil" aria-hidden="true">&#x270E;</span>
               </button>
             )}
-            {settingsError && <p className="settings-field-error" role="alert">{settingsError}</p>}
+            {settingsError && <p id="settings-error" className="settings-field-error" role="alert">{settingsError}</p>}
           </div>
 
           <div className="settings-field">
