@@ -5,6 +5,7 @@ import { AuthProvider } from '../../shared/components/AuthProvider';
 import ClinicDetailPage from './ClinicDetailPage';
 import { http, HttpResponse } from 'msw';
 import { fn } from 'storybook/test';
+import { userEvent, within } from 'storybook/test';
 
 function fakeJwt(): string {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
@@ -15,6 +16,16 @@ function fakeJwt(): string {
   return `${header}.${body}.fake`;
 }
 
+const allFlags = [
+  { featureKey: 'prescriptions', isEnabled: true },
+  { featureKey: 'kyc', isEnabled: false },
+  { featureKey: 'video_calls', isEnabled: true },
+  { featureKey: 'doctor_reviews', isEnabled: false },
+  { featureKey: 'medical_records', isEnabled: true },
+  { featureKey: 'messaging', isEnabled: false },
+  { featureKey: 'audit_trail', isEnabled: true },
+];
+
 const mockClinic = {
   id: 'c-001',
   name: 'Sunrise Health',
@@ -22,11 +33,7 @@ const mockClinic = {
   isActive: true,
   userCount: 42,
   createdAt: '2026-03-01T10:00:00Z',
-  featureFlags: [
-    { featureKey: 'prescriptions', isEnabled: true },
-    { featureKey: 'kyc', isEnabled: false },
-    { featureKey: 'video_calls', isEnabled: true },
-  ],
+  featureFlags: allFlags,
 };
 
 const handlers = [
@@ -72,6 +79,96 @@ export const InactiveClinic: Story = {
       handlers: [
         http.get('*/api/v1/clinics/c-001', () =>
           HttpResponse.json({ ...mockClinic, isActive: false, name: 'Deactivated Clinic' }),
+        ),
+      ],
+    },
+  },
+};
+
+export const EditingName: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const nameButton = await canvas.findByRole('button', { name: /Sunrise Health/ });
+    await userEvent.click(nameButton);
+  },
+};
+
+export const FlagToggleError: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/clinics/c-001', () => HttpResponse.json(mockClinic)),
+        http.put('*/api/v1/clinics/c-001/features/:key', () =>
+          HttpResponse.json({ message: 'Feature toggle failed' }, { status: 500 }),
+        ),
+      ],
+    },
+  },
+};
+
+export const AllFlagsEnabled: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/clinics/c-001', () =>
+          HttpResponse.json({
+            ...mockClinic,
+            featureFlags: allFlags.map((f) => ({ ...f, isEnabled: true })),
+          }),
+        ),
+      ],
+    },
+  },
+};
+
+export const AllFlagsDisabled: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/clinics/c-001', () =>
+          HttpResponse.json({
+            ...mockClinic,
+            featureFlags: allFlags.map((f) => ({ ...f, isEnabled: false })),
+          }),
+        ),
+      ],
+    },
+  },
+};
+
+export const LongClinicName: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/clinics/c-001', () =>
+          HttpResponse.json({
+            ...mockClinic,
+            name: 'Centro Integrado de Saúde e Bem-Estar da Região Metropolitana de Lisboa Norte',
+          }),
+        ),
+      ],
+    },
+  },
+};
+
+export const UnknownFeatureKey: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/clinics/c-001', () =>
+          HttpResponse.json({
+            ...mockClinic,
+            featureFlags: [
+              ...allFlags,
+              { featureKey: 'beta_experimental', isEnabled: true },
+            ],
+          }),
         ),
       ],
     },
