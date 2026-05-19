@@ -183,3 +183,35 @@ export const UnknownFeatureKey: Story = {
     },
   },
 };
+
+export const CreateAdminDialog: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  parameters: {
+    msw: {
+      handlers: [
+        ...handlers,
+        http.post('*/api/v1/clinics/c-001/admins', () =>
+          HttpResponse.json({ userId: 'u-new-001' }, { status: 201 }),
+        ),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const btn = await canvas.findByRole('button', { name: /create clinic admin/i });
+    await userEvent.click(btn);
+  },
+};
+
+export const CreateAdminDisabledInactive: Story = {
+  args: { clinicId: 'c-001', onBack: fn() },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('*/api/v1/clinics/c-001', () =>
+          HttpResponse.json({ ...mockClinic, isActive: false, name: 'Closed Clinic' }),
+        ),
+      ],
+    },
+  },
+};
