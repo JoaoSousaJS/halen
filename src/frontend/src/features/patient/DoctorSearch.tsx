@@ -86,11 +86,9 @@ export default function DoctorSearch({ onSelect }: DoctorSearchProps) {
         resultLabel="doctors"
       />
 
-      {isLoading && <p role="status">Loading doctors...</p>}
+      {isLoading && !data && <p role="status">Loading doctors...</p>}
 
-      {isError && <p className="auth-error" role="alert">Failed to search doctors. Please try again.</p>}
-
-      {!isLoading && data && data.doctors.length === 0 && (
+      {!isLoading && !isError && data && data.doctors.length === 0 && (
         <p className="doctor-search-empty" role="status">No doctors match your filters</p>
       )}
 
