@@ -10,6 +10,16 @@ interface ClinicDetailPageProps {
   onBack: () => void;
 }
 
+const FEATURE_LABELS: Record<string, string> = {
+  prescriptions: 'Prescriptions',
+  kyc: 'KYC Verification',
+  video_calls: 'Video Calls',
+  doctor_reviews: 'Doctor Reviews',
+  medical_records: 'Medical Records',
+  messaging: 'Messaging',
+  audit_trail: 'Audit Trail',
+};
+
 export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageProps) {
   const queryClient = useQueryClient();
 
@@ -33,10 +43,16 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
     onError: (err) => setError(getApiError(err)),
   });
 
+  const [flagError, setFlagError] = useState('');
+
   const toggleFlag = useMutation({
     mutationFn: ({ featureKey, isEnabled }: { featureKey: string; isEnabled: boolean }) =>
       setFeatureFlag(clinicId, featureKey, isEnabled),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['clinic', clinicId] }),
+    onSuccess: () => {
+      setFlagError('');
+      queryClient.invalidateQueries({ queryKey: ['clinic', clinicId] });
+    },
+    onError: (err) => setFlagError(getApiError(err)),
   });
 
   function startEditing() {
@@ -78,7 +94,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
         </div>
         <div className="clinic-detail-meta-card">
           <dt>Created</dt>
-          <dd>{new Date(c.createdAt).toLocaleDateString()}</dd>
+          <dd>{new Date(c.createdAt).toLocaleDateString('pt-PT')}</dd>
         </div>
       </div>
 
@@ -106,6 +122,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
 
       <div className="clinic-detail-section">
         <h3>Feature Flags</h3>
+        {flagError && <p className="dialog-error">{flagError}</p>}
         <div className="feature-flags-grid">
           {c.featureFlags.map((flag) => (
             <label key={flag.featureKey} className="feature-flag-card">
@@ -115,7 +132,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
                 onChange={() => toggleFlag.mutate({ featureKey: flag.featureKey, isEnabled: !flag.isEnabled })}
                 disabled={toggleFlag.isPending}
               />
-              <span>{flag.featureKey}</span>
+              <span className="feature-flag-label">{FEATURE_LABELS[flag.featureKey] ?? flag.featureKey}</span>
             </label>
           ))}
         </div>

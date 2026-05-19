@@ -1213,9 +1213,14 @@ body:has(.dialog-overlay) { overflow: hidden; }
   border-color: var(--accent);
 }
 
-.feature-flag-card span {
+.feature-flag-label {
   font-size: 13px;
   font-weight: 500;
+  color: var(--text);
+}
+
+.feature-flag-card:has(input:checked) .feature-flag-label {
+  color: var(--accent);
 }
 
 .edit-form-card {
