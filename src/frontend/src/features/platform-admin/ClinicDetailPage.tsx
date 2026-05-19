@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClinic, updateClinic, setFeatureFlag } from '../../shared/api/clinics';
 import { getApiError } from '../../shared/api/errors';
 import { Button, Input, Chip, ToggleSwitch, Dialog, DialogActions } from '../../shared/components';
+import CreateClinicAdminDialog from './CreateClinicAdminDialog';
 
 interface ClinicDetailPageProps {
   clinicId: string;
@@ -35,6 +36,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
   const [flagError, setFlagError] = useState('');
   const [mutatingFlags, setMutatingFlags] = useState<Set<string>>(new Set());
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [showCreateAdmin, setShowCreateAdmin] = useState(false);
 
   const saveName = useMutation({
     mutationFn: (vars: { name: string; isActive: boolean }) =>
@@ -211,6 +213,13 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
               ariaLabel="Set clinic active status"
             />
           </div>
+
+          <div className="settings-field">
+            <span className="settings-field-label">ADMIN</span>
+            <Button variant="primary" size="sm" onClick={() => setShowCreateAdmin(true)} disabled={!c.isActive}>
+              + Create clinic admin
+            </Button>
+          </div>
         </div>
 
         <div className="clinic-detail-section">
@@ -246,6 +255,17 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
           )}
         </div>
       </div>
+
+      {showCreateAdmin && (
+        <CreateClinicAdminDialog
+          clinicId={clinicId}
+          onClose={() => setShowCreateAdmin(false)}
+          onCreated={() => {
+            setShowCreateAdmin(false);
+            queryClient.invalidateQueries({ queryKey: ['clinic', clinicId] });
+          }}
+        />
+      )}
 
       {confirmDeactivate && (
         <Dialog title="Deactivate this clinic?" onClose={() => setConfirmDeactivate(false)}>

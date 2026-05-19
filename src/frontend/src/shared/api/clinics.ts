@@ -111,6 +111,24 @@ export async function listClinicUsers(params: {
   return data;
 }
 
+export interface CreateClinicAdminPayload {
+  email: string;
+  firstName: string;
+  lastName: string;
+  temporaryPassword: string;
+}
+
+export async function createClinicAdmin(
+  clinicId: string,
+  payload: CreateClinicAdminPayload,
+): Promise<{ userId: string }> {
+  const { data } = await client.post<{ userId: string }>(
+    `/api/v1/clinics/${clinicId}/admins`,
+    payload,
+  );
+  return data;
+}
+
 export async function createUserInClinic(
   payload: CreateUserInClinicPayload,
 ): Promise<{ userId: string }> {

@@ -580,4 +580,32 @@ describe('ClinicDetailPage', () => {
       expect(screen.getByText('03/01/2026')).toBeInTheDocument();
     });
   });
+
+  describe('create clinic admin', () => {
+    it('renders the create clinic admin button', async () => {
+      mockGetClinic.mockResolvedValue(makeClinic());
+      renderPage();
+
+      expect(await screen.findByRole('button', { name: /create clinic admin/i })).toBeInTheDocument();
+    });
+
+    it('opens dialog when button is clicked', async () => {
+      mockGetClinic.mockResolvedValue(makeClinic());
+      const user = userEvent.setup();
+      renderPage();
+
+      const btn = await screen.findByRole('button', { name: /create clinic admin/i });
+      await user.click(btn);
+
+      expect(screen.getByText('Create Clinic Admin')).toBeInTheDocument();
+    });
+
+    it('disables button when clinic is inactive', async () => {
+      mockGetClinic.mockResolvedValue(makeClinic({ isActive: false }));
+      renderPage();
+
+      const btn = await screen.findByRole('button', { name: /create clinic admin/i });
+      expect(btn).toBeDisabled();
+    });
+  });
 });
