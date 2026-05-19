@@ -37,11 +37,12 @@ test.describe('Admin Users Page', () => {
     await expect(page.getByText('Wesley Tanaka')).toBeVisible();
   });
 
-  test('filter tabs filter by role', async ({ page }) => {
+  test('role dropdown filters by role', async ({ page }) => {
     await page.goto('/dashboard');
     await expect(page.getByText('Dr. Anika Volpe')).toBeVisible();
 
-    await page.getByRole('tab', { name: 'Doctor', exact: true }).click();
+    await page.getByRole('button', { name: /all roles/i }).click();
+    await page.getByRole('option', { name: 'Doctor' }).click();
     await expect(page.getByText('Dr. Anika Volpe')).toBeVisible();
     await expect(page.getByText('Wesley Tanaka')).not.toBeVisible();
   });
