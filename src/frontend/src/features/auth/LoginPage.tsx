@@ -68,7 +68,9 @@ export default function LoginPage() {
             />
           </Field>
 
-          {error ? <p className="auth-error">{error}</p> : null}
+          <div className="auth-error-slot" aria-live="polite">
+            {error ? <p className="auth-error">{error}</p> : null}
+          </div>
 
           <Button variant="primary" block type="submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}

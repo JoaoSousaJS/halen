@@ -80,4 +80,23 @@ describe('LoginPage', () => {
     await waitFor(() => expect(screen.getByText('Invalid credentials')).toBeInTheDocument());
     expect(mockSaveToken).not.toHaveBeenCalled();
   });
+
+  it('always renders error slot to prevent layout shift', () => {
+    renderLogin();
+    const slot = document.querySelector('.auth-error-slot');
+    expect(slot).toBeInTheDocument();
+    expect(slot).toBeEmptyDOMElement();
+  });
+
+  it('shows error inside the error slot', async () => {
+    vi.mocked(login).mockRejectedValueOnce(new Error('Bad creds'));
+    renderLogin();
+
+    await userEvent.type(screen.getByPlaceholderText('you@example.com'), 'a@b.com');
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'wrong');
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    const slot = document.querySelector('.auth-error-slot');
+    await waitFor(() => expect(slot).toHaveTextContent('Bad creds'));
+  });
 });

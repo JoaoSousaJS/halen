@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { listUsers } from '../../shared/api/admin';
 import type { AdminUserDto } from '../../shared/api/admin';
 import KycReviewPage from './KycReviewPage';
-import { Button, Chip } from '../../shared/components';
+import { Button, Chip, SearchFilterBar } from '../../shared/components';
+import type { Filter } from '../../shared/components';
 
 type RoleFilter = 'all' | 'patient' | 'doctor' | 'flagged';
 
@@ -110,28 +111,23 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="admin-toolbar">
-        <div className="admin-pill-tab" role="tablist">
-          {filters.map((f) => (
-            <button
-              key={f.key}
-              role="tab"
-              aria-selected={filter === f.key}
-              className={filter === f.key ? 'on' : ''}
-              onClick={() => changeFilter(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <input
-          className="admin-search"
-          type="text"
-          placeholder="Search by name or email…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+      <SearchFilterBar
+        searchPlaceholder="Search by name or email…"
+        searchValue={search}
+        onSearchChange={setSearch}
+        filters={[
+          {
+            type: 'dropdown',
+            key: 'role',
+            label: 'All roles',
+            options: filters.map((f) => ({ value: f.key, label: f.label })),
+            value: filter === 'all' ? '' : filter,
+            onChange: (v) => changeFilter((v || 'all') as RoleFilter),
+          } satisfies Filter,
+        ]}
+        resultCount={totalCount}
+        resultLabel="users"
+      />
 
       {isLoading ? <p className="text-dim">Loading…</p> : null}
 

@@ -53,11 +53,11 @@ describe('DoctorSearch', () => {
     mockSearchDoctors.mockResolvedValue({ doctors: [], totalCount: 0 });
     renderSearch();
 
-    // Wait for specialties to load
+    // Wait for specialties to load — now rendered as pill buttons
     await waitFor(() => {
-      expect(screen.getByText('All specialties')).toBeDefined();
+      expect(screen.getByRole('button', { name: /all specialties/i })).toBeDefined();
     });
-    expect(screen.getByText('Sort by')).toBeDefined();
+    expect(screen.getByRole('button', { name: /sort by/i })).toBeDefined();
   });
 
   it('shows loading state', () => {

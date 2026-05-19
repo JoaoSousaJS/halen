@@ -45,12 +45,10 @@ describe('AdminUsersPage', () => {
     mockListUsers.mockResolvedValue({ users: mockUsers, totalCount: mockUsers.length });
   });
 
-  it('renders heading and filter tabs', async () => {
+  it('renders heading and role filter dropdown', async () => {
     renderPage();
     expect(screen.getByText('Users.')).toBeDefined();
-    expect(screen.getByText('All')).toBeDefined();
-    expect(screen.getByText('Patient')).toBeDefined();
-    expect(screen.getByText('Doctor')).toBeDefined();
+    expect(screen.getByRole('button', { name: /all roles/i })).toBeDefined();
   });
 
   it('renders user rows after loading', async () => {

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { searchDoctors, listSpecialties } from '../../shared/api/doctors';
 import type { DoctorSearchDto } from '../../shared/api/doctors';
-import { Input, Select } from '../../shared/components';
+import { SearchFilterBar } from '../../shared/components';
+import type { Filter } from '../../shared/components';
 import DoctorCard from './DoctorCard';
 
 interface DoctorSearchProps {
@@ -10,7 +11,6 @@ interface DoctorSearchProps {
 }
 
 const SORT_OPTIONS = [
-  { value: '', label: 'Sort by' },
   { value: 'name', label: 'Name' },
   { value: 'fee_asc', label: 'Fee (low to high)' },
   { value: 'fee_desc', label: 'Fee (high to low)' },
@@ -56,39 +56,35 @@ export default function DoctorSearch({ onSelect }: DoctorSearchProps) {
 
   const totalPages = data ? Math.ceil(data.totalCount / PAGE_SIZE) : 0;
 
+  const filters: Filter[] = [
+    {
+      type: 'dropdown',
+      key: 'specialty',
+      label: 'All specialties',
+      options: specialtyOptions,
+      value: specialty,
+      onChange: (v) => { setSpecialty(v); setPage(1); },
+    },
+    {
+      type: 'dropdown',
+      key: 'sort',
+      label: 'Sort by',
+      options: SORT_OPTIONS,
+      value: sortBy,
+      onChange: (v) => { setSortBy(v); setPage(1); },
+    },
+  ];
+
   return (
     <div className="doctor-search">
-      <div className="doctor-search-controls">
-        <Input
-          placeholder="Search doctors..."
-          aria-label="Search doctors by name"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-          }}
-        />
-
-        <Select
-          options={specialtyOptions}
-          placeholder="All specialties"
-          aria-label="Filter by specialty"
-          value={specialty}
-          onChange={(e) => {
-            setSpecialty(e.target.value);
-            setPage(1);
-          }}
-        />
-
-        <Select
-          options={SORT_OPTIONS}
-          aria-label="Sort results"
-          value={sortBy}
-          onChange={(e) => {
-            setSortBy(e.target.value);
-            setPage(1);
-          }}
-        />
-      </div>
+      <SearchFilterBar
+        searchPlaceholder="Search doctors..."
+        searchValue={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        resultCount={data?.totalCount}
+        resultLabel="doctors"
+      />
 
       {isLoading && <p role="status">Loading doctors...</p>}
 

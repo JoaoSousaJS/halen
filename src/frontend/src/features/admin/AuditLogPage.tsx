@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { searchAuditLogs, exportAuditLogsCsv, type SearchAuditLogsParams, type AuditLogDto } from '../../shared/api/audit-logs';
+import { SearchFilterBar } from '../../shared/components';
+import type { Filter } from '../../shared/components';
 
 export default function AuditLogPage() {
   const [actionFilter, setActionFilter] = useState('');
@@ -65,36 +67,36 @@ export default function AuditLogPage() {
         </button>
       </div>
 
-      <div className="admin-toolbar">
-        <input
-          type="text"
-          placeholder="Filter by action…"
-          value={actionFilter}
-          onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-          className="admin-search"
-        />
-        <input
-          type="text"
-          placeholder="Filter by target ID…"
-          value={targetFilter}
-          onChange={(e) => { setTargetFilter(e.target.value); setPage(1); }}
-          className="admin-search"
-        />
-        <input
-          type="date"
-          value={fromFilter ? fromFilter.split('T')[0] : ''}
-          onChange={(e) => { setFromFilter(e.target.value ? new Date(e.target.value).toISOString() : ''); setPage(1); }}
-          className="admin-search"
-          aria-label="From date"
-        />
-        <input
-          type="date"
-          value={toFilter ? toFilter.split('T')[0] : ''}
-          onChange={(e) => { setToFilter(e.target.value ? new Date(e.target.value).toISOString() : ''); setPage(1); }}
-          className="admin-search"
-          aria-label="To date"
-        />
-      </div>
+      <SearchFilterBar
+        searchPlaceholder="Filter by action…"
+        searchValue={actionFilter}
+        onSearchChange={(v) => { setActionFilter(v); setPage(1); }}
+        filters={[
+          {
+            type: 'text',
+            key: 'target',
+            placeholder: 'Target ID…',
+            value: targetFilter,
+            onChange: (v) => { setTargetFilter(v); setPage(1); },
+          } satisfies Filter,
+          {
+            type: 'date',
+            key: 'from',
+            label: 'From',
+            value: fromFilter ? fromFilter.split('T')[0] : '',
+            onChange: (v) => { setFromFilter(v ? new Date(v).toISOString() : ''); setPage(1); },
+          } satisfies Filter,
+          {
+            type: 'date',
+            key: 'to',
+            label: 'To',
+            value: toFilter ? toFilter.split('T')[0] : '',
+            onChange: (v) => { setToFilter(v ? new Date(v).toISOString() : ''); setPage(1); },
+          } satisfies Filter,
+        ]}
+        resultCount={data?.totalCount}
+        resultLabel="logs"
+      />
 
       {isLoading && (
         <div className="admin-table-wrap">
