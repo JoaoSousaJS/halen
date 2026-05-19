@@ -46,7 +46,7 @@ export default function AdminDashboard() {
         className="admin-nav-btn"
         onClick={() => setShowCreateUser(true)}
       >
-        + Create user
+        + Create patient
       </button>
     </nav>
   );

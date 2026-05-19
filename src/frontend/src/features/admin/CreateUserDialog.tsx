@@ -15,7 +15,6 @@ export default function CreateUserDialog({ onClose, onCreated }: CreateUserDialo
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'Patient' | 'Doctor'>('Patient');
   const [error, setError] = useState('');
 
   const create = useMutation({
@@ -24,7 +23,7 @@ export default function CreateUserDialog({ onClose, onCreated }: CreateUserDialo
       firstName,
       lastName,
       temporaryPassword: password,
-      role: role === 'Patient' ? 0 : 1,
+      role: 0,
     }),
     onSuccess: onCreated,
     onError: (err) => setError(getApiError(err)),
@@ -37,7 +36,7 @@ export default function CreateUserDialog({ onClose, onCreated }: CreateUserDialo
   }
 
   return (
-    <Dialog title="Create User" subtitle="Add a new user to this clinic" onClose={onClose} wide>
+    <Dialog title="Create Patient" subtitle="Add a new patient to this clinic" onClose={onClose} wide>
       <form onSubmit={handleSubmit} className="dialog-body">
         <Field label="" row>
           <Field label="First name">
@@ -48,44 +47,18 @@ export default function CreateUserDialog({ onClose, onCreated }: CreateUserDialo
           </Field>
         </Field>
         <Field label="Email">
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="user@clinic.com" />
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="patient@clinic.com" />
         </Field>
         <Field label="Temporary password" hint="The user will be asked to change this on first login.">
           <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} placeholder="Min. 8 characters" />
         </Field>
 
-        <div className="field">
-          <span>Role</span>
-          <div className="role-picker">
-            <button
-              type="button"
-              className={`role-option ${role === 'Patient' ? 'active' : ''}`}
-              onClick={() => setRole('Patient')}
-            >
-              <strong>Patient</strong>
-              <span>Book appointments, view prescriptions</span>
-            </button>
-            <button
-              type="button"
-              className={`role-option ${role === 'Doctor' ? 'active' : ''}`}
-              onClick={() => setRole('Doctor')}
-            >
-              <strong>Doctor</strong>
-              <span>Manage appointments, issue prescriptions</span>
-            </button>
-          </div>
-          <select className="sr-only" aria-label="Role" value={role} onChange={(e) => setRole(e.target.value as 'Patient' | 'Doctor')} tabIndex={-1}>
-            <option value="Patient">Patient</option>
-            <option value="Doctor">Doctor</option>
-          </select>
-        </div>
-
-        {error && <p className="dialog-error">{error}</p>}
+        {error && <p className="dialog-error" role="alert">{error}</p>}
 
         <DialogActions>
           <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
           <Button variant="primary" type="submit" disabled={create.isPending}>
-            {create.isPending ? 'Creating...' : 'Create user'}
+            {create.isPending ? 'Creating...' : 'Create patient'}
           </Button>
         </DialogActions>
       </form>

@@ -86,7 +86,7 @@ test.describe('Admin Dashboard — tab navigation', () => {
     await expect(page.getByText('Users.')).toBeVisible();
 
     await page.getByRole('button', { name: 'Create doctor' }).click();
-    await expect(page.getByText('doctor account.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create Doctor Account' })).toBeVisible();
     await expect(page.getByText('Users.')).not.toBeVisible();
 
     await page.getByRole('button', { name: 'Users' }).click();

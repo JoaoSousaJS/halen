@@ -45,19 +45,17 @@ test.describe('Clinic Admin — User Management', () => {
 
   test('create user dialog opens and submits', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.getByRole('button', { name: '+ Create user' }).click();
+    await page.getByRole('button', { name: '+ Create patient' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Create User' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create Patient' })).toBeVisible();
 
-    await page.getByLabel('Email').fill('newuser@test.com');
-    await page.getByLabel('First name').fill('New');
-    await page.getByLabel('Last name').fill('User');
-    await page.getByLabel('Temporary password').fill('Secure123!');
-    await page.getByLabel('Role').selectOption('Patient');
+    await page.getByPlaceholder('Jane').fill('New');
+    await page.getByPlaceholder('Doe').fill('User');
+    await page.getByPlaceholder('patient@clinic.com').fill('newuser@test.com');
+    await page.getByPlaceholder('Min. 8 characters').fill('Secure123!');
 
-    await page.getByRole('button', { name: 'Create user', exact: true }).click();
-    // Dialog closes on success
-    await expect(page.getByRole('heading', { name: 'Create User' })).not.toBeVisible();
+    await page.getByRole('button', { name: 'Create patient', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Create Patient' })).not.toBeVisible();
   });
 
   test('create user dialog shows server error', async ({ page }) => {
@@ -69,23 +67,23 @@ test.describe('Clinic Admin — User Management', () => {
     });
 
     await page.goto('/dashboard');
-    await page.getByRole('button', { name: '+ Create user' }).click();
+    await page.getByRole('button', { name: '+ Create patient' }).click();
 
-    await page.getByLabel('Email').fill('existing@test.com');
-    await page.getByLabel('First name').fill('Dup');
-    await page.getByLabel('Last name').fill('User');
-    await page.getByLabel('Temporary password').fill('Secure123!');
+    await page.getByPlaceholder('Jane').fill('Dup');
+    await page.getByPlaceholder('Doe').fill('User');
+    await page.getByPlaceholder('patient@clinic.com').fill('existing@test.com');
+    await page.getByPlaceholder('Min. 8 characters').fill('Secure123!');
 
-    await page.getByRole('button', { name: 'Create user', exact: true }).click();
+    await page.getByRole('button', { name: 'Create patient', exact: true }).click();
     await expect(page.getByText('Email already exists in this clinic')).toBeVisible();
   });
 
   test('create user cancel closes dialog', async ({ page }) => {
     await page.goto('/dashboard');
-    await page.getByRole('button', { name: '+ Create user' }).click();
-    await expect(page.getByRole('heading', { name: 'Create User' })).toBeVisible();
+    await page.getByRole('button', { name: '+ Create patient' }).click();
+    await expect(page.getByRole('heading', { name: 'Create Patient' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Cancel' }).click();
-    await expect(page.getByRole('heading', { name: 'Create User' })).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create Patient' })).not.toBeVisible();
   });
 });

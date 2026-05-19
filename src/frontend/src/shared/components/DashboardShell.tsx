@@ -24,10 +24,12 @@ export function DashboardShell({ subtitle, userName, nav, children, wide }: Dash
           </div>
         </div>
 
-        {nav}
-
-        <Link to="/profile" className="dashboard-user">{userName}</Link>
-        <button className="btn btn-sm" onClick={logout}>Sign out</button>
+        <div className="dashboard-header-right">
+          {nav}
+          {nav && <span className="dashboard-header-sep" aria-hidden="true" />}
+          <Link to="/profile" className="dashboard-user">{userName}</Link>
+          <button className="btn btn-sm" onClick={logout}>Sign out</button>
+        </div>
       </header>
 
       <main className={`dashboard-main${wide ? ' dashboard-main--wide' : ''}`}>

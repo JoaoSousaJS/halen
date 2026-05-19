@@ -49,7 +49,7 @@ describe('AdminDashboard', () => {
   it('switches to Create doctor tab', () => {
     renderDashboard();
     fireEvent.click(screen.getByText('Create doctor'));
-    expect(screen.getByText('doctor account.')).toBeDefined();
+    expect(screen.getByText('Create Doctor Account')).toBeDefined();
   });
 
   it('switches back to Users tab', () => {

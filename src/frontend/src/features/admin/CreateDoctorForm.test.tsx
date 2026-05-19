@@ -54,7 +54,7 @@ describe('CreateDoctorForm', () => {
 
   it('renders heading and all form fields', () => {
     renderForm();
-    expect(screen.getByText('doctor account.')).toBeDefined();
+    expect(screen.getByText('Create Doctor Account')).toBeDefined();
     expect(screen.getByPlaceholderText('James')).toBeDefined();
     expect(screen.getByPlaceholderText('Wilson')).toBeDefined();
     expect(screen.getByPlaceholderText('doctor@halen.dev')).toBeDefined();

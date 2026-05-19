@@ -49,13 +49,11 @@ export default function CreateDoctorForm() {
   }
 
   return (
-    <>
-      <h1 className="auth-heading" style={{ marginBottom: 24 }}>
-        Create a<br /><em>doctor account.</em>
-      </h1>
+    <section className="create-doctor-page">
+      <h2 className="section-heading">Create Doctor Account</h2>
 
-      <div className="auth-card" style={{ maxWidth: 560 }}>
-        <form onSubmit={handleSubmit} className="auth-form">
+      <div className="create-doctor-card">
+        <form onSubmit={handleSubmit} className="create-doctor-form">
           <Field label="" row>
             <Field label="First name">
               <input
@@ -123,10 +121,10 @@ export default function CreateDoctorForm() {
           </Field>
 
           {mutation.isError ? (
-            <p className="auth-error">{getApiError(mutation.error)}</p>
+            <p className="dialog-error">{getApiError(mutation.error)}</p>
           ) : null}
           {success ? (
-            <p style={{ color: 'var(--accent)', fontSize: 13 }}>{success}</p>
+            <p className="create-doctor-success">{success}</p>
           ) : null}
 
           <Button
@@ -139,6 +137,6 @@ export default function CreateDoctorForm() {
           </Button>
         </form>
       </div>
-    </>
+    </section>
   );
 }

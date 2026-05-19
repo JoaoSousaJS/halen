@@ -28,7 +28,7 @@ const errorHandlers = [
 ];
 
 const meta: Meta<typeof CreateUserDialog> = {
-  title: 'Admin/CreateUserDialog',
+  title: 'Admin/CreatePatientDialog',
   component: CreateUserDialog,
   decorators: [
     (Story) => {

@@ -99,7 +99,7 @@ test.describe('Admin Journey — Create Doctor → Audit Trail', () => {
     // ── Step 3: Create a new doctor ───────────────────────────────────────
 
     await page.getByRole('button', { name: 'Create doctor' }).click();
-    await expect(page.getByText('doctor account.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Create Doctor Account' })).toBeVisible();
 
     await page.getByPlaceholder('James').fill('Gregory');
     await page.getByPlaceholder('Wilson').fill('House');
