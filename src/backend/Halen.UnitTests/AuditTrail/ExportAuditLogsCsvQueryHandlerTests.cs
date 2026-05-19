@@ -102,18 +102,37 @@ public class ExportAuditLogsCsvQueryHandlerTests
         lines[0].Should().Contain("Timestamp");
     }
 
-    private static ExportAuditLogsCsvQueryHandler CreateHandler(HalenDbContext db)
+    [TestMethod]
+    public async Task Handle_PlatformAdminWithClinicId_ExportsOnlyThatClinic()
+    {
+        var otherClinic = Guid.NewGuid();
+        var db = TestDbFactory.Create();
+        db.AuditLogs.Add(CreateLog("A", "user1"));
+        db.AuditLogs.Add(CreateLog("B", "user2", clinicId: otherClinic));
+        await db.SaveChangesAsync();
+        var handler = CreateHandler(db, isPlatformAdmin: true);
+        var query = new ExportAuditLogsCsvQuery(null, null, null,
+            DateTime.UtcNow.AddDays(-1), DateTime.UtcNow.AddDays(1), otherClinic);
+
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        var csv = Encoding.UTF8.GetString(result.CsvBytes);
+        csv.Should().Contain("B");
+        csv.Should().NotContain(",A,");
+    }
+
+    private static ExportAuditLogsCsvQueryHandler CreateHandler(HalenDbContext db, bool isPlatformAdmin = false)
     {
         var tenantContext = new Mock<ITenantContext>();
-        tenantContext.Setup(t => t.IsPlatformAdmin).Returns(false);
+        tenantContext.Setup(t => t.IsPlatformAdmin).Returns(isPlatformAdmin);
         return new ExportAuditLogsCsvQueryHandler(db, tenantContext.Object);
     }
 
-    private static AuditLog CreateLog(string action = "TestAction", string actorName = "Test User")
+    private static AuditLog CreateLog(string action = "TestAction", string actorName = "Test User", Guid? clinicId = null)
     {
         return new AuditLog
         {
-            ClinicId = ClinicId,
+            ClinicId = clinicId ?? ClinicId,
             ActorId = Guid.NewGuid(),
             ActorName = actorName,
             Action = action,

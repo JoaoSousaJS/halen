@@ -130,10 +130,44 @@ public class SearchAuditLogsQueryHandlerTests
         result.Logs.Should().BeEmpty();
     }
 
-    private static SearchAuditLogsQueryHandler CreateHandler(HalenDbContext db)
+    [TestMethod]
+    public async Task Handle_PlatformAdminWithClinicId_ReturnsOnlyThatClinic()
+    {
+        var otherClinic = Guid.NewGuid();
+        var db = TestDbFactory.Create();
+        db.AuditLogs.Add(CreateLog(action: "A"));
+        db.AuditLogs.Add(CreateLog(action: "B", clinicId: otherClinic));
+        db.AuditLogs.Add(CreateLog(action: "C"));
+        await db.SaveChangesAsync();
+        var handler = CreateHandler(db, isPlatformAdmin: true);
+
+        var result = await handler.Handle(
+            new SearchAuditLogsQuery(null, null, null, null, null, otherClinic), CancellationToken.None);
+
+        result.TotalCount.Should().Be(1);
+        result.Logs[0].Action.Should().Be("B");
+    }
+
+    [TestMethod]
+    public async Task Handle_PlatformAdminWithoutClinicId_ReturnsAllClinics()
+    {
+        var otherClinic = Guid.NewGuid();
+        var db = TestDbFactory.Create();
+        db.AuditLogs.Add(CreateLog(action: "A"));
+        db.AuditLogs.Add(CreateLog(action: "B", clinicId: otherClinic));
+        await db.SaveChangesAsync();
+        var handler = CreateHandler(db, isPlatformAdmin: true);
+
+        var result = await handler.Handle(
+            new SearchAuditLogsQuery(null, null, null, null, null, null), CancellationToken.None);
+
+        result.TotalCount.Should().Be(2);
+    }
+
+    private static SearchAuditLogsQueryHandler CreateHandler(HalenDbContext db, bool isPlatformAdmin = false)
     {
         var tenantContext = new Mock<ITenantContext>();
-        tenantContext.Setup(t => t.IsPlatformAdmin).Returns(false);
+        tenantContext.Setup(t => t.IsPlatformAdmin).Returns(isPlatformAdmin);
         return new SearchAuditLogsQueryHandler(db, tenantContext.Object);
     }
 
@@ -141,12 +175,13 @@ public class SearchAuditLogsQueryHandlerTests
         Guid? actorId = null,
         string action = "TestAction",
         string? targetId = null,
-        DateTime? createdAt = null)
+        DateTime? createdAt = null,
+        Guid? clinicId = null)
     {
         return new AuditLog
         {
             CreatedAt = createdAt ?? DateTime.UtcNow,
-            ClinicId = ClinicId,
+            ClinicId = clinicId ?? ClinicId,
             ActorId = actorId ?? Actor1,
             ActorName = "Test User",
             Action = action,

@@ -34,7 +34,9 @@ public static class AuditMetadataSerializer
             }
 
             if (json.Length > MaxLength)
-                json = json[..MaxLength];
+            {
+                json = JsonSerializer.Serialize(new { _truncated = true, _type = command?.GetType().Name ?? "Unknown" });
+            }
 
             return json;
         }

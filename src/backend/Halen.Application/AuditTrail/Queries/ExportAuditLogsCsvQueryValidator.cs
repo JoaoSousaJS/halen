@@ -16,6 +16,14 @@ public class ExportAuditLogsCsvQueryValidator : AbstractValidator<ExportAuditLog
             .When(q => q.From.HasValue && q.To.HasValue)
             .WithMessage("'From' must be before 'To'.");
 
+        RuleFor(q => q)
+            .Must(q => !q.To.HasValue || (q.To.Value - q.From!.Value).TotalDays <= 90)
+            .When(q => q.From.HasValue)
+            .WithMessage("Export date range cannot exceed 90 days.");
+
+        RuleFor(q => q.Action).MaximumLength(100).When(q => !string.IsNullOrEmpty(q.Action));
+        RuleFor(q => q.TargetId).MaximumLength(200).When(q => !string.IsNullOrEmpty(q.TargetId));
+
         RuleFor(q => q.ClinicId)
             .Null()
             .When(_ => !tenantContext.IsPlatformAdmin)

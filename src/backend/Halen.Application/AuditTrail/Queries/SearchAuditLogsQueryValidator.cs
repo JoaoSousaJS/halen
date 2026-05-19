@@ -15,6 +15,9 @@ public class SearchAuditLogsQueryValidator : AbstractValidator<SearchAuditLogsQu
             .When(q => q.From.HasValue && q.To.HasValue)
             .WithMessage("'From' must be before 'To'.");
 
+        RuleFor(q => q.Action).MaximumLength(100).When(q => !string.IsNullOrEmpty(q.Action));
+        RuleFor(q => q.TargetId).MaximumLength(200).When(q => !string.IsNullOrEmpty(q.TargetId));
+
         RuleFor(q => q.ClinicId)
             .Null()
             .When(_ => !tenantContext.IsPlatformAdmin)

@@ -32,8 +32,6 @@ public class AuditContextProvider(IHttpContextAccessor httpContextAccessor) : IA
     {
         var ctx = httpContextAccessor.HttpContext;
         if (ctx is null) return "Unknown";
-        return ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault()
-               ?? ctx.Connection.RemoteIpAddress?.ToString()
-               ?? "Unknown";
+        return ctx.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
     }
 }

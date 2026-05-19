@@ -15,25 +15,9 @@ public class ExportAuditLogsCsvQueryHandler(
 
     public async Task<ExportAuditLogsCsvResult> Handle(ExportAuditLogsCsvQuery request, CancellationToken ct)
     {
-        var query = db.AuditLogs.AsNoTracking();
-
-        if (request.ClinicId.HasValue && tenantContext.IsPlatformAdmin)
-            query = query.IgnoreQueryFilters().Where(a => a.ClinicId == request.ClinicId.Value);
-
-        if (request.ActorId.HasValue)
-            query = query.Where(a => a.ActorId == request.ActorId.Value);
-
-        if (!string.IsNullOrEmpty(request.Action))
-            query = query.Where(a => a.Action == request.Action);
-
-        if (!string.IsNullOrEmpty(request.TargetId))
-            query = query.Where(a => a.TargetId == request.TargetId);
-
-        if (request.From.HasValue)
-            query = query.Where(a => a.CreatedAt >= request.From.Value);
-
-        if (request.To.HasValue)
-            query = query.Where(a => a.CreatedAt <= request.To.Value);
+        var query = db.AuditLogs.AsNoTracking()
+            .ApplyFilters(request.ActorId, request.Action, request.TargetId,
+                request.From, request.To, request.ClinicId, tenantContext);
 
         var logs = await query
             .OrderByDescending(a => a.CreatedAt)

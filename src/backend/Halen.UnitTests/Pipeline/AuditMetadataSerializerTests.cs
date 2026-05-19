@@ -57,14 +57,17 @@ public class AuditMetadataSerializerTests
     }
 
     [TestMethod]
-    public void Serialize_LargePayload_TruncatesTo4KB()
+    public void Serialize_LargePayload_ReturnsValidTruncationMarker()
     {
         var longString = new string('x', 8000);
         var cmd = new SimpleCommand(longString, 1);
 
         var result = AuditMetadataSerializer.Serialize(cmd);
 
-        result.Length.Should().BeLessOrEqualTo(4096);
+        result.Should().Contain("_truncated");
+        result.Should().Contain("SimpleCommand");
+        var parsed = System.Text.Json.JsonDocument.Parse(result);
+        parsed.RootElement.GetProperty("_truncated").GetBoolean().Should().BeTrue();
     }
 
     [TestMethod]
