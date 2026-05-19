@@ -125,6 +125,66 @@ describe('FilterPill — dropdown variant', () => {
     const btn = screen.getByRole('button', { name: /all specialties/i });
     expect(btn).toBeDisabled();
   });
+
+  it('opens popover on Space key', async () => {
+    const user = userEvent.setup();
+    render(<FilterPill filter={makeDropdown()} />);
+
+    screen.getByRole('button', { name: /all specialties/i }).focus();
+    await user.keyboard(' ');
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('opens popover on ArrowDown key and highlights first option', async () => {
+    const user = userEvent.setup();
+    render(<FilterPill filter={makeDropdown()} />);
+
+    screen.getByRole('button', { name: /all specialties/i }).focus();
+    await user.keyboard('{ArrowDown}');
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    const firstOption = screen.getAllByRole('option')[0];
+    expect(firstOption).toHaveClass('highlighted');
+  });
+
+  it('Home key jumps to first option, End key jumps to last', async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<FilterPill filter={makeDropdown({ onChange })} />);
+
+    await user.click(screen.getByRole('button', { name: /all specialties/i }));
+    await user.keyboard('{End}');
+    await user.keyboard('{Enter}');
+
+    expect(onChange).toHaveBeenCalledWith('neurology');
+  });
+
+  it('sets aria-activedescendant during keyboard navigation', async () => {
+    const user = userEvent.setup();
+    render(<FilterPill filter={makeDropdown()} />);
+
+    const btn = screen.getByRole('button', { name: /all specialties/i });
+    await user.click(btn);
+    await user.keyboard('{ArrowDown}');
+
+    expect(btn).toHaveAttribute('aria-activedescendant', expect.stringContaining('-opt-0'));
+
+    await user.keyboard('{ArrowDown}');
+    expect(btn).toHaveAttribute('aria-activedescendant', expect.stringContaining('-opt-1'));
+  });
+
+  it('options have id attributes for aria-activedescendant', async () => {
+    const user = userEvent.setup();
+    render(<FilterPill filter={makeDropdown()} />);
+
+    await user.click(screen.getByRole('button', { name: /all specialties/i }));
+
+    const opts = screen.getAllByRole('option');
+    opts.forEach((opt) => {
+      expect(opt).toHaveAttribute('id');
+    });
+  });
 });
 
 describe('FilterPill — text variant', () => {
@@ -139,9 +199,11 @@ describe('FilterPill — text variant', () => {
     };
   }
 
-  it('renders a text input with placeholder', () => {
+  it('renders a text input with placeholder and aria-label', () => {
     render(<FilterPill filter={makeText()} />);
-    expect(screen.getByPlaceholderText('Target ID...')).toBeInTheDocument();
+    const input = screen.getByPlaceholderText('Target ID...');
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-label', 'Target ID...');
   });
 
   it('calls onChange on input', async () => {

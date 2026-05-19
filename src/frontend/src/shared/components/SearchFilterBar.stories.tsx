@@ -26,10 +26,16 @@ function StatefulBar(props: {
   resultLabel?: string;
 }) {
   const [search, setSearch] = useState('');
-  const filters = props.filters.map((f) => {
-    const [value, setValue] = useState(f.value);
-    return { ...f, value, onChange: setValue } as Filter;
-  });
+  const initial: Record<string, string> = {};
+  for (const f of props.filters) initial[f.key] = f.value;
+  const [values, setValues] = useState(initial);
+
+  const filters = props.filters.map((f) => ({
+    ...f,
+    value: values[f.key] ?? f.value,
+    onChange: (v: string) => setValues((prev) => ({ ...prev, [f.key]: v })),
+  })) as Filter[];
+
   return (
     <SearchFilterBar
       searchPlaceholder={props.searchPlaceholder}

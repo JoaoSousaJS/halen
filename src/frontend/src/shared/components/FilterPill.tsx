@@ -20,7 +20,7 @@ function DropdownPill({ filter }: { filter: DropdownFilter }) {
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const listboxRef = useRef<HTMLUListElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const selectedOption = filter.options.find((o) => o.value === filter.value);
   const isActive = filter.value !== '';
@@ -87,21 +87,21 @@ function DropdownPill({ filter }: { filter: DropdownFilter }) {
     close();
   }
 
-  function handleDismiss(e: React.MouseEvent) {
-    e.stopPropagation();
-    filter.onChange('');
-  }
-
   const listboxId = `filter-pill-listbox-${filter.key}`;
+  const activeDescendant = open && highlightedIndex >= 0
+    ? `${listboxId}-opt-${highlightedIndex}`
+    : undefined;
 
   return (
     <div className="filter-pill" ref={containerRef}>
       <button
+        ref={buttonRef}
         type="button"
         className={`filter-pill-btn${isActive ? ' active' : ''}`}
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls={open ? listboxId : undefined}
+        aria-activedescendant={activeDescendant}
         aria-label={isActive ? selectedOption?.label : filter.label}
         onClick={() => setOpen(!open)}
         onKeyDown={handleKeyDown}
@@ -110,26 +110,26 @@ function DropdownPill({ filter }: { filter: DropdownFilter }) {
         <span className="filter-pill-label">
           {isActive ? selectedOption?.label : filter.label}
         </span>
-        {isActive ? (
-          <button
-            type="button"
-            className="filter-pill-dismiss"
-            aria-label={`Clear ${filter.key}`}
-            onClick={handleDismiss}
-          >
-            ×
-          </button>
-        ) : (
+        {!isActive && (
           <svg className="filter-pill-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M3 5l3 3 3-3" />
           </svg>
         )}
       </button>
+      {isActive && (
+        <button
+          type="button"
+          className="filter-pill-dismiss"
+          aria-label={`Clear ${filter.key}`}
+          onClick={() => filter.onChange('')}
+        >
+          ×
+        </button>
+      )}
 
       {open && (
         <ul
           id={listboxId}
-          ref={listboxRef}
           role="listbox"
           className="filter-pill-popover"
           aria-label={filter.label}
@@ -137,6 +137,7 @@ function DropdownPill({ filter }: { filter: DropdownFilter }) {
           {filter.options.map((opt, i) => (
             <li
               key={opt.value}
+              id={`${listboxId}-opt-${i}`}
               role="option"
               aria-selected={opt.value === filter.value}
               className={`filter-pill-option${i === highlightedIndex ? ' highlighted' : ''}`}
@@ -159,6 +160,7 @@ function TextPill({ filter }: { filter: TextFilter }) {
         type="text"
         className="filter-pill-input"
         placeholder={filter.placeholder}
+        aria-label={filter.placeholder}
         value={filter.value}
         onChange={(e) => filter.onChange(e.target.value)}
       />

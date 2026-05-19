@@ -60,6 +60,7 @@ export function SearchFilterBar({
           className="sfb-search-input"
           type="search"
           placeholder={searchPlaceholder}
+          aria-label={searchPlaceholder ?? 'Search'}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
         />

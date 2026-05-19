@@ -714,6 +714,8 @@ html, body {
 
 .filter-pill {
   position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 .filter-pill-btn {
@@ -768,13 +770,15 @@ html, body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   background: none;
   border: none;
-  color: inherit;
+  color: var(--accent);
   cursor: pointer;
   padding: 0;
+  margin-left: -4px;
+  margin-right: 4px;
   border-radius: 50%;
   font-size: 12px;
   line-height: 1;
@@ -784,6 +788,11 @@ html, body {
 
 .filter-pill-dismiss:hover {
   opacity: 1;
+}
+
+.filter-pill-dismiss:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .filter-pill-chevron {
