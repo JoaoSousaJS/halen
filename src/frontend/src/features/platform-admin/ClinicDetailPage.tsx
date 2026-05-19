@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClinic, updateClinic, setFeatureFlag } from '../../shared/api/clinics';
 import { getApiError } from '../../shared/api/errors';
@@ -33,11 +33,11 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
   const [editName, setEditName] = useState('');
   const [settingsError, setSettingsError] = useState('');
   const [flagError, setFlagError] = useState('');
-  const [mutatingFlagKey, setMutatingFlagKey] = useState<string | null>(null);
+  const [mutatingFlags, setMutatingFlags] = useState<Set<string>>(new Set());
 
   const saveName = useMutation({
-    mutationFn: () =>
-      updateClinic(clinicId, { name: editName.trim(), isActive: clinic.data!.isActive }),
+    mutationFn: (vars: { name: string; isActive: boolean }) =>
+      updateClinic(clinicId, vars),
     onSuccess: () => {
       setEditingName(false);
       setSettingsError('');
@@ -62,8 +62,16 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
   const toggleFlag = useMutation({
     mutationFn: ({ featureKey, isEnabled }: { featureKey: string; isEnabled: boolean }) =>
       setFeatureFlag(clinicId, featureKey, isEnabled),
-    onMutate: ({ featureKey }) => setMutatingFlagKey(featureKey),
-    onSettled: () => setMutatingFlagKey(null),
+    onMutate: ({ featureKey }) => {
+      setMutatingFlags((prev) => new Set(prev).add(featureKey));
+    },
+    onSettled: (_data, _err, variables) => {
+      setMutatingFlags((prev) => {
+        const next = new Set(prev);
+        next.delete(variables!.featureKey);
+        return next;
+      });
+    },
     onSuccess: () => {
       setFlagError('');
       queryClient.invalidateQueries({ queryKey: ['clinic', clinicId] });
@@ -84,12 +92,13 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
   }
 
   function handleSaveName() {
+    if (!clinic.data) return;
     const trimmed = editName.trim();
     if (!trimmed || trimmed.length < 3) {
       setSettingsError('Clinic name must be at least 3 characters.');
       return;
     }
-    saveName.mutate();
+    saveName.mutate({ name: trimmed, isActive: clinic.data.isActive });
   }
 
   function handleNameKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -97,17 +106,29 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
     if (e.key === 'Escape') cancelEdit();
   }
 
+  const handleToggleFlag = useCallback(
+    (featureKey: string, isEnabled: boolean) => {
+      if (mutatingFlags.has(featureKey)) return;
+      toggleFlag.mutate({ featureKey, isEnabled });
+    },
+    [mutatingFlags, toggleFlag],
+  );
+
+  const sortedFlags = useMemo(
+    () =>
+      [...(clinic.data?.featureFlags ?? [])].sort(
+        (a, b) =>
+          (FEATURE_ORDER.indexOf(a.featureKey) === -1 ? 999 : FEATURE_ORDER.indexOf(a.featureKey)) -
+          (FEATURE_ORDER.indexOf(b.featureKey) === -1 ? 999 : FEATURE_ORDER.indexOf(b.featureKey)),
+      ),
+    [clinic.data?.featureFlags],
+  );
+
   if (clinic.isLoading) return <p className="text-dim">Loading...</p>;
   if (clinic.error) return <p className="text-error">{getApiError(clinic.error)}</p>;
   if (!clinic.data) return null;
 
   const c = clinic.data;
-
-  const sortedFlags = [...c.featureFlags].sort(
-    (a, b) =>
-      (FEATURE_ORDER.indexOf(a.featureKey) === -1 ? 999 : FEATURE_ORDER.indexOf(a.featureKey)) -
-      (FEATURE_ORDER.indexOf(b.featureKey) === -1 ? 999 : FEATURE_ORDER.indexOf(b.featureKey)),
-  );
 
   return (
     <section className="clinic-detail">
@@ -118,7 +139,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
         <Chip status={c.isActive ? 'Active' : 'Inactive'} variant={c.isActive ? 'good' : undefined} />
       </div>
 
-      <div className="clinic-detail-meta">
+      <dl className="clinic-detail-meta">
         <div className="clinic-detail-meta-card">
           <dt>Slug</dt>
           <dd><code>{c.slug}</code></dd>
@@ -131,7 +152,7 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
           <dt>Created</dt>
           <dd>{new Date(c.createdAt).toLocaleDateString('pt-PT')}</dd>
         </div>
-      </div>
+      </dl>
 
       <div className="clinic-detail-columns">
         <div className="clinic-detail-section">
@@ -200,10 +221,8 @@ export default function ClinicDetailPage({ clinicId, onBack }: ClinicDetailPageP
                     </div>
                     <ToggleSwitch
                       checked={flag.isEnabled}
-                      onChange={(v) =>
-                        toggleFlag.mutate({ featureKey: flag.featureKey, isEnabled: v })
-                      }
-                      loading={mutatingFlagKey === flag.featureKey && toggleFlag.isPending}
+                      onChange={(v) => handleToggleFlag(flag.featureKey, v)}
+                      loading={mutatingFlags.has(flag.featureKey)}
                       ariaLabel={`${flag.isEnabled ? 'Disable' : 'Enable'} ${meta?.label ?? flag.featureKey}`}
                     />
                   </div>
