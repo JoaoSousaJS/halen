@@ -46,91 +46,103 @@ export default function AuditLogPage() {
     }
   };
 
+  const resetFilters = () => {
+    setActionFilter('');
+    setTargetFilter('');
+    setFromFilter('');
+    setToFilter('');
+    setPage(1);
+  };
+
   const totalPages = data ? Math.ceil(data.totalCount / pageSize) : 0;
 
   return (
-    <div className="audit-log-page">
-      <div className="audit-log-header">
+    <div>
+      <div className="admin-page-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Audit Trail</h2>
-        <button className="btn btn-secondary" onClick={handleExport} disabled={exporting}>
+        <button className="btn btn-sm" onClick={handleExport} disabled={exporting}>
           {exporting ? 'Exporting…' : 'Export CSV'}
         </button>
       </div>
 
-      <div className="audit-log-filters">
+      <div className="admin-toolbar">
         <input
           type="text"
           placeholder="Filter by action…"
           value={actionFilter}
           onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-          className="input"
+          className="admin-search"
         />
         <input
           type="text"
           placeholder="Filter by target ID…"
           value={targetFilter}
           onChange={(e) => { setTargetFilter(e.target.value); setPage(1); }}
-          className="input"
+          className="admin-search"
         />
         <input
           type="date"
           value={fromFilter ? fromFilter.split('T')[0] : ''}
           onChange={(e) => { setFromFilter(e.target.value ? new Date(e.target.value).toISOString() : ''); setPage(1); }}
-          className="input"
+          className="admin-search"
+          aria-label="From date"
         />
         <input
           type="date"
           value={toFilter ? toFilter.split('T')[0] : ''}
           onChange={(e) => { setToFilter(e.target.value ? new Date(e.target.value).toISOString() : ''); setPage(1); }}
-          className="input"
+          className="admin-search"
+          aria-label="To date"
         />
       </div>
 
       {isLoading && (
-        <div className="audit-log-skeleton">
+        <div className="admin-table-wrap">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="skeleton-row" />
+            <div key={i} className="skeleton-row" style={{ height: 42, borderBottom: '1px solid var(--border)' }} />
           ))}
         </div>
       )}
 
       {!isLoading && data && data.logs.length === 0 && (
-        <div className="audit-log-empty">
-          <p>No audit logs found.</p>
-          <button className="link-btn" onClick={() => { setActionFilter(''); setTargetFilter(''); setFromFilter(''); setToFilter(''); }}>
-            Reset filters
-          </button>
+        <div className="admin-table-wrap" style={{ padding: 40, textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 8 }}>No audit logs found.</p>
+          <button className="btn btn-sm" onClick={resetFilters}>Reset filters</button>
         </div>
       )}
 
       {!isLoading && data && data.logs.length > 0 && (
         <>
-          <table className="audit-log-table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Actor</th>
-                <th>Action</th>
-                <th>Target</th>
-                <th>IP Address</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.logs.map((log) => (
-                <AuditLogRow
-                  key={log.id}
-                  log={log}
-                  expanded={expandedRow === log.id}
-                  onToggle={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
-                />
-              ))}
-            </tbody>
-          </table>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Actor</th>
+                  <th>Action</th>
+                  <th>Target</th>
+                  <th>IP Address</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.logs.map((log) => (
+                  <AuditLogRow
+                    key={log.id}
+                    log={log}
+                    expanded={expandedRow === log.id}
+                    onToggle={() => setExpandedRow(expandedRow === log.id ? null : log.id)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <div className="audit-log-pagination">
-            <button disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
-            <span>Page {page} of {totalPages}</span>
-            <button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</button>
+          <div className="admin-pagination">
+            <button className="btn btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</button>
+            <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+              Page {page} of {totalPages} · {data.totalCount} total
+            </span>
+            <button className="btn btn-sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</button>
           </div>
         </>
       )}
@@ -144,17 +156,19 @@ function AuditLogRow({ log, expanded, onToggle }: { log: AuditLogDto; expanded: 
 
   return (
     <>
-      <tr onClick={onToggle} className="audit-log-row" style={{ cursor: 'pointer' }}>
-        <td>{formatted}</td>
+      <tr onClick={onToggle} style={{ cursor: 'pointer' }}>
+        <td className="admin-mono">{formatted}</td>
         <td>{log.actorName}</td>
-        <td>{log.action}</td>
-        <td className="target-id">{log.targetId}</td>
-        <td>{log.ipAddress}</td>
+        <td><span className="chip">{log.action}</span></td>
+        <td className="admin-mono" style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis' }}>{log.targetId}</td>
+        <td className="admin-mono">{log.ipAddress}</td>
       </tr>
       {expanded && log.metadata && (
-        <tr className="audit-log-detail">
-          <td colSpan={5}>
-            <pre className="metadata-json">{formatJson(log.metadata)}</pre>
+        <tr>
+          <td colSpan={5} style={{ background: 'var(--surface-2)', padding: '12px 14px' }}>
+            <pre style={{ margin: 0, fontSize: 12, fontFamily: 'var(--font-mono)', whiteSpace: 'pre-wrap', color: 'var(--text-dim)' }}>
+              {formatJson(log.metadata)}
+            </pre>
           </td>
         </tr>
       )}
