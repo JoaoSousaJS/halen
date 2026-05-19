@@ -169,8 +169,213 @@ public class ClinicsControllerTests : IntegrationTestBase
         }
     }
 
+    [TestMethod]
+    public async Task CreateClinicAdmin_AsAdmin_ReturnsCreated()
+    {
+        var client = await AdminClientAsync();
+        var slug = $"adm-{Guid.NewGuid():N}"[..20];
+
+        var createResp = await client.PostAsJsonAsync("/api/v1/clinics", new { Name = "Admin Test", Slug = slug });
+        createResp.EnsureSuccessStatusCode();
+        var created = await createResp.Content.ReadFromJsonAsync<ClinicIdResponse>();
+
+        var resp = await client.PostAsJsonAsync($"/api/v1/clinics/{created!.ClinicId}/admins", new
+        {
+            Email = $"cadmin+{Guid.NewGuid():N}@test.com",
+            FirstName = "Clinic",
+            LastName = "Admin",
+            TemporaryPassword = "ClinicAdmin1234!",
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Created);
+        var body = await resp.Content.ReadFromJsonAsync<UserIdResponse>();
+        body!.UserId.Should().NotBeEmpty();
+    }
+
+    [TestMethod]
+    public async Task CreateClinicAdmin_AsPatient_Returns403()
+    {
+        var patient = await PatientClientAsync();
+
+        var resp = await patient.PostAsJsonAsync($"/api/v1/clinics/{Guid.NewGuid()}/admins", new
+        {
+            Email = "blocked@test.com",
+            FirstName = "Blocked",
+            LastName = "User",
+            TemporaryPassword = "Blocked1234!",
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [TestMethod]
+    public async Task CreateClinicAdmin_AsClinicAdmin_Returns403()
+    {
+        var admin = await AdminClientAsync();
+        var slug = $"ca403-{Guid.NewGuid():N}"[..20];
+        var createResp = await admin.PostAsJsonAsync("/api/v1/clinics", new { Name = "CA403", Slug = slug });
+        createResp.EnsureSuccessStatusCode();
+        var created = await createResp.Content.ReadFromJsonAsync<ClinicIdResponse>();
+        var clinicId = Guid.Parse(created!.ClinicId);
+
+        var clinicAdminClient = await CreateClinicAdminClientAsync(clinicId);
+
+        var resp = await clinicAdminClient.PostAsJsonAsync($"/api/v1/clinics/{clinicId}/admins", new
+        {
+            Email = "another@test.com",
+            FirstName = "Another",
+            LastName = "Admin",
+            TemporaryPassword = "Another1234!",
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [TestMethod]
+    public async Task CreateClinicAdmin_NonExistentClinic_Returns404()
+    {
+        var client = await AdminClientAsync();
+
+        var resp = await client.PostAsJsonAsync($"/api/v1/clinics/{Guid.NewGuid()}/admins", new
+        {
+            Email = "ghost@test.com",
+            FirstName = "Ghost",
+            LastName = "Clinic",
+            TemporaryPassword = "Ghost1234!",
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [TestMethod]
+    public async Task CreateClinicAdmin_InvalidEmail_Returns400()
+    {
+        var client = await AdminClientAsync();
+        var slug = $"inv-{Guid.NewGuid():N}"[..20];
+
+        var createResp = await client.PostAsJsonAsync("/api/v1/clinics", new { Name = "Invalid Email", Slug = slug });
+        var created = await createResp.Content.ReadFromJsonAsync<ClinicIdResponse>();
+
+        var resp = await client.PostAsJsonAsync($"/api/v1/clinics/{created!.ClinicId}/admins", new
+        {
+            Email = "not-an-email",
+            FirstName = "Bad",
+            LastName = "Email",
+            TemporaryPassword = "Password1234!",
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task CreateClinicAdmin_DuplicateEmail_Returns400()
+    {
+        var client = await AdminClientAsync();
+        var slug = $"dup-{Guid.NewGuid():N}"[..20];
+        var email = $"dupca+{Guid.NewGuid():N}@test.com";
+
+        var createResp = await client.PostAsJsonAsync("/api/v1/clinics", new { Name = "Dup Email", Slug = slug });
+        var created = await createResp.Content.ReadFromJsonAsync<ClinicIdResponse>();
+
+        await client.PostAsJsonAsync($"/api/v1/clinics/{created!.ClinicId}/admins", new
+        {
+            Email = email,
+            FirstName = "First",
+            LastName = "Admin",
+            TemporaryPassword = "First1234!",
+        });
+
+        var resp = await client.PostAsJsonAsync($"/api/v1/clinics/{created.ClinicId}/admins", new
+        {
+            Email = email,
+            FirstName = "Second",
+            LastName = "Admin",
+            TemporaryPassword = "Second1234!",
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task CreateClinicAdmin_InactiveClinic_Returns400()
+    {
+        var client = await AdminClientAsync();
+        var slug = $"inact-{Guid.NewGuid():N}"[..20];
+
+        var createResp = await client.PostAsJsonAsync("/api/v1/clinics", new { Name = "Inactive", Slug = slug });
+        var created = await createResp.Content.ReadFromJsonAsync<ClinicIdResponse>();
+
+        await client.PutAsJsonAsync($"/api/v1/clinics/{created!.ClinicId}", new
+        {
+            Name = "Inactive",
+            IsActive = false,
+        });
+
+        var resp = await client.PostAsJsonAsync($"/api/v1/clinics/{created.ClinicId}/admins", new
+        {
+            Email = $"inactive+{Guid.NewGuid():N}@test.com",
+            FirstName = "Inactive",
+            LastName = "Admin",
+            TemporaryPassword = "Inactive1234!",
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [TestMethod]
+    public async Task CreateClinicAdmin_VerifyCorrectClinicId()
+    {
+        var client = await AdminClientAsync();
+        var slug = $"verify-{Guid.NewGuid():N}"[..20];
+        var email = $"verify+{Guid.NewGuid():N}@test.com";
+
+        var createResp = await client.PostAsJsonAsync("/api/v1/clinics", new { Name = "Verify", Slug = slug });
+        var created = await createResp.Content.ReadFromJsonAsync<ClinicIdResponse>();
+        var clinicId = Guid.Parse(created!.ClinicId);
+
+        await client.PostAsJsonAsync($"/api/v1/clinics/{clinicId}/admins", new
+        {
+            Email = email,
+            FirstName = "Verify",
+            LastName = "Admin",
+            TemporaryPassword = "Verify1234!",
+        });
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+        var user = await db.Users.FirstAsync(u => u.Email == email);
+        user.ClinicId.Should().Be(clinicId);
+        user.Role.Should().Be(UserRole.ClinicAdmin);
+        user.Status.Should().Be(AccountStatus.Active);
+    }
+
+    private static async Task<HttpClient> CreateClinicAdminClientAsync(Guid clinicId)
+    {
+        var email = $"clinicadmin+{Guid.NewGuid():N}@test.com";
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<User>>();
+            var user = new User
+            {
+                Email = email,
+                UserName = email,
+                FirstName = "Clinic",
+                LastName = "Admin",
+                ClinicId = clinicId,
+                Role = UserRole.ClinicAdmin,
+                Status = AccountStatus.Active,
+            };
+            await userManager.CreateAsync(user, "ClinicAdmin1234!");
+            await userManager.AddToRoleAsync(user, "ClinicAdmin");
+        }
+
+        return await TestHelpers.GetBearerClientAsync(Factory, email, "ClinicAdmin1234!");
+    }
+
     private sealed record ClinicIdResponse(string ClinicId);
     private sealed record ListClinicsResponse(ClinicDto[] Clinics, int TotalCount);
     private sealed record ClinicDto(string Id, string Name, string Slug, bool IsActive, string CreatedAt);
     private sealed record FeatureFlagDto(string FeatureKey, bool IsEnabled);
+    private sealed record UserIdResponse(Guid UserId);
 }
