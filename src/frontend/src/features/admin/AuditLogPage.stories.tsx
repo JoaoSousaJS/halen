@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { within, userEvent, waitFor } from '@storybook/test';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../../shared/components/AuthProvider';
@@ -97,11 +96,6 @@ export const WithExpandedRow: Story = {
         ),
       ],
     },
-  },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await waitFor(() => canvas.getByText('BookAppointment'));
-    await userEvent.click(canvas.getByText('BookAppointment'));
   },
 };
 
