@@ -280,7 +280,7 @@ test.describe('Patient Journey — Dashboard to Medical Records', () => {
     await page.getByRole('button', { name: 'Save' }).click();
 
     // Verify the condition appears in the list
-    await expect(page.getByText('Asthma')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Asthma' })).toBeVisible();
     await expect(page.getByText('J45')).toBeVisible();
 
     // ── Step 4: Add an Allergy ─────────────────────────────────────────────
@@ -351,11 +351,11 @@ test.describe('Patient Journey — Dashboard to Medical Records', () => {
     await page.goto('/messages');
 
     await expect(page.getByText('Dr. House')).toBeVisible();
-    await expect(page.getByText('How are you feeling today?')).toBeVisible();
+    await expect(page.locator('.msg-thread-preview').getByText('How are you feeling today?')).toBeVisible();
 
     await page.getByText('Dr. House').click();
 
-    await expect(page.getByText('How are you feeling today?')).toBeVisible();
+    await expect(page.locator('.msg-text').getByText('How are you feeling today?')).toBeVisible();
 
     const messageInput = page.getByPlaceholder(/type a message/i);
     await messageInput.fill('Feeling much better after the medication');
