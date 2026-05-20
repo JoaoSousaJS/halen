@@ -1981,6 +1981,24 @@ body:has(.dialog-overlay) { overflow: hidden; }
   color: var(--accent);
 }
 
+.doctor-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.doctor-card-profile-link {
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color var(--t-base);
+}
+
+.doctor-card-profile-link:hover {
+  color: var(--accent);
+}
+
 /* ── Selected doctor (in booking form) ──────────── */
 
 .selected-doctor-card {
@@ -3917,5 +3935,294 @@ body:has(.dialog-overlay) { overflow: hidden; }
 
   .records-tabs [role="tablist"] {
     overflow-x: auto;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   DOCTOR PROFILE PAGE
+   ═══════════════════════════════════════════════════ */
+
+.doctor-profile-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ── Header ────────────────────────────────────────── */
+
+.doctor-profile-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.doctor-profile-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.doctor-profile-name-row h1 {
+  font-family: var(--font-display);
+  font-size: var(--size-display-lg);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-display);
+  margin: 0;
+}
+
+.doctor-profile-stats {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+}
+
+.doctor-profile-rating {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.doctor-profile-rating-value {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--text);
+  letter-spacing: var(--tracking-display);
+}
+
+.doctor-profile-stats > span:not(.doctor-profile-rating) {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--text);
+  letter-spacing: var(--tracking-display);
+}
+
+.doctor-profile-languages {
+  color: var(--text-dim);
+  font-size: var(--size-body-sm);
+  margin: 0;
+}
+
+/* ── Availability ──────────────────────────────────── */
+
+.doctor-profile-availability h2,
+.doctor-profile-reviews h2 {
+  font-family: var(--font-display);
+  font-size: var(--size-display-sm);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-display);
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.doctor-profile-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.doctor-profile-day {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.doctor-profile-day-name {
+  font-weight: 600;
+  font-size: var(--size-body-sm);
+}
+
+.doctor-profile-windows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.doctor-profile-window {
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+  background: var(--surface-2);
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+}
+
+/* ── Reviews section ───────────────────────────────── */
+
+.doctor-profile-reviews {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.doctor-profile-reviews-aggregate {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.doctor-profile-reviews-score {
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 1;
+  color: var(--text);
+  letter-spacing: var(--tracking-display);
+}
+
+.doctor-profile-reviews-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.doctor-profile-breakdown-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--size-body-xs);
+  color: var(--text-dim);
+}
+
+.doctor-profile-breakdown-bar {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+
+.doctor-profile-breakdown-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--r-pill);
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doctor-profile-breakdown-fill { transition: none; }
+}
+
+.doctor-profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.doctor-profile-reviews-sort {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Review items ──────────────────────────────────── */
+
+.doctor-profile-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.doctor-profile-review-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.doctor-profile-review-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.doctor-profile-review-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+}
+
+.doctor-profile-review-header span:first-child {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.doctor-profile-review-item h4 {
+  margin: 0;
+  font-size: var(--size-body);
+  font-weight: 600;
+}
+
+.doctor-profile-review-item p {
+  margin: 0;
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+  line-height: var(--lh-body);
+}
+
+.doctor-profile-review-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.doctor-profile-doctor-response {
+  background: var(--surface-2);
+  border-left: 3px solid var(--accent);
+  padding: 10px 14px;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  margin-top: 4px;
+}
+
+.doctor-profile-response-label {
+  font-size: var(--size-body-xs);
+  font-weight: 600;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.doctor-profile-doctor-response p {
+  margin: 0;
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+}
+
+/* ── Pagination ────────────────────────────────────── */
+
+.doctor-profile-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: var(--size-body-sm);
+  color: var(--text-dim);
+}
+
+/* ── Responsive ────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .doctor-profile-page {
+    padding: 24px 16px 48px;
+  }
+
+  .doctor-profile-day {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .doctor-profile-reviews-score {
+    font-size: 36px;
   }
 }
