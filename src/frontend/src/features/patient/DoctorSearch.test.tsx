@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DoctorSearch from './DoctorSearch';
 import type { DoctorSearchDto } from '../../shared/api/doctors';
@@ -30,7 +31,9 @@ function renderSearch(onSelect = vi.fn()) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
-      <DoctorSearch onSelect={onSelect} />
+      <MemoryRouter>
+        <DoctorSearch onSelect={onSelect} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 }

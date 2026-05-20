@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import type { DoctorSearchDto } from '../../shared/api/doctors';
 import { Button, Chip } from '../../shared/components';
 import { renderStars } from '../../shared/utils/renderStars';
@@ -45,9 +46,14 @@ export default function DoctorCard({ doctor, onSelect }: DoctorCardProps) {
         )}
       </div>
 
-      <Button variant="primary" size="sm" ariaLabel={`Select ${doctor.name}`} onClick={() => onSelect(doctor)}>
-        Select
-      </Button>
+      <div className="doctor-card-actions">
+        <Link to={`/doctors/${doctor.id}/profile`} className="doctor-card-profile-link">
+          View profile
+        </Link>
+        <Button variant="primary" size="sm" ariaLabel={`Select ${doctor.name}`} onClick={() => onSelect(doctor)}>
+          Select
+        </Button>
+      </div>
     </article>
   );
 }

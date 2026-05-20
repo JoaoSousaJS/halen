@@ -10,6 +10,7 @@ import DashboardPage from './features/auth/DashboardPage';
 import './index.css';
 
 const ProfilePage = lazy(() => import('./features/profile/ProfilePage'));
+const DoctorProfilePage = lazy(() => import('./features/patient/DoctorProfilePage'));
 const ConsultationPage = lazy(() => import('./features/video-consultation/ConsultationPage'));
 const MedicalRecordsPage = lazy(() => import('./features/patient/medical-records/MedicalRecordsPage'));
 const MessagingPage = lazy(() => import('./features/messaging/MessagingPage'));
@@ -49,6 +50,16 @@ function Router() {
           <PrivateRoute>
             <Suspense fallback={<div className="text-dim">Loading…</div>}>
               <ProfilePage />
+            </Suspense>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/doctors/:id/profile"
+        element={
+          <PrivateRoute>
+            <Suspense fallback={<div className="text-dim">Loading…</div>}>
+              <DoctorProfilePage />
             </Suspense>
           </PrivateRoute>
         }
