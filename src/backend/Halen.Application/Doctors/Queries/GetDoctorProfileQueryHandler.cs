@@ -37,6 +37,7 @@ public class GetDoctorProfileQueryHandler(IAppDbContext db)
                 d.Languages,
                 d.AverageRating,
                 d.ReviewCount,
+                d.ClinicId,
             })
             .FirstOrDefaultAsync(ct);
 
@@ -48,7 +49,8 @@ public class GetDoctorProfileQueryHandler(IAppDbContext db)
             return GetDoctorProfileResult.NotFound("Doctor profile not found.");
 
         var availability = await BuildAvailability(request.DoctorProfileId, ct);
-        var (reviewsSummary, reviews, reviewTotalCount) = await BuildReviews(request, ct);
+        var (reviewsSummary, reviews, reviewTotalCount) = await BuildReviews(
+            request, raw.ClinicId, raw.AverageRating, ct);
 
         return GetDoctorProfileResult.Ok(doctor, availability, reviewsSummary, reviews, reviewTotalCount);
     }
@@ -74,13 +76,10 @@ public class GetDoctorProfileQueryHandler(IAppDbContext db)
     }
 
     private async Task<(ReviewsSummaryDto?, IReadOnlyList<ReviewDto>, int)> BuildReviews(
-        GetDoctorProfileQuery request, CancellationToken ct)
+        GetDoctorProfileQuery request, Guid clinicId, decimal? averageRating, CancellationToken ct)
     {
         var reviewsEnabled = await db.ClinicFeatureFlags.AsNoTracking()
-            .Where(f => f.ClinicId == db.DoctorProfiles.AsNoTracking()
-                .Where(d => d.Id == request.DoctorProfileId)
-                .Select(d => d.ClinicId)
-                .FirstOrDefault())
+            .Where(f => f.ClinicId == clinicId)
             .Where(f => f.FeatureKey == FeatureKeys.DoctorReviews && f.IsEnabled)
             .AnyAsync(ct);
 
@@ -114,9 +113,6 @@ public class GetDoctorProfileQueryHandler(IAppDbContext db)
             .Take(8)
             .ToList();
 
-        var doctorProfile = await db.DoctorProfiles.AsNoTracking()
-            .FirstOrDefaultAsync(d => d.Id == request.DoctorProfileId, ct);
-
         IQueryable<Domain.Entities.Review> sorted = request.ReviewSortBy switch
         {
             "highest" => baseQuery.OrderByDescending(r => r.Rating).ThenByDescending(r => r.CreatedAt),
@@ -142,7 +138,7 @@ public class GetDoctorProfileQueryHandler(IAppDbContext db)
             .ToListAsync(ct);
 
         var summary = new ReviewsSummaryDto(
-            doctorProfile?.AverageRating,
+            averageRating,
             totalCount,
             ratingBreakdown,
             topTags);

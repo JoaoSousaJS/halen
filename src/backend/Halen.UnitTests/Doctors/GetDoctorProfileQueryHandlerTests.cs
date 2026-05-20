@@ -236,6 +236,17 @@ public class GetDoctorProfileQueryHandlerTests
     }
 
     [TestMethod]
+    public async Task Reviews_sorted_by_lowest_rating()
+    {
+        var result = await _handler.Handle(
+            new GetDoctorProfileQuery(_doctorProfileId, ReviewSortBy: "lowest"), CancellationToken.None);
+
+        result.Reviews![0].Rating.Should().Be(3);
+        result.Reviews[1].Rating.Should().Be(4);
+        result.Reviews[2].Rating.Should().Be(5);
+    }
+
+    [TestMethod]
     public async Task Reviews_sorted_by_helpful_count()
     {
         var result = await _handler.Handle(

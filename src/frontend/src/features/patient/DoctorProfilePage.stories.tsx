@@ -45,7 +45,7 @@ const fullProfile: DoctorProfileResponse = {
   ],
   reviewsSummary: {
     averageRating: 4.7,
-    totalCount: 48,
+    reviewCount: 48,
     ratingBreakdown: [
       { stars: 5, count: 30 },
       { stars: 4, count: 12 },

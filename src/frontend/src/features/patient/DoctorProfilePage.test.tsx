@@ -53,7 +53,7 @@ const mockProfileData: DoctorProfileResponse = {
   ],
   reviewsSummary: {
     averageRating: 4.5,
-    totalCount: 3,
+    reviewCount: 3,
     ratingBreakdown: [
       { stars: 5, count: 1 },
       { stars: 4, count: 1 },
@@ -232,6 +232,38 @@ describe('DoctorProfilePage', () => {
         expect.objectContaining({ reviewSortBy: 'highest' }),
       );
     });
+  });
+
+  it('shows pagination when reviewTotalCount exceeds page size', async () => {
+    mockGetDoctorProfile.mockResolvedValue({
+      ...mockProfileData,
+      reviewTotalCount: 25,
+    });
+    renderPage();
+
+    await screen.findByText('Dr. Ana Costa');
+    expect(screen.getByText('Page 1 of 3')).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Previous page' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Next page' })).toBeDefined();
+  });
+
+  it('previous button disabled on first page', async () => {
+    mockGetDoctorProfile.mockResolvedValue({
+      ...mockProfileData,
+      reviewTotalCount: 25,
+    });
+    renderPage();
+
+    await screen.findByText('Dr. Ana Costa');
+    const prevBtn = screen.getByRole('button', { name: 'Previous page' });
+    expect(prevBtn.hasAttribute('disabled')).toBe(true);
+  });
+
+  it('hides pagination when reviews fit one page', async () => {
+    renderPage();
+
+    await screen.findByText('Dr. Ana Costa');
+    expect(screen.queryByText(/Page \d+ of/)).toBeNull();
   });
 
   it('navigates to dashboard on book button click', async () => {

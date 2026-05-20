@@ -72,7 +72,7 @@ export interface TagCountDto {
 
 export interface ReviewsSummaryDto {
   averageRating: number | null;
-  totalCount: number;
+  reviewCount: number;
   ratingBreakdown: RatingBreakdownDto[];
   topTags: TagCountDto[];
 }

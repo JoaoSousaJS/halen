@@ -105,14 +105,14 @@ export default function DoctorProfilePage() {
                 ? renderStars(Math.round(reviewsSummary.averageRating))
                 : '☆☆☆☆☆'}
             </span>
-            <span>{reviewsSummary.totalCount} {reviewsSummary.totalCount === 1 ? 'review' : 'reviews'}</span>
+            <span>{reviewsSummary.reviewCount} {reviewsSummary.reviewCount === 1 ? 'review' : 'reviews'}</span>
           </div>
 
           <div className="doctor-profile-reviews-breakdown" aria-label="Rating breakdown">
             {[5, 4, 3, 2, 1].map((stars) => {
               const entry = reviewsSummary.ratingBreakdown.find((b) => b.stars === stars);
               const count = entry?.count ?? 0;
-              const pct = reviewsSummary.totalCount > 0 ? (count / reviewsSummary.totalCount) * 100 : 0;
+              const pct = reviewsSummary.reviewCount > 0 ? (count / reviewsSummary.reviewCount) * 100 : 0;
               return (
                 <div key={stars} className="doctor-profile-breakdown-row">
                   <span>{stars} star{stars > 1 ? 's' : ''}</span>
