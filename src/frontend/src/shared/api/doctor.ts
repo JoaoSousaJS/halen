@@ -22,6 +22,16 @@ export interface SubmitKycFiles {
   identityProof: File;
 }
 
+export interface DoctorPatientDto {
+  patientId: string;
+  name: string;
+}
+
+export async function getMyPatients(): Promise<DoctorPatientDto[]> {
+  const { data } = await client.get<{ patients: DoctorPatientDto[] }>('/api/v1/doctor/patients');
+  return data.patients;
+}
+
 export async function getKycStatus(): Promise<KycStatusResponse> {
   const { data } = await client.get<KycStatusResponse>('/api/v1/doctor/kyc/status');
   return data;

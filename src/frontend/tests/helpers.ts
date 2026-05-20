@@ -159,12 +159,16 @@ export async function mockDoctorRoutes(
   page: Page,
   kycStatus: object = { status: 'Approved', submittedAt: null, lastRejectionReason: null, documents: [] },
   availability: object = { windows: [] },
+  patients: object[] = [],
 ): Promise<void> {
   await page.route('**/api/v1/doctor/kyc/status', (route) =>
     route.fulfill({ status: 200, json: kycStatus }),
   );
   await page.route('**/api/v1/availability/mine', (route) =>
     route.fulfill({ status: 200, json: availability }),
+  );
+  await page.route('**/api/v1/doctor/patients', (route) =>
+    route.fulfill({ status: 200, json: { patients } }),
   );
 }
 

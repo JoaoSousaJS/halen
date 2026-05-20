@@ -44,7 +44,9 @@ test.describe('Doctor Dashboard — Prescriptions', () => {
       ],
       appointments: mockAppointments,
     });
-    await mockDoctorRoutes(page);
+    await mockDoctorRoutes(page, undefined, undefined, [
+      { patientId: 'patient-1', name: 'Maya Chen' },
+    ]);
   });
 
   test('shows prescriptions list', async ({ page }) => {

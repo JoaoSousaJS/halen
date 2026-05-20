@@ -84,8 +84,8 @@ test.describe('Doctor — Availability Management', () => {
     await mondayCard.getByRole('button', { name: '+ Add window' }).click();
 
     // Fill in start and end time
-    await mondayCard.getByLabel('Start').fill('09:00');
-    await mondayCard.getByLabel('End').fill('12:00');
+    await mondayCard.getByLabel('Start').selectOption('09:00');
+    await mondayCard.getByLabel('End').selectOption('12:00');
 
     // Click "Add" to add the window
     await mondayCard.getByRole('button', { name: 'Add' }).click();

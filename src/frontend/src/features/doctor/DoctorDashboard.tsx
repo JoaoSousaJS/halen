@@ -16,7 +16,7 @@ import {
 import type { IssuePrescriptionPayload } from '../../shared/api/prescriptions';
 import { useNotifications } from '../../shared/hooks/useNotifications';
 import { ToastContainer } from '../../shared/components/ToastContainer';
-import { getKycStatus } from '../../shared/api/doctor';
+import { getKycStatus, getMyPatients } from '../../shared/api/doctor';
 import KycSetup from './KycSetup';
 import AvailabilityEditor from './AvailabilityEditor';
 import { FeatureGate } from '../../shared/components/FeatureGate';
@@ -36,8 +36,9 @@ export default function DoctorDashboard() {
   const [rxForm, setRxForm] = useState({ patientId: '', drugName: '', dosage: '', frequency: '', refillsRemaining: 0, pharmacyName: '' });
   const [rxSuccess, setRxSuccess] = useState('');
 
-  const appointments = useQuery({ queryKey: ['my-appointments'], queryFn: getMyAppointments });
+  const appointments = useQuery({ queryKey: ['my-appointments'], queryFn: getMyAppointments, refetchInterval: 30_000 });
   const prescriptions = useQuery({ queryKey: ['my-prescriptions'], queryFn: getMyPrescriptions });
+  const patients = useQuery({ queryKey: ['my-patients'], queryFn: getMyPatients });
 
   const cancel = useMutation({
     mutationFn: cancelAppointment,
@@ -54,6 +55,7 @@ export default function DoctorDashboard() {
       setCompletingId(null);
       setNotesMap((prev) => { const next = { ...prev }; delete next[id]; return next; });
       queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['my-patients'] });
     },
   });
 
@@ -72,13 +74,10 @@ export default function DoctorDashboard() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-prescriptions'] }),
   });
 
-  const uniquePatients = appointments.data
-    ?.reduce<{ id: string; name: string }[]>((acc, a) => {
-      if (!acc.some((p) => p.id === a.patientId)) {
-        acc.push({ id: a.patientId, name: a.patientName });
-      }
-      return acc;
-    }, []) ?? [];
+  const uniquePatients = patients.data?.map((p) => ({
+    id: p.patientId,
+    name: p.name,
+  })) ?? [];
 
   function handleIssue(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

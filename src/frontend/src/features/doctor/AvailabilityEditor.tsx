@@ -15,6 +15,22 @@ const DAYS = [
   'Sunday',
 ] as const;
 
+const TIME_OPTIONS: { value: string; label: string }[] = (() => {
+  const opts: { value: string; label: string }[] = [];
+  for (let h = 0; h < 24; h++) {
+    for (const m of [0, 30]) {
+      const hh = String(h).padStart(2, '0');
+      const mm = String(m).padStart(2, '0');
+      const value = `${hh}:${mm}`;
+      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const ampm = h < 12 ? 'AM' : 'PM';
+      const label = `${hour12}:${mm} ${ampm}`;
+      opts.push({ value, label });
+    }
+  }
+  return opts;
+})();
+
 type SlotMap = Record<DayOfWeek, AvailabilitySlot[]>;
 
 function emptySlotMap(): SlotMap {
@@ -155,28 +171,34 @@ export default function AvailabilityEditor() {
 
             {addingDay === day ? (
               <div className="avail-add-form">
-                <div className="field-row">
+                <div className="avail-time-row">
                   <label className="field">
                     <span>Start</span>
-                    <input
-                      type="time"
+                    <select
                       value={newStart}
                       onChange={(e) => {
                         setNewStart(e.target.value);
                         setValidationError(null);
                       }}
-                    />
+                    >
+                      {TIME_OPTIONS.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
                   </label>
                   <label className="field">
                     <span>End</span>
-                    <input
-                      type="time"
+                    <select
                       value={newEnd}
                       onChange={(e) => {
                         setNewEnd(e.target.value);
                         setValidationError(null);
                       }}
-                    />
+                    >
+                      {TIME_OPTIONS.map((t) => (
+                        <option key={t.value} value={t.value}>{t.label}</option>
+                      ))}
+                    </select>
                   </label>
                 </div>
                 {validationError ? (
@@ -205,8 +227,8 @@ export default function AvailabilityEditor() {
                 size="sm"
                 onClick={() => {
                   setAddingDay(day);
-                  setNewStart('');
-                  setNewEnd('');
+                  setNewStart('09:00');
+                  setNewEnd('17:00');
                   setValidationError(null);
                 }}
               >

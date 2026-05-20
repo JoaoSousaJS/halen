@@ -33,6 +33,14 @@ export const Ghost: Story = {
   args: { variant: 'ghost', children: 'Cancel' },
 };
 
+export const Secondary: Story = {
+  args: { variant: 'secondary', children: 'Export CSV' },
+};
+
+export const Large: Story = {
+  args: { size: 'lg', variant: 'primary', children: 'Get started' },
+};
+
 export const Small: Story = {
   args: { size: 'sm', children: 'Small button' },
 };
@@ -69,10 +77,12 @@ export const AllVariants: Story = {
     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
       <Button>Default</Button>
       <Button variant="primary">Primary</Button>
+      <Button variant="secondary">Secondary</Button>
       <Button variant="danger">Danger</Button>
       <Button variant="ghost">Ghost</Button>
       <Button size="sm">Small</Button>
       <Button variant="primary" size="sm">Small Primary</Button>
+      <Button variant="primary" size="lg">Large Primary</Button>
       <Button disabled>Disabled</Button>
     </div>
   ),

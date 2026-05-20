@@ -281,20 +281,43 @@ html, body {
 /* ── Buttons ──────────────────────────────────── */
 
 .btn {
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: var(--r-sm);
   cursor: pointer;
   font-family: inherit;
   font-size: var(--size-body);
   font-weight: var(--weight-medium);
-  padding: 11px 18px;
-  transition: opacity var(--t-base);
+  line-height: 1;
+  padding: 10px 16px;
+  white-space: nowrap;
+  transition: background var(--t-base), border-color var(--t-base), color var(--t-base), opacity var(--t-base);
+  user-select: none;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--border-bright);
+  background: var(--surface);
 }
 
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.btn-primary  { background: var(--accent); color: var(--accent-ink); }
-.btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: transparent;
+}
+
 .btn-block { width: 100%; }
 
 /* ── Misc ─────────────────────────────────────── */
@@ -333,8 +356,8 @@ html, body {
 .dashboard-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 32px;
+  gap: 20px;
+  padding: 18px 28px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -678,14 +701,19 @@ html, body {
 
 /* ── Small & danger buttons ──────────────────── */
 
-.btn-sm { padding: 6px 14px; font-size: 12px; }
+.btn-sm { padding: 6px 12px; font-size: 12px; gap: 6px; }
+.btn-lg { padding: 14px 22px; font-size: 15px; }
 
 .btn-danger {
   background: transparent;
   border: 1px solid var(--danger);
   color: var(--danger);
 }
-.btn-danger:hover:not(:disabled) { background: rgba(255,107,107,0.1); }
+.btn-danger:hover:not(:disabled) {
+  background: rgba(255,107,107,0.08);
+  border-color: var(--danger);
+  color: var(--danger);
+}
 
 /* ── Toast notifications ────────────────────── */
 
@@ -758,7 +786,9 @@ html, body {
   font-family: inherit;
   font-size: var(--size-body-sm);
   font-weight: var(--weight-medium);
-  padding: 6px 14px;
+  line-height: 1;
+  padding: 7px 14px;
+  white-space: nowrap;
   transition: color var(--t-base), background var(--t-base);
 }
 
@@ -839,9 +869,10 @@ html, body {
   font-family: inherit;
   font-size: var(--size-body-xs);
   font-weight: var(--weight-medium);
-  padding: 6px 12px;
-  transition: color var(--t-base), background var(--t-base);
+  line-height: 1;
+  padding: 7px 12px;
   white-space: nowrap;
+  transition: color var(--t-base), background var(--t-base);
 }
 .admin-pill-tab button:hover { color: var(--text); }
 .admin-pill-tab button.on {
@@ -1372,8 +1403,19 @@ body:has(.dialog-overlay) { overflow: hidden; }
   color: var(--text-dim);
 }
 .btn-ghost:hover:not(:disabled) {
+  background: transparent;
   border-color: var(--border-bright);
   color: var(--text);
+}
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--border-bright);
 }
 
 /* ── Field hint ────────────────────────────────── */
@@ -1737,7 +1779,7 @@ body:has(.dialog-overlay) { overflow: hidden; }
 
 .avail-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 12px;
 }
 
@@ -1787,8 +1829,18 @@ body:has(.dialog-overlay) { overflow: hidden; }
   gap: 8px;
 }
 
+.avail-time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.avail-time-row .field { min-width: 0; }
+.avail-time-row select { width: 100%; font-size: 12px; }
+
 .avail-add-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 

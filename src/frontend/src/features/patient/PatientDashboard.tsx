@@ -55,7 +55,7 @@ export default function PatientDashboard() {
 
   const doctorId = selectedDoctor?.id ?? '';
 
-  const appointments = useQuery({ queryKey: ['my-appointments'], queryFn: getMyAppointments });
+  const appointments = useQuery({ queryKey: ['my-appointments'], queryFn: getMyAppointments, refetchInterval: 30_000 });
   const prescriptions = useQuery({ queryKey: ['my-prescriptions'], queryFn: getMyPrescriptions });
 
   const doctorAvailability = useQuery({
