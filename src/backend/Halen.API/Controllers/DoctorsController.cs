@@ -39,4 +39,29 @@ public class DoctorsController(IMediator mediator) : HalenControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("{id:guid}/profile")]
+    [Authorize(Policy = "PatientOnly")]
+    public async Task<IActionResult> GetProfile(
+        Guid id,
+        [FromQuery] int reviewPage = 1,
+        [FromQuery] int reviewPageSize = 10,
+        [FromQuery] string reviewSortBy = "newest",
+        CancellationToken ct = default)
+    {
+        var result = await mediator.Send(
+            new GetDoctorProfileQuery(id, reviewPage, reviewPageSize, reviewSortBy), ct);
+
+        if (!result.Success)
+            return MapError(result.Error, result.Kind);
+
+        return Ok(new
+        {
+            doctor = result.Doctor,
+            availability = result.Availability,
+            reviewsSummary = result.ReviewsSummary,
+            reviews = result.Reviews,
+            reviewTotalCount = result.ReviewTotalCount,
+        });
+    }
 }
