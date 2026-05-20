@@ -75,6 +75,13 @@ public class DoctorController(IMediator mediator, IFileStorage fileStorage) : Ha
         return Ok(result);
     }
 
+    [HttpGet("patients")]
+    public async Task<IActionResult> GetMyPatients(CancellationToken ct)
+    {
+        var result = await mediator.Send(new GetDoctorPatientsQuery(GetUserId()), ct);
+        return Ok(new { patients = result });
+    }
+
     private async Task CleanupFiles(List<string> paths, CancellationToken ct)
     {
         foreach (var path in paths)
