@@ -120,6 +120,116 @@ public class DoctorsControllerTests : IntegrationTestBase
         body.Specialties.Should().OnlyHaveUniqueItems();
     }
 
+    // ── GetProfile Tests ──────────────────────────────────────────────────
+
+    [TestMethod]
+    public async Task GetProfile_ApprovedDoctor_ReturnsFullProfile()
+    {
+        var patient = await PatientClientAsync();
+        var (doctorId, _) = await CreateDoctorWithClientAsync("ProfileDoc");
+
+        var response = await patient.GetAsync($"/api/v1/doctors/{doctorId}/profile");
+
+        var responseBody = await response.Content.ReadAsStringAsync();
+        response.StatusCode.Should().Be(HttpStatusCode.OK, responseBody);
+        var body = await response.Content.ReadFromJsonAsync<ProfileResponse>();
+        body!.Doctor.Should().NotBeNull();
+        body.Doctor.Name.Should().Contain("ProfileDoc");
+        body.Doctor.Specialty.Should().Be("General");
+        body.Doctor.ConsultationFee.Should().Be(100);
+        body.Availability.Should().NotBeEmpty();
+    }
+
+    [TestMethod]
+    public async Task GetProfile_NonExistentId_Returns404()
+    {
+        var patient = await PatientClientAsync();
+
+        var response = await patient.GetAsync($"/api/v1/doctors/{Guid.NewGuid()}/profile");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [TestMethod]
+    public async Task GetProfile_UnapprovedDoctor_Returns404()
+    {
+        var patient = await PatientClientAsync();
+        var (doctorId, _) = await CreateDoctorWithClientAsync("Unapproved", approveKyc: false);
+
+        var response = await patient.GetAsync($"/api/v1/doctors/{doctorId}/profile");
+
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [TestMethod]
+    public async Task GetProfile_WithoutAuth_Returns401()
+    {
+        var anon = Factory.CreateClient();
+        var (doctorId, _) = await CreateDoctorWithClientAsync("AnonProfile");
+
+        var response = await anon.GetAsync($"/api/v1/doctors/{doctorId}/profile");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [TestMethod]
+    public async Task GetProfile_AsDoctorRole_Returns403()
+    {
+        var (doctorId, doctorClient) = await CreateDoctorWithClientAsync("SelfProfile");
+
+        var response = await doctorClient.GetAsync($"/api/v1/doctors/{doctorId}/profile");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [TestMethod]
+    public async Task GetProfile_ReviewPagination_ReturnsCorrectPage()
+    {
+        var (doctorId, doctor) = await CreateDoctorWithClientAsync("PaginatedReviews");
+        var patient = await PatientClientAsync();
+
+        for (var i = 0; i < 3; i++)
+        {
+            var bookResp = await patient.PostAsJsonAsync("/api/v1/appointments", new
+            {
+                DoctorId = doctorId,
+                ScheduledAt = DateTime.UtcNow.Date.AddDays(1 + i).AddHours(10),
+                Reason = $"Review visit {i}",
+            });
+            bookResp.EnsureSuccessStatusCode();
+            var booked = await bookResp.Content.ReadFromJsonAsync<BookResponse>();
+
+            var completeResp = await doctor.PostAsJsonAsync(
+                $"/api/v1/appointments/{booked!.AppointmentId}/complete",
+                new { Notes = "Done" });
+            completeResp.EnsureSuccessStatusCode();
+
+            var reviewResp = await patient.PostAsJsonAsync("/api/v1/reviews", new
+            {
+                AppointmentId = booked.AppointmentId,
+                Rating = 5 - i,
+                Title = $"Review {i}",
+                Body = $"Body {i}",
+                Tags = new[] { "thorough" },
+            });
+            reviewResp.EnsureSuccessStatusCode();
+        }
+
+        await TestHelpers.ApproveAllPendingReviewsAsync(Factory, doctorId);
+
+        var page1 = await patient.GetAsync($"/api/v1/doctors/{doctorId}/profile?reviewPage=1&reviewPageSize=2");
+        page1.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body1 = await page1.Content.ReadFromJsonAsync<ProfileResponse>();
+        body1!.Reviews.Should().HaveCount(2);
+        body1.ReviewTotalCount.Should().Be(3);
+
+        var page2 = await patient.GetAsync($"/api/v1/doctors/{doctorId}/profile?reviewPage=2&reviewPageSize=2");
+        page2.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body2 = await page2.Content.ReadFromJsonAsync<ProfileResponse>();
+        body2!.Reviews.Should().HaveCount(1);
+        body2.ReviewTotalCount.Should().Be(3);
+    }
+
     // ── Auth / Role Tests ───────────────────────────────────────────────────
 
     [TestMethod]
@@ -160,4 +270,28 @@ public class DoctorsControllerTests : IntegrationTestBase
     private sealed record SearchResponse(DoctorSearchDto[] Doctors, int TotalCount);
 
     private sealed record SpecialtiesResponse(string[] Specialties);
+
+    private sealed record BookResponse(Guid AppointmentId);
+
+    private sealed record ProfileDoctorDto(
+        Guid Id, string Name, string Specialty, decimal ConsultationFee,
+        int YearsOfExperience, string[] Languages, decimal? AverageRating, int ReviewCount);
+
+    private sealed record AvailabilityDayDto(string DayOfWeek, TimeWindowDto[] Windows);
+
+    private sealed record TimeWindowDto(string StartTime, string EndTime, int SlotDurationMinutes);
+
+    private sealed record ReviewDto(
+        Guid Id, int Rating, string Title, string? Body, string[] Tags,
+        string PostedAs, int HelpfulCount, string? DoctorResponse,
+        DateTime? DoctorRespondedAt, DateTime CreatedAt);
+
+    private sealed record ReviewsSummaryDto(decimal? AverageRating, int TotalCount);
+
+    private sealed record ProfileResponse(
+        ProfileDoctorDto Doctor,
+        AvailabilityDayDto[] Availability,
+        ReviewsSummaryDto? ReviewsSummary,
+        ReviewDto[] Reviews,
+        int ReviewTotalCount);
 }

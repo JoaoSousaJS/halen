@@ -48,5 +48,18 @@ internal static class TestHelpers
         await db.SaveChangesAsync();
     }
 
+    public static async Task ApproveAllPendingReviewsAsync(HalenWebApplicationFactory factory, Guid doctorProfileId)
+    {
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<HalenDbContext>();
+        var pending = await db.Reviews
+            .Where(r => r.DoctorProfileId == doctorProfileId
+                && r.ModerationStatus == ReviewModerationStatus.Pending)
+            .ToListAsync();
+        foreach (var review in pending)
+            review.ModerationStatus = ReviewModerationStatus.Approved;
+        await db.SaveChangesAsync();
+    }
+
     private sealed record TokenResponse(string Token);
 }
